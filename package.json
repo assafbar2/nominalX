@@ -1,0 +1,28 @@
+{
+  "name": "nominalx",
+  "version": "0.1.0",
+  "private": true,
+  "description": "Executable three-gate flight-readiness engine and CLI for customer-facing engineering teams (Stages 2 -> 4)",
+  "packageManager": "pnpm@10.33.4",
+  "engines": {
+    "node": ">=20.0.0"
+  },
+  "scripts": {
+    "typecheck": "pnpm --filter @nominalx/core build && pnpm -r typecheck",
+    "build": "pnpm -r build",
+    "test": "pnpm -r test",
+    "test:unit": "pnpm --filter @nominalx/core test",
+    "test:e2e": "pnpm --filter nominalx test",
+    "clean": "pnpm -r clean"
+  },
+  "devDependencies": {
+    "@types/node": "^22.10.2",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  },
+  "pnpm": {
+    "onlyBuiltDependencies": [
+      "esbuild"
+    ]
+  }
+}

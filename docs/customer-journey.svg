@@ -1,0 +1,164 @@
+<svg xmlns="http://www.w3.org/2000/svg" viewBox="0 0 1280 420" width="1280" height="420" role="img" aria-labelledby="title desc">
+  <title id="title">NominalX Customer Engineering Lifecycle: Stages 1 to 6 and The Unverified Gap (Stages 2 to 4)</title>
+  <desc id="desc">Customer journey pipeline across Stage 1 Deal Close, Stages 2 to 4 The Unverified Gap (Gate 1 Flight Check 1-6/6, Gate 2 Static Fire 1-7/7, Gate 3 Crew Drill 1-3/3 plus Signed Dossier), Stage 5 Support, and Stage 6 Renewal and Expansion.</desc>
+  <defs>
+    <linearGradient id="bgGrad" x1="0%" y1="0%" x2="100%" y2="100%">
+      <stop offset="0%" stop-color="#070B14" />
+      <stop offset="100%" stop-color="#0E1729" />
+    </linearGradient>
+    <linearGradient id="gapZone" x1="0%" y1="0%" x2="0%" y2="100%">
+      <stop offset="0%" stop-color="#38BDF8" stop-opacity="0.14" />
+      <stop offset="100%" stop-color="#38BDF8" stop-opacity="0.04" />
+    </linearGradient>
+    <linearGradient id="railGrad" x1="0%" y1="0%" x2="100%" y2="0%">
+      <stop offset="0%" stop-color="#22C55E" />
+      <stop offset="35%" stop-color="#38BDF8" />
+      <stop offset="70%" stop-color="#38BDF8" />
+      <stop offset="100%" stop-color="#22C55E" />
+    </linearGradient>
+  </defs>
+
+  <!-- Outer Frame -->
+  <rect x="0" y="0" width="1280" height="420" rx="20" fill="url(#bgGrad)" stroke="#1E293B" stroke-width="2" />
+
+  <!-- Subtle Header Strip -->
+  <text x="36" y="42" fill="#38BDF8" font-family="ui-monospace, SFMono-Regular, Menlo, monospace" font-size="13" font-weight="800" letter-spacing="2">NOMINALX · CUSTOMER ENGINEERING LIFECYCLE (STAGES 1 → 6)</text>
+  <text x="36" y="64" fill="#94A3B8" font-family="-apple-system, BlinkMacSystemFont, 'Segoe UI', sans-serif" font-size="14" font-weight="600">Sales says the account is green. Nothing is nominal until telemetry proves it.</text>
+
+  <!-- Legend Chips Top Right -->
+  <rect x="850" y="24" width="128" height="28" rx="14" fill="#22C55E" fill-opacity="0.14" stroke="#22C55E" stroke-opacity="0.6" />
+  <circle cx="868" cy="38" r="5" fill="#22C55E" />
+  <text x="880" y="42" fill="#4ADE80" font-family="ui-monospace, monospace" font-size="11" font-weight="800">NOMINAL</text>
+
+  <rect x="990" y="24" width="132" height="28" rx="14" fill="#EF4444" fill-opacity="0.15" stroke="#EF4444" stroke-opacity="0.6" />
+  <circle cx="1008" cy="38" r="5" fill="#EF4444" />
+  <text x="1020" y="42" fill="#F87171" font-family="ui-monospace, monospace" font-size="11" font-weight="800">HARD STOP</text>
+
+  <rect x="1134" y="24" width="112" height="28" rx="14" fill="#F59E0B" fill-opacity="0.15" stroke="#F59E0B" stroke-opacity="0.6" />
+  <circle cx="1152" cy="38" r="5" fill="#F59E0B" />
+  <text x="1164" y="42" fill="#FBBF24" font-family="ui-monospace, monospace" font-size="11" font-weight="800">WAIVED</text>
+
+  <!-- Highlighted Unverified Gap Enclosure (Stages 2 -> 4) -->
+  <rect x="218" y="84" width="676" height="278" rx="18" fill="url(#gapZone)" stroke="#38BDF8" stroke-width="2" stroke-dasharray="7 5" />
+  <rect x="386" y="72" width="340" height="24" rx="12" fill="#0B1324" stroke="#38BDF8" stroke-width="1.6" />
+  <text x="556" y="88" text-anchor="middle" fill="#7DD3FC" font-family="ui-monospace, monospace" font-size="11.5" font-weight="800" letter-spacing="1.4">THE UNVERIFIED GAP · STAGES 2 → 4</text>
+
+  <!-- Connecting Pipeline Conduit -->
+  <line x1="115" y1="224" x2="1170" y2="224" stroke="url(#railGrad)" stroke-width="3.5" stroke-opacity="0.7" />
+
+  <!-- STAGE 1: DEAL CLOSE -->
+  <g transform="translate(32, 114)">
+    <rect width="168" height="218" rx="14" fill="#111A2E" stroke="#334155" stroke-width="1.8" />
+    <rect width="168" height="5" rx="2.5" fill="#22C55E" />
+    <text x="16" y="32" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="11" font-weight="800">PRE-GAP SEED</text>
+    <text x="16" y="62" fill="#F8FAFC" font-family="ui-monospace, monospace" font-size="28" font-weight="800">01</text>
+    <text x="16" y="88" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Stage 1:</text>
+    <text x="16" y="108" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Deal Close</text>
+    <text x="16" y="136" fill="#7DD3FC" font-family="ui-monospace, monospace" font-size="11" font-weight="700">nominalx.yaml</text>
+    <text x="16" y="153" fill="#94A3B8" font-family="-apple-system, sans-serif" font-size="11.5">Contract Seed</text>
+    <line x1="16" y1="170" x2="152" y2="170" stroke="#1E293B" />
+    <text x="16" y="188" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="10" font-weight="700">OWNER: LEAD SE / SA</text>
+    <rect x="16" y="198" width="136" height="6" rx="3" fill="#22C55E" />
+  </g>
+
+  <!-- STAGE 2: GATE 1 FLIGHT CHECK -->
+  <g transform="translate(234, 114)">
+    <rect width="206" height="218" rx="14" fill="#131E34" stroke="#38BDF8" stroke-width="2" />
+    <rect width="206" height="5" rx="2.5" fill="#EF4444" />
+    <text x="16" y="32" fill="#7DD3FC" font-family="ui-monospace, monospace" font-size="11" font-weight="800">GATE 1 (1 OF 3) · SPRINT 1</text>
+    <text x="16" y="62" fill="#F8FAFC" font-family="ui-monospace, monospace" font-size="28" font-weight="800">02</text>
+    <rect x="66" y="42" width="124" height="22" rx="6" fill="#EF4444" fill-opacity="0.18" stroke="#EF4444" stroke-opacity="0.6" />
+    <text x="128" y="57" text-anchor="middle" fill="#FCA5A5" font-family="ui-monospace, monospace" font-size="10" font-weight="800">2 HARD STOPS</text>
+    <text x="16" y="88" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Stage 2: Sales-to-FDE</text>
+    <text x="16" y="109" fill="#38BDF8" font-family="ui-monospace, monospace" font-size="13" font-weight="800">FLIGHT CHECK (1–6/6)</text>
+    <text x="16" y="132" fill="#CBD5E1" font-family="-apple-system, sans-serif" font-size="11.5">Sold vs. Staging Telemetry</text>
+    <text x="16" y="150" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="10.5">AUTH · RESIDENCY · HOOKS</text>
+    <line x1="16" y1="166" x2="190" y2="166" stroke="#1E293B" />
+    <text x="16" y="185" fill="#CBD5E1" font-family="ui-monospace, monospace" font-size="10.5" font-weight="700">OWNER: LEAD FDE</text>
+    <!-- 6 LED pips -->
+    <rect x="16" y="196" width="24" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="46" y="196" width="24" height="7" rx="3.5" fill="#EF4444" />
+    <rect x="76" y="196" width="24" height="7" rx="3.5" fill="#EF4444" />
+    <rect x="106" y="196" width="24" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="136" y="196" width="24" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="166" y="196" width="24" height="7" rx="3.5" fill="#F59E0B" />
+  </g>
+
+  <!-- STAGE 3: GATE 2 STATIC FIRE -->
+  <g transform="translate(454, 114)">
+    <rect width="206" height="218" rx="14" fill="#131E34" stroke="#38BDF8" stroke-width="2" />
+    <rect width="206" height="5" rx="2.5" fill="#38BDF8" />
+    <text x="16" y="32" fill="#7DD3FC" font-family="ui-monospace, monospace" font-size="11" font-weight="800">GATE 2 (2 OF 3) · SPRINT 2</text>
+    <text x="16" y="62" fill="#F8FAFC" font-family="ui-monospace, monospace" font-size="28" font-weight="800">03</text>
+    <rect x="66" y="42" width="124" height="22" rx="6" fill="#22C55E" fill-opacity="0.16" stroke="#22C55E" stroke-opacity="0.6" />
+    <text x="128" y="57" text-anchor="middle" fill="#86EFAC" font-family="ui-monospace, monospace" font-size="10" font-weight="800">0.0% · GRADE A</text>
+    <text x="16" y="88" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Stage 3: Integration</text>
+    <text x="16" y="109" fill="#38BDF8" font-family="ui-monospace, monospace" font-size="13" font-weight="800">STATIC FIRE (1–7/7)</text>
+    <text x="16" y="132" fill="#CBD5E1" font-family="-apple-system, sans-serif" font-size="11.5">Adversarial Chaos Harness</text>
+    <text x="16" y="150" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="10.5">Patch &amp; Re-Fire to 0.0%</text>
+    <line x1="16" y1="166" x2="190" y2="166" stroke="#1E293B" />
+    <text x="16" y="185" fill="#CBD5E1" font-family="ui-monospace, monospace" font-size="10.5" font-weight="700">OWNER: LEAD FDE</text>
+    <!-- 7 LED pips -->
+    <rect x="16" y="196" width="20" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="41" y="196" width="20" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="66" y="196" width="20" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="91" y="196" width="20" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="116" y="196" width="20" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="141" y="196" width="20" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="166" y="196" width="24" height="7" rx="3.5" fill="#22C55E" />
+  </g>
+
+  <!-- STAGE 4: GATE 3 CREW DRILL + HANDOVER -->
+  <g transform="translate(674, 114)">
+    <rect width="206" height="218" rx="14" fill="#131E34" stroke="#38BDF8" stroke-width="2" />
+    <rect width="206" height="5" rx="2.5" fill="#22C55E" />
+    <text x="16" y="32" fill="#7DD3FC" font-family="ui-monospace, monospace" font-size="11" font-weight="800">GATE 3 (3 OF 3) · SPRINT 3</text>
+    <text x="16" y="62" fill="#F8FAFC" font-family="ui-monospace, monospace" font-size="28" font-weight="800">04</text>
+    <rect x="66" y="42" width="124" height="22" rx="6" fill="#38BDF8" fill-opacity="0.16" stroke="#38BDF8" stroke-opacity="0.6" />
+    <text x="128" y="57" text-anchor="middle" fill="#7DD3FC" font-family="ui-monospace, monospace" font-size="10" font-weight="800">90s + SHA-256</text>
+    <text x="16" y="88" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Stage 4: Enablement</text>
+    <text x="16" y="109" fill="#38BDF8" font-family="ui-monospace, monospace" font-size="13" font-weight="800">CREW DRILL (1–3/3)</text>
+    <text x="16" y="132" fill="#CBD5E1" font-family="-apple-system, sans-serif" font-size="11.5">3 Live Day-30 P1 Alarms</text>
+    <text x="16" y="150" fill="#86EFAC" font-family="ui-monospace, monospace" font-size="10.5">+ Signed Dossier &amp; Runbook</text>
+    <line x1="16" y1="166" x2="190" y2="166" stroke="#1E293B" />
+    <text x="16" y="185" fill="#CBD5E1" font-family="ui-monospace, monospace" font-size="10.5" font-weight="700">OWNER: LEAD CSE + FDE</text>
+    <!-- 3 alarms + seal -->
+    <rect x="16" y="196" width="38" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="60" y="196" width="38" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="104" y="196" width="38" height="7" rx="3.5" fill="#22C55E" />
+    <rect x="148" y="196" width="42" height="7" rx="3.5" fill="#38BDF8" />
+  </g>
+
+  <!-- STAGE 5: SUPPORT -->
+  <g transform="translate(910, 114)">
+    <rect width="164" height="218" rx="14" fill="#111A2E" stroke="#334155" stroke-width="1.8" />
+    <rect width="164" height="5" rx="2.5" fill="#22C55E" />
+    <text x="14" y="32" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="11" font-weight="800">POST-GAP OPS</text>
+    <text x="14" y="62" fill="#F8FAFC" font-family="ui-monospace, monospace" font-size="28" font-weight="800">05</text>
+    <text x="14" y="88" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Stage 5:</text>
+    <text x="14" y="108" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Support</text>
+    <text x="14" y="136" fill="#86EFAC" font-family="ui-monospace, monospace" font-size="11" font-weight="700">Day-1 Runbook</text>
+    <text x="14" y="153" fill="#94A3B8" font-family="-apple-system, sans-serif" font-size="11.5">&amp; Waiver Closure</text>
+    <line x1="14" y1="170" x2="150" y2="170" stroke="#1E293B" />
+    <text x="14" y="188" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="9.5" font-weight="700">OWNER: SUPPORT ENG</text>
+    <rect x="14" y="198" width="136" height="6" rx="3" fill="#22C55E" />
+  </g>
+
+  <!-- STAGE 6: RENEWAL & EXPANSION -->
+  <g transform="translate(1086, 114)">
+    <rect width="164" height="218" rx="14" fill="#111A2E" stroke="#334155" stroke-width="1.8" />
+    <rect width="164" height="5" rx="2.5" fill="#38BDF8" />
+    <text x="14" y="32" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="11" font-weight="800">POST-GAP GROWTH</text>
+    <text x="14" y="62" fill="#F8FAFC" font-family="ui-monospace, monospace" font-size="28" font-weight="800">06</text>
+    <text x="14" y="88" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Stage 6:</text>
+    <text x="14" y="108" fill="#F8FAFC" font-family="-apple-system, sans-serif" font-size="15" font-weight="800">Renewal</text>
+    <text x="14" y="136" fill="#7DD3FC" font-family="ui-monospace, monospace" font-size="11" font-weight="700">Longitudinal JSON</text>
+    <text x="14" y="153" fill="#94A3B8" font-family="-apple-system, sans-serif" font-size="11.5">Expansion → Stage 1</text>
+    <line x1="14" y1="170" x2="150" y2="170" stroke="#1E293B" />
+    <text x="14" y="188" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="9.5" font-weight="700">OWNER: TAM + CSE</text>
+    <rect x="14" y="198" width="136" height="6" rx="3" fill="#38BDF8" />
+  </g>
+
+  <!-- Bottom Footer Strip -->
+  <text x="556" y="394" text-anchor="middle" fill="#94A3B8" font-family="ui-monospace, monospace" font-size="12" font-weight="700">ONE DETERMINISTIC ENGINE (@nominalx/core) · ZERO LLM VERDICTS · CLI (nominalx) + STATIC MISSION CONTROL COCKPIT</text>
+</svg>

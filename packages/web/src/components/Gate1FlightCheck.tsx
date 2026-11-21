@@ -9,6 +9,8 @@ import {
   type StationResult,
   type WaiverInput,
 } from "@nominalx/core";
+import { getStationHelp } from "../data/helpCopy";
+import { HelpTip } from "./HelpTip";
 import { ShieldLockIcon, StationGlyph } from "./Icons";
 
 interface Gate1FlightCheckProps {
@@ -237,8 +239,11 @@ export function Gate1FlightCheck({
       {/* Gate 1 Action Header */}
       <div className="panel gate-action-header">
         <div>
-          <div className="eyebrow">
-            STAGE 2: SALES-TO-FDE HANDOFF · GATE 1 (1 OF 3): FLIGHT CHECK · SPRINT 1
+          <div className="help-inline">
+            <div className="eyebrow">
+              STAGE 2: SALES-TO-FDE HANDOFF · GATE 1 (1 OF 3): FLIGHT CHECK · SPRINT 1
+            </div>
+            <HelpTip copyKey="gate1.header" />
           </div>
           <h2 className="gate-title-xl">
             Sold Contract vs. Live Staging Telemetry ({flightCheck.counts.total} Parallel Stations)
@@ -246,25 +251,31 @@ export function Gate1FlightCheck({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <span className="status-pill status-nominal">
-            {flightCheck.counts.nominal} NOMINAL
-          </span>
-          <span className="status-pill status-waived">
-            {flightCheck.counts.heldWaived}/2 WAIVED
-          </span>
-          <span className="status-pill status-nogo">
-            {flightCheck.counts.noGo} NO-GO
-          </span>
+          <div className="help-inline">
+            <span className="status-pill status-nominal">
+              {flightCheck.counts.nominal} NOMINAL
+            </span>
+            <span className="status-pill status-waived">
+              {flightCheck.counts.heldWaived}/2 WAIVED
+            </span>
+            <span className="status-pill status-nogo">
+              {flightCheck.counts.noGo} NO-GO
+            </span>
+            <HelpTip copyKey="gate1.counters" />
+          </div>
 
-          <button
-            type="button"
-            className="btn btn-primary btn-lg"
-            onClick={onRunFlightCheck}
-            disabled={sweepingIndex !== null}
-            data-testid="run-flight-check-btn"
-          >
-            {sweepingIndex !== null ? "POLLING STATIONS..." : "RUN FLIGHT CHECK"}
-          </button>
+          <div className="help-control-wrap">
+            <button
+              type="button"
+              className="btn btn-primary btn-lg"
+              onClick={onRunFlightCheck}
+              disabled={sweepingIndex !== null}
+              data-testid="run-flight-check-btn"
+            >
+              {sweepingIndex !== null ? "POLLING STATIONS..." : "RUN FLIGHT CHECK"}
+            </button>
+            <HelpTip copyKey="gate1.runFlightCheck" />
+          </div>
 
           {flightCheck.passed && (
             <button
@@ -315,25 +326,41 @@ export function Gate1FlightCheck({
                         </span>
                       )}
                     </div>
-                    <div className="station-name-lg">{station.stationLabel}</div>
+                    <div className="help-inline" style={{ gap: 6 }}>
+                      <div className="station-name-lg">{station.stationLabel}</div>
+                      <HelpTip
+                        asSpan
+                        entry={getStationHelp(station)}
+                        testId={`help-tip-station-${station.stationCode}`}
+                      />
+                    </div>
                   </div>
                 </div>
 
-                <span className={`status-pill ${statusPillClass(station.status)}`}>
-                  {isSweeping ? "POLLING" : statusDisplay(station.status)}
+                <span className="help-inline" style={{ gap: 5 }}>
+                  <span className={`status-pill ${statusPillClass(station.status)}`}>
+                    {isSweeping ? "POLLING" : statusDisplay(station.status)}
+                  </span>
+                  <HelpTip asSpan copyKey="gate1.stationStatus" />
                 </span>
               </div>
 
               {/* Policy Shield Row */}
               <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
                 {station.isHardStop ? (
-                  <span className="hard-stop-shield">
-                    <ShieldLockIcon size={13} />
-                    <span>HARD STOP · NON-WAIVABLE</span>
+                  <span className="help-inline" style={{ gap: 5 }}>
+                    <span className="hard-stop-shield">
+                      <ShieldLockIcon size={13} />
+                      <span>HARD STOP · NON-WAIVABLE</span>
+                    </span>
+                    <HelpTip asSpan copyKey="gate1.hardStopBadge" />
                   </span>
                 ) : (
-                  <span className="op-waiver-badge">
-                    OPERATIONAL · WAIVER ELIGIBLE
+                  <span className="help-inline" style={{ gap: 5 }}>
+                    <span className="op-waiver-badge">
+                      OPERATIONAL · WAIVER ELIGIBLE
+                    </span>
+                    <HelpTip asSpan copyKey="gate1.waivableBadge" />
                   </span>
                 )}
                 <span className="mono" style={{ fontSize: "0.76rem", color: "var(--text-muted)", fontWeight: 700 }}>
@@ -388,8 +415,11 @@ export function Gate1FlightCheck({
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div>
-              <div className="eyebrow">
-                {activeStation.subStage} · {activeStation.stationLabel} TELEMETRY DIFF
+              <div className="help-inline">
+                <div className="eyebrow">
+                  {activeStation.subStage} · {activeStation.stationLabel} TELEMETRY DIFF
+                </div>
+                <HelpTip copyKey="gate1.diffInspector" />
               </div>
               <h3 style={{ margin: "4px 0 0", fontSize: "1.25rem", fontWeight: 800 }}>
                 Contract Promised vs. Live Staging Telemetry
@@ -408,11 +438,17 @@ export function Gate1FlightCheck({
               padding: "0 4px",
             }}
           >
-            <div className="eyebrow" style={{ color: "var(--active-text)" }}>
-              CONTRACT PROMISED (nominalx.yaml)
+            <div className="help-inline">
+              <div className="eyebrow" style={{ color: "var(--active-text)" }}>
+                CONTRACT PROMISED (nominalx.yaml)
+              </div>
+              <HelpTip copyKey="gate1.promisedColumn" />
             </div>
-            <div className="eyebrow" style={{ color: statusColor(activeStation.status) }}>
-              LIVE TELEMETRY OBSERVED
+            <div className="help-inline">
+              <div className="eyebrow" style={{ color: statusColor(activeStation.status) }}>
+                LIVE TELEMETRY OBSERVED
+              </div>
+              <HelpTip copyKey="gate1.observedColumn" />
             </div>
           </div>
 
@@ -496,43 +532,55 @@ export function Gate1FlightCheck({
           {/* Action Bar: Patch & Re-Poll + Waiver (Operational Only) or Locked Hard Stop */}
           <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
             {!activeStation.telemetryPassed && (
-              <button
-                type="button"
-                className="btn btn-nominal btn-lg"
-                onClick={() => onApplyStationFix(activeStation.stationCode)}
-                data-testid="apply-station-fix-btn"
-              >
-                Apply Staging Fix &amp; Re-Poll
-              </button>
+              <div className="help-control-wrap">
+                <button
+                  type="button"
+                  className="btn btn-nominal btn-lg"
+                  onClick={() => onApplyStationFix(activeStation.stationCode)}
+                  data-testid="apply-station-fix-btn"
+                >
+                  Apply Staging Fix &amp; Re-Poll
+                </button>
+                <HelpTip copyKey="gate1.applyFix" />
+              </div>
             )}
 
             {activeStation.isHardStop ? (
-              <div
-                className="hard-stop-shield"
-                style={{ padding: "11px 15px", fontSize: "0.78rem" }}
-                data-testid="hard-stop-locked-indicator"
-              >
-                <ShieldLockIcon size={16} />
-                <span>LOCKED · NON-WAIVABLE HARD STOP (LIVE TELEMETRY REQUIRED)</span>
+              <div className="help-control-wrap">
+                <div
+                  className="hard-stop-shield"
+                  style={{ padding: "11px 15px", fontSize: "0.78rem" }}
+                  data-testid="hard-stop-locked-indicator"
+                >
+                  <ShieldLockIcon size={16} />
+                  <span>LOCKED · NON-WAIVABLE HARD STOP (LIVE TELEMETRY REQUIRED)</span>
+                </div>
+                <HelpTip copyKey="gate1.hardStopBadge" />
               </div>
             ) : !activeStation.telemetryPassed && !activeStation.activeWaiver ? (
-              <button
-                type="button"
-                className="btn btn-waived btn-lg"
-                onClick={() => openWaiverModal(activeStation)}
-                data-testid="issue-risk-waiver-btn"
-              >
-                Issue Risk Waiver
-              </button>
+              <div className="help-control-wrap">
+                <button
+                  type="button"
+                  className="btn btn-waived btn-lg"
+                  onClick={() => openWaiverModal(activeStation)}
+                  data-testid="issue-risk-waiver-btn"
+                >
+                  Issue Risk Waiver
+                </button>
+                <HelpTip copyKey="gate1.waiverAction" />
+              </div>
             ) : activeStation.activeWaiver ? (
-              <button
-                type="button"
-                className="btn"
-                onClick={() => onRevokeWaiver(activeStation.stationCode)}
-                data-testid="revoke-waiver-btn"
-              >
-                Revoke Waiver
-              </button>
+              <div className="help-control-wrap">
+                <button
+                  type="button"
+                  className="btn"
+                  onClick={() => onRevokeWaiver(activeStation.stationCode)}
+                  data-testid="revoke-waiver-btn"
+                >
+                  Revoke Waiver
+                </button>
+                <HelpTip copyKey="gate1.waiverAction" />
+              </div>
             ) : (
               <span className="status-pill lg status-nominal">
                 VERIFIED NOMINAL BY LIVE TELEMETRY
@@ -544,7 +592,10 @@ export function Gate1FlightCheck({
         {/* Right: Raw Wire Trace + Staging Patch Diff + Sub-Stage Owner */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span className="eyebrow">RAW WIRE EVIDENCE</span>
+            <span className="help-inline">
+              <span className="eyebrow">RAW WIRE EVIDENCE</span>
+              <HelpTip copyKey="gate1.wireEvidence" />
+            </span>
             <span className="mono" style={{ fontSize: "0.74rem", color: "var(--active-text)", fontWeight: 700 }}>
               {activeStation.evidence.method} {activeStation.evidence.endpoint} · HTTP {activeStation.evidence.httpStatus} · {activeStation.latencyMs}ms
             </span>
@@ -577,8 +628,11 @@ export function Gate1FlightCheck({
 
           {matchingPatchDiff && !activeStation.telemetryPassed && (
             <div>
-              <div className="eyebrow" style={{ marginBottom: 6 }}>
-                STAGED INFRASTRUCTURE FIX PREVIEW · {matchingPatchDiff.label}
+              <div className="help-inline" style={{ marginBottom: 6 }}>
+                <div className="eyebrow">
+                  STAGED INFRASTRUCTURE FIX PREVIEW · {matchingPatchDiff.label}
+                </div>
+                <HelpTip copyKey="gate1.patchDiff" />
               </div>
               <div className="code-diff-box">
                 {matchingPatchDiff.diffLines.map((line) => (
@@ -611,7 +665,10 @@ export function Gate1FlightCheck({
             }}
           >
             <div>
-              <div className="eyebrow">SUB-STAGE OWNER</div>
+              <div className="help-inline">
+                <div className="eyebrow">SUB-STAGE OWNER</div>
+                <HelpTip copyKey="gate1.subStageOwner" />
+              </div>
               <div style={{ fontSize: "0.82rem", fontWeight: 800, marginTop: 3 }}>
                 {activeOwnerLabel}
               </div>
@@ -639,8 +696,11 @@ export function Gate1FlightCheck({
           <div className="modal-card" onClick={(e) => e.stopPropagation()}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "flex-start", gap: 12 }}>
               <div>
-                <div className="eyebrow" style={{ color: "var(--waived-text)" }}>
-                  BOUNDED OPERATIONAL RISK WAIVER · MAX 2 ACTIVE · ≤ 30 DAYS
+                <div className="help-inline">
+                  <div className="eyebrow" style={{ color: "var(--waived-text)" }}>
+                    BOUNDED OPERATIONAL RISK WAIVER · MAX 2 ACTIVE · ≤ 30 DAYS
+                  </div>
+                  <HelpTip copyKey="waiver.policy" />
                 </div>
                 <h3 style={{ margin: "4px 0 0", fontSize: "1.3rem", fontWeight: 800 }}>
                   {waiverModalStation.subStage} {waiverModalStation.stationLabel}
@@ -673,9 +733,12 @@ export function Gate1FlightCheck({
             )}
 
             <div className="field-group">
-              <label className="field-label" htmlFor="waiver-owner">
-                Named Engineering Owner
-              </label>
+              <div className="help-label-row">
+                <label className="field-label" htmlFor="waiver-owner">
+                  Named Engineering Owner
+                </label>
+                <HelpTip copyKey="waiver.owner" />
+              </div>
               <input
                 id="waiver-owner"
                 className="field-input mono"
@@ -686,9 +749,12 @@ export function Gate1FlightCheck({
 
             <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
               <div className="field-group">
-                <label className="field-label" htmlFor="waiver-expires">
-                  Expiry Date (≤ 30d from {preset.referenceDate})
-                </label>
+                <div className="help-label-row">
+                  <label className="field-label" htmlFor="waiver-expires">
+                    Expiry Date (≤ 30d from {preset.referenceDate})
+                  </label>
+                  <HelpTip copyKey="waiver.expiry" />
+                </div>
                 <input
                   id="waiver-expires"
                   type="date"
@@ -699,9 +765,12 @@ export function Gate1FlightCheck({
               </div>
 
               <div className="field-group">
-                <label className="field-label" htmlFor="waiver-ticket">
-                  Jira / Linear Ticket ID
-                </label>
+                <div className="help-label-row">
+                  <label className="field-label" htmlFor="waiver-ticket">
+                    Jira / Linear Ticket ID
+                  </label>
+                  <HelpTip copyKey="waiver.ticket" />
+                </div>
                 <input
                   id="waiver-ticket"
                   className="field-input mono"
@@ -712,9 +781,12 @@ export function Gate1FlightCheck({
             </div>
 
             <div className="field-group">
-              <label className="field-label" htmlFor="waiver-reason">
-                Operational Justification
-              </label>
+              <div className="help-label-row">
+                <label className="field-label" htmlFor="waiver-reason">
+                  Operational Justification
+                </label>
+                <HelpTip copyKey="waiver.reason" />
+              </div>
               <textarea
                 id="waiver-reason"
                 className="field-input"
@@ -725,9 +797,12 @@ export function Gate1FlightCheck({
             </div>
 
             <div className="field-group">
-              <label className="field-label" htmlFor="waiver-rollback">
-                Concrete Rollback Plan
-              </label>
+              <div className="help-label-row">
+                <label className="field-label" htmlFor="waiver-rollback">
+                  Concrete Rollback Plan
+                </label>
+                <HelpTip copyKey="waiver.rollback" />
+              </div>
               <textarea
                 id="waiver-rollback"
                 className="field-input"

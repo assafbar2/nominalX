@@ -5,6 +5,8 @@ import type {
   CrewDrillMachineState,
   CrewDrillResult,
 } from "@nominalx/core";
+import { getAlarmHelp } from "../data/helpCopy";
+import { HelpTip } from "./HelpTip";
 
 interface Gate3CrewDrillProps {
   crewDrill: CrewDrillMachineState;
@@ -272,8 +274,11 @@ export function Gate3CrewDrill({
       {/* Gate 3 Action Header */}
       <div className="panel gate-action-header">
         <div>
-          <div className="eyebrow">
-            STAGE 4: DAY-30 ENABLEMENT &amp; HANDOVER · GATE 3 (3 OF 3): CREW DRILL · SPRINT 3
+          <div className="help-inline">
+            <div className="eyebrow">
+              STAGE 4: DAY-30 ENABLEMENT &amp; HANDOVER · GATE 3 (3 OF 3): CREW DRILL · SPRINT 3
+            </div>
+            <HelpTip copyKey="gate3.header" />
           </div>
           <h2 className="gate-title-xl">
             Live 90-Second Ops Game-Day Console (Zero Multiple-Choice Quizzes)
@@ -281,10 +286,13 @@ export function Gate3CrewDrill({
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-          <span
-            className={`status-pill lg ${crewSummary.allStabilized ? "status-nominal" : "status-active"}`}
-          >
-            {crewSummary.stabilizedCount} / {crewSummary.totalAlarms} ALARMS STABILIZED
+          <span className="help-inline">
+            <span
+              className={`status-pill lg ${crewSummary.allStabilized ? "status-nominal" : "status-active"}`}
+            >
+              {crewSummary.stabilizedCount} / {crewSummary.totalAlarms} ALARMS STABILIZED
+            </span>
+            <HelpTip copyKey="gate3.stabilizedPill" />
           </span>
 
           {activeAlarm.status === "idle" && (
@@ -353,6 +361,11 @@ export function Gate3CrewDrill({
                         CUSTOM
                       </span>
                     )}
+                    <HelpTip
+                      asSpan
+                      entry={getAlarmHelp(alarm)}
+                      testId={`help-tip-alarm-${alarm.alarmId}`}
+                    />
                   </div>
                   <span className={`status-pill ${pillClass}`}>
                     {alarm.status === "stabilized"
@@ -380,6 +393,7 @@ export function Gate3CrewDrill({
                         title={`Green SLA Tick ${tick}/3`}
                       />
                     ))}
+                    <HelpTip asSpan copyKey="gate3.slaTicks" />
                   </div>
                 </div>
               </button>
@@ -391,8 +405,11 @@ export function Gate3CrewDrill({
         <div className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
           <div className={`countdown-box ${clockUrgency}`} data-testid="drill-countdown-box">
             <div>
-              <div className="eyebrow">
-                {activeAlarm.subStage} · {activeAlarm.shortName.toUpperCase()}
+              <div className="help-inline">
+                <div className="eyebrow">
+                  {activeAlarm.subStage} · {activeAlarm.shortName.toUpperCase()}
+                </div>
+                <HelpTip copyKey="gate3.countdownClock" />
               </div>
               <div style={{ fontSize: "0.86rem", fontWeight: 700, marginTop: 3 }}>
                 {activeAlarm.status === "stabilized"
@@ -440,7 +457,10 @@ export function Gate3CrewDrill({
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 6 }}>
-              <span className="eyebrow">LIVE TELEMETRY · {activeAlarm.scenario.metricLabel.toUpperCase()}</span>
+              <span className="help-inline">
+                <span className="eyebrow">LIVE TELEMETRY · {activeAlarm.scenario.metricLabel.toUpperCase()}</span>
+                <HelpTip copyKey="gate3.liveTelemetryChart" />
+              </span>
               <span className="mono" style={{ fontSize: "0.8rem", fontWeight: 800, color: activeAlarm.status === "stabilized" ? "var(--nominal-text)" : "var(--nogo-text)" }}>
                 CURRENT: {activeAlarm.telemetrySeries[activeAlarm.telemetrySeries.length - 1]?.value}{" "}
                 {activeAlarm.scenario.metricUnit}
@@ -450,8 +470,9 @@ export function Gate3CrewDrill({
           </div>
 
           <div>
-            <div className="eyebrow" style={{ marginBottom: 6 }}>
-              LIVE INCIDENT ERROR STREAM
+            <div className="help-inline" style={{ marginBottom: 6 }}>
+              <div className="eyebrow">LIVE INCIDENT ERROR STREAM</div>
+              <HelpTip copyKey="gate3.errorStream" />
             </div>
             <div className="wire-terminal" style={{ maxHeight: 150, overflowY: "auto" }}>
               {activeAlarm.errorTrace.map((line, idx) => (
@@ -477,7 +498,10 @@ export function Gate3CrewDrill({
         <div className="panel panel-pad" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14 }}>
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
-              <span className="eyebrow">OPS REMEDIATION CONSOLE · REAL CONFIG PATCH</span>
+              <span className="help-inline">
+                <span className="eyebrow">OPS REMEDIATION CONSOLE · REAL CONFIG PATCH</span>
+                <HelpTip copyKey="gate3.remediationConsole" />
+              </span>
               <h3 style={{ margin: "4px 0 0", fontSize: "1.15rem", fontWeight: 800 }}>
                 {activeAlarm.alarmName}
               </h3>
@@ -486,9 +510,12 @@ export function Gate3CrewDrill({
             {activeAlarm.alarmId === "runaway_ingestion_storm" && req1 && (
               <>
                 <div className="field-group">
-                  <label className="field-label" htmlFor="drill-source-key">
-                    Isolate Offending Source Key (see error trace)
-                  </label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="drill-source-key">
+                      Isolate Offending Source Key (see error trace)
+                    </label>
+                    <HelpTip copyKey="gate3.ctrl.sourceKey" />
+                  </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <input
                       id="drill-source-key"
@@ -508,9 +535,12 @@ export function Gate3CrewDrill({
                 </div>
 
                 <div className="field-group">
-                  <label className="field-label" htmlFor="drill-rate-cap">
-                    Per-Tenant Rate Cap RPS (SLA ≤ {String(req1.rate_cap_rps)} RPS)
-                  </label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="drill-rate-cap">
+                      Per-Tenant Rate Cap RPS (SLA ≤ {String(req1.rate_cap_rps)} RPS)
+                    </label>
+                    <HelpTip copyKey="gate3.ctrl.rateCap" />
+                  </div>
                   <input
                     id="drill-rate-cap"
                     type="number"
@@ -530,7 +560,10 @@ export function Gate3CrewDrill({
 
                 <label className={`switch-row ${dlqEnabled ? "checked" : ""}`}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>Enable DLQ Overflow Queue</div>
+                    <div className="help-inline" style={{ fontWeight: 800, fontSize: "0.88rem" }}>
+                      <span>Enable DLQ Overflow Queue</span>
+                      <HelpTip asSpan copyKey="gate3.ctrl.dlq" />
+                    </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                       Route excess burst payloads cleanly instead of retry storm
                     </div>
@@ -548,9 +581,12 @@ export function Gate3CrewDrill({
             {activeAlarm.alarmId === "sso_cert_expiring_24h" && req2 && (
               <>
                 <div className="field-group">
-                  <label className="field-label" htmlFor="drill-cert-fp">
-                    Promote Staged X.509 Certificate Fingerprint
-                  </label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="drill-cert-fp">
+                      Promote Staged X.509 Certificate Fingerprint
+                    </label>
+                    <HelpTip copyKey="gate3.ctrl.certFp" />
+                  </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <input
                       id="drill-cert-fp"
@@ -571,7 +607,10 @@ export function Gate3CrewDrill({
 
                 <label className={`switch-row ${dualGraceMode ? "checked" : ""}`}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>Dual-Cert Grace Mode</div>
+                    <div className="help-inline" style={{ fontWeight: 800, fontSize: "0.88rem" }}>
+                      <span>Dual-Cert Grace Mode</span>
+                      <HelpTip asSpan copyKey="gate3.ctrl.dualGrace" />
+                    </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                       Accept old + promoted X.509 certs concurrently during live SSO cutover
                     </div>
@@ -589,9 +628,12 @@ export function Gate3CrewDrill({
             {activeAlarm.alarmId === "dead_p1_alert_channel" && req3 && (
               <>
                 <div className="field-group">
-                  <label className="field-label" htmlFor="drill-p1-channel">
-                    Rebind Active P1 Ops Channel
-                  </label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="drill-p1-channel">
+                      Rebind Active P1 Ops Channel
+                    </label>
+                    <HelpTip copyKey="gate3.ctrl.p1Channel" />
+                  </div>
                   <div style={{ display: "flex", gap: 6 }}>
                     <input
                       id="drill-p1-channel"
@@ -612,7 +654,10 @@ export function Gate3CrewDrill({
 
                 <label className={`switch-row ${pingVerified ? "checked" : ""}`}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>Execute Live Synthetic P1 Ping</div>
+                    <div className="help-inline" style={{ fontWeight: 800, fontSize: "0.88rem" }}>
+                      <span>Execute Live Synthetic P1 Ping</span>
+                      <HelpTip asSpan copyKey="gate3.ctrl.pingVerify" />
+                    </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                       Send X-NominalX-Probe: true and require HTTP 200 OK acknowledgement
                     </div>
@@ -649,8 +694,9 @@ export function Gate3CrewDrill({
 
                 <label className={`switch-row ${customFixApplied ? "checked" : ""}`}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>
-                      {activeAlarm.scenario.remediationLabel ?? "Apply Custom Remediation"}
+                    <div className="help-inline" style={{ fontWeight: 800, fontSize: "0.88rem" }}>
+                      <span>{activeAlarm.scenario.remediationLabel ?? "Apply Custom Remediation"}</span>
+                      <HelpTip asSpan copyKey="gate3.ctrl.customFix" />
                     </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                       Execute live configuration remediation on customer staging/prod control plane
@@ -666,8 +712,9 @@ export function Gate3CrewDrill({
 
                 <label className={`switch-row ${customProofConfirmed ? "checked" : ""}`}>
                   <div>
-                    <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>
-                      Confirm Live Verification Probe
+                    <div className="help-inline" style={{ fontWeight: 800, fontSize: "0.88rem" }}>
+                      <span>Confirm Live Verification Probe</span>
+                      <HelpTip asSpan copyKey="gate3.ctrl.customProof" />
                     </div>
                     <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
                       {activeAlarm.scenario.verificationProofTemplate ?? "Require 3/3 consecutive green SLA ticks"}

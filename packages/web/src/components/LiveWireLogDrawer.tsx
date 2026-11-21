@@ -1,4 +1,5 @@
 import type { WireLogEntry } from "../state/missionState";
+import { HelpTip } from "./HelpTip";
 
 interface LiveWireLogDrawerProps {
   open: boolean;
@@ -25,7 +26,10 @@ export function LiveWireLogDrawer({
       <div className="drawer-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="drawer-header">
           <div>
-            <div className="eyebrow">DETERMINISTIC PROBE TELEMETRY STREAM</div>
+            <div className="help-inline">
+              <div className="eyebrow">DETERMINISTIC PROBE TELEMETRY STREAM</div>
+              <HelpTip copyKey="wireLog.header" />
+            </div>
             <h2 style={{ margin: "4px 0 0", fontSize: "1.25rem", fontWeight: 800 }}>
               Live Wire Log ({entries.length} Events)
             </h2>

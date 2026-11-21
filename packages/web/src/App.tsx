@@ -131,13 +131,14 @@ export function App() {
   };
 
   const handleResetScenario = () => {
+    clearStoredCustomizations(activePresetId);
     setFocusDiffNonce(0);
     setSweepingIndex(null);
     setIsFiring(false);
     setMissions((prev) => ({
       ...prev,
       [activePresetId]: createInitialMissionState(activePresetId, {
-        initialCustomizations: prev[activePresetId].customizations,
+        skipStorage: true,
       }),
     }));
   };

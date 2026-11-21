@@ -39,12 +39,16 @@ export function generateDay1Runbook(
     reprobeCommand: `nominalx check examples/${account.id}/nominalx.yaml`,
   }));
 
+  const hardStopNames = gate1.stations
+    .filter((s) => s.isHardStop)
+    .map((s) => s.stationLabel);
+
   const sections: RunbookSection[] = [
     {
       id: "drift-detection",
       title: "1. Support Day-1 Drift Detection & Contract Re-Verification",
       ownerRole: "Support Engineer + Customer On-Call SRE",
-      summary: `Re-verify all 6 Gate 1 stations (Hard Stops: AUTH / SSO on ${account.stack.idp}, RESIDENCY in [${sold.residency.allowed_regions.join(", ")}]) in one deterministic command.`,
+      summary: `Re-verify all ${gate1.counts.total} Gate 1 stations (Hard Stops: ${hardStopNames.join(", ")}) in one deterministic command.`,
       commands: [
         `nominalx check ./nominalx.yaml`,
         `nominalx report --config ./nominalx.yaml --type waivers --format md`,
@@ -52,6 +56,12 @@ export function generateDay1Runbook(
       verificationSteps: [
         `Confirm AUTH / SSO (${sold.auth.protocol.toUpperCase()}) cert TTL >= ${sold.auth.min_cert_ttl_days}d and MFA enforced.`,
         `Confirm X-Served-Region stays strictly within [${sold.residency.allowed_regions.join(", ")}].`,
+        ...(config.custom_stations ?? [])
+          .filter((cs) => cs.hard_stop)
+          .map(
+            (cs) =>
+              `Confirm custom Hard Stop ${cs.label} (${cs.method} ${cs.endpoint}) returns HTTP ${cs.expected_status ?? 200} and satisfies "${cs.sold_promise}".`,
+          ),
         "Confirm exit code 0 and zero expired Operational Waivers.",
       ],
     },
@@ -115,12 +125,44 @@ export function generateDay1Runbook(
     },
   ];
 
+  if ((config.custom_stations?.length ?? 0) > 0) {
+    sections.push({
+      id: "custom-station-probes",
+      title: `${sections.length + 1}. Custom Product Station Telemetry Probes`,
+      ownerRole: "Lead FDE + Customer Engineering Lead",
+      summary: `Verify ${config.custom_stations!.length} product-specific Gate 1 station(s) declared in nominalx.yaml alongside the 6 core stations.`,
+      commands: config.custom_stations!.map(
+        (cs) =>
+          `curl -i -X ${cs.method} ${env.base_url}${cs.endpoint} # ${cs.code} (${cs.hard_stop ? "HARD STOP" : "OPERATIONAL"})`,
+      ),
+      verificationSteps: config.custom_stations!.map(
+        (cs) =>
+          `${cs.label} (${cs.code}, owner ${cs.owner}): ${cs.sold_promise}`,
+      ),
+    });
+  }
+
+  if ((config.custom_alarms?.length ?? 0) > 0) {
+    sections.push({
+      id: "custom-day30-alarms",
+      title: `${sections.length + 1}. Custom Day-30 Incident Alarm Playbooks`,
+      ownerRole: "Lead CSE + Support Engineer + Customer On-Call SRE",
+      summary: `Rehearsed product-specific Day-30 remediation procedures for ${config.custom_alarms!.length} custom Crew Drill alarm(s).`,
+      commands: config.custom_alarms!.map(
+        (ca) => `# ${ca.title} (SLA ${ca.timer_seconds}s, owner ${ca.owner}): ${ca.remediation_label}`,
+      ),
+      verificationSteps: config.custom_alarms!.map(
+        (ca) => `${ca.title}: ${ca.remediation_detail} — Verify: ${ca.verification_proof}`,
+      ),
+    });
+  }
+
   if (activeWaiverPlaybooks.length > 0) {
     sections.push({
       id: "waiver-closure",
-      title: "6. Active Operational Waiver Closure & Expiry Escalation",
+      title: `${sections.length + 1}. Active Operational Waiver Closure & Expiry Escalation`,
       ownerRole: "Support Engineer + TAM + Named Waiver Owners",
-      summary: `${activeWaiverPlaybooks.length} active Operational Waiver(s) require live NOMINAL re-probe before expiry. Hard Stops (AUTH / SSO, RESIDENCY) hold 0 waivers.`,
+      summary: `${activeWaiverPlaybooks.length} active Operational Waiver(s) require live NOMINAL re-probe before expiry. Hard Stops (${hardStopNames.join(", ")}) hold 0 waivers.`,
       commands: activeWaiverPlaybooks.map(
         (w) => `# Close ${w.station} waiver (expires ${w.expiresAt}, owner ${w.owner}):\n${w.reprobeCommand}`,
       ),
@@ -204,11 +246,15 @@ export function buildDossier(input: BuildDossierInput): SignedNominalDossier {
     generatedAt,
   );
 
+  const enforcedHardStops = gate1.stations
+    .filter((s) => s.isHardStop)
+    .map((s) => s.stationLabel);
+
   const scopeSummary = {
     inScopeVerified: [
-      "Stage 2 · Gate 1 (1 of 3): Flight Check — 6/6 stations diffed Sold vs. Observed",
-      "Stage 3 · Gate 2 (2 of 3): Static Fire — 7/7 real-world failure scenarios verified deterministically",
-      "Stage 4 · Gate 3 (3 of 3): Crew Drill — 3/3 live timed operational alarms verified",
+      `Stage 2 · Gate 1 (1 of 3): Flight Check — ${gate1.counts.total}/${gate1.counts.total} stations diffed Sold vs. Observed`,
+      `Stage 3 · Gate 2 (2 of 3): Static Fire — ${gate2.totals.totalVectors}/${gate2.totals.totalVectors} real-world failure scenarios verified deterministically`,
+      `Stage 4 · Gate 3 (3 of 3): Crew Drill — ${gate3.totalAlarms}/${gate3.totalAlarms} live timed operational alarms verified`,
       "Handover Sprint — Tamper-evident (SHA-256 signed) launch dossier & stack-tailored Day-1 Runbook",
     ],
     outOfScopeBoundaries: [
@@ -216,7 +262,7 @@ export function buildDossier(input: BuildDossierInput): SignedNominalDossier {
       ...LIFECYCLE_STAGES[2]!.outOfScope.slice(0, 2),
       ...LIFECYCLE_STAGES[3]!.outOfScope.slice(0, 1),
     ],
-    hardStopsEnforced: ["AUTH / SSO", "RESIDENCY"] as SignedNominalDossier["scopeSummary"]["hardStopsEnforced"],
+    hardStopsEnforced: enforcedHardStops,
   };
 
   const canonicalPayload = {
@@ -339,8 +385,11 @@ function renderDossierMarkdown(d: SignedNominalDossier): string {
 
   lines.push("### Active Operational Waiver Register");
   lines.push("");
+  const hardStopListMd = d.scopeSummary.hardStopsEnforced
+    .map((label) => `\`${label}\``)
+    .join(", ");
   if (activeWaivers.length === 0) {
-    lines.push("No active Operational Waivers (`0 / 2` cap used). Both Hard Stops (`AUTH / SSO`, `RESIDENCY`) verified `NOMINAL`.");
+    lines.push(`No active Operational Waivers (\`0 / 2\` cap used). All Hard Stops (${hardStopListMd}) verified \`NOMINAL\`.`);
   } else {
     lines.push("| Station | Named Owner | Expires At | Days Left | Aging Band | Reason | Rollback Plan |");
     lines.push("|---|---|---|---|---|---|---|");
@@ -355,7 +404,7 @@ function renderDossierMarkdown(d: SignedNominalDossier): string {
   lines.push("## Stage 3: Integration & Cutover — Gate 2 (2 of 3): Static Fire");
   lines.push("");
   lines.push(
-    `**Resilience Grade:** \`${d.gate2.grade}\` | **Corruption:** \`${d.gate2.corruptionPct.toFixed(1)}%\` | **Vectors Passed:** \`${d.gate2.totals.passedVectors}/7\` | **Attempt:** \`#${d.gate2.attemptNumber}\``,
+    `**Resilience Grade:** \`${d.gate2.grade}\` | **Corruption:** \`${d.gate2.corruptionPct.toFixed(1)}%\` | **Vectors Passed:** \`${d.gate2.totals.passedVectors}/${d.gate2.totals.totalVectors}\` | **Attempt:** \`#${d.gate2.attemptNumber}\``,
   );
   lines.push("");
   if (d.gate2.attemptHistory.length > 1) {
@@ -380,7 +429,7 @@ function renderDossierMarkdown(d: SignedNominalDossier): string {
   lines.push("## Stage 4: Day-30 Enablement & Handover — Gate 3 (3 of 3): Crew Drill");
   lines.push("");
   lines.push(
-    `**Stabilized:** \`${d.gate3.stabilizedCount}/3\` | **Overtime Flags:** \`${d.gate3.overtimeCount}\` | **Total Split:** \`${formatSplit(d.gate3.totalSplitMs)}\``,
+    `**Stabilized:** \`${d.gate3.stabilizedCount}/${d.gate3.totalAlarms}\` | **Overtime Flags:** \`${d.gate3.overtimeCount}\` | **Total Split:** \`${formatSplit(d.gate3.totalSplitMs)}\``,
   );
   lines.push("");
   lines.push("| Sub-Stage | Live Day-30 Alarm | Split | Status | Verification Proof |");
@@ -467,13 +516,13 @@ function renderDossierSlack(d: SignedNominalDossier): string {
     `*Stage 2 · Gate 1 (1 of 3): Flight Check* — \`${d.gate1.verdict}\` (${d.gate1.counts.nominal} NOMINAL, ${d.gate1.counts.heldWaived} WAIVED, ${d.gate1.counts.noGo} NO-GO)`,
     `> ${g1Summary}`,
     "",
-    `*Stage 3 · Gate 2 (2 of 3): Static Fire* — Grade \`${d.gate2.grade}\` · \`${d.gate2.corruptionPct.toFixed(1)}%\` corruption (\`${d.gate2.totals.passedVectors}/7\` vectors)`,
+    `*Stage 3 · Gate 2 (2 of 3): Static Fire* — Grade \`${d.gate2.grade}\` · \`${d.gate2.corruptionPct.toFixed(1)}%\` corruption (\`${d.gate2.totals.passedVectors}/${d.gate2.totals.totalVectors}\` vectors)`,
     `> Progression: ${fireDelta}`,
     "",
-    `*Stage 4 · Gate 3 (3 of 3): Crew Drill* — \`${d.gate3.stabilizedCount}/3\` alarms stabilized`,
+    `*Stage 4 · Gate 3 (3 of 3): Crew Drill* — \`${d.gate3.stabilizedCount}/${d.gate3.totalAlarms}\` alarms stabilized`,
     `> Splits: ${drillSplits}`,
     "",
-    `*Active Operational Waivers (${activeWaivers.length}/2 cap; Hard Stops AUTH / SSO & RESIDENCY non-waivable):*`,
+    `*Active Operational Waivers (${activeWaivers.length}/2 cap; Hard Stops ${d.scopeSummary.hardStopsEnforced.join(", ")} non-waivable):*`,
   ];
 
   if (activeWaivers.length === 0) {

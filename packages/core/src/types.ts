@@ -1,7 +1,7 @@
 export type StageNumber = 1 | 2 | 3 | 4 | 5 | 6;
 export type GateNumber = 1 | 2 | 3;
 
-export type StationCode =
+export type BuiltInStationCode =
   | "AUTH_SSO"
   | "RESIDENCY"
   | "WEBHOOKS"
@@ -9,13 +9,17 @@ export type StationCode =
   | "ALERTING"
   | "ROLLBACK";
 
-export type StationLabel =
+export type StationCode = BuiltInStationCode | (string & {});
+
+export type BuiltInStationLabel =
   | "AUTH / SSO"
   | "RESIDENCY"
   | "WEBHOOKS"
   | "QUOTA / RATE"
   | "ALERTING"
   | "ROLLBACK";
+
+export type StationLabel = BuiltInStationLabel | (string & {});
 
 export type PolicyClass = "HARD_STOP" | "OPERATIONAL_WAIVER";
 
@@ -27,7 +31,7 @@ export type DossierVerdict = "NOMINAL" | "NOMINAL_WITH_WAIVERS" | "NO_GO";
 
 export type ResilienceGrade = "A" | "B" | "C" | "D" | "F";
 
-export type ChaosVectorId =
+export type BuiltInChaosVectorId =
   | "duplicate_webhook"
   | "out_of_order"
   | "rate_limit_429"
@@ -36,10 +40,14 @@ export type ChaosVectorId =
   | "additive_json_fields"
   | "clock_skew_5m";
 
-export type CrewAlarmId =
+export type ChaosVectorId = BuiltInChaosVectorId | (string & {});
+
+export type BuiltInCrewAlarmId =
   | "runaway_ingestion_storm"
   | "sso_cert_expiring_24h"
   | "dead_p1_alert_channel";
+
+export type CrewAlarmId = BuiltInCrewAlarmId | (string & {});
 
 export type ExportFormat = "md" | "json" | "slack";
 
@@ -269,16 +277,80 @@ export interface WaiverInput {
   issued_at?: string;
 }
 
+export interface CustomStationRequiredHeader {
+  name: string;
+  contains: string;
+}
+
+export interface CustomStationRequiredJsonField {
+  path: string;
+  equals: string | number | boolean;
+}
+
+export interface CustomStationConfig {
+  code: string;
+  label: string;
+  owner: string;
+  hard_stop?: boolean;
+  endpoint: string;
+  method: "GET" | "POST";
+  expected_status?: number;
+  required_header?: CustomStationRequiredHeader;
+  required_json_field?: CustomStationRequiredJsonField;
+  sold_promise: string;
+  initial_status?: "NOMINAL" | "NO_GO";
+  failure_evidence?: string;
+  fix_summary?: string;
+}
+
+export interface ChaosOverridesConfig {
+  disabled_vectors?: string[];
+}
+
+export interface CustomChaosVectorConfig {
+  id: string;
+  label: string;
+  description: string;
+  owner: string;
+  endpoint_override?: string;
+  method: "GET" | "POST" | "PUT" | "PATCH";
+  payload?: Record<string, unknown>;
+  expected_status: number;
+  weight?: number;
+  patch_id: string;
+  patch_label: string;
+  patch_summary: string;
+  patch_diff: string[];
+}
+
+export interface CustomAlarmConfig {
+  id: string;
+  title: string;
+  owner: string;
+  timer_seconds: number;
+  metric_label: string;
+  trigger_symptom: string;
+  log_lines: string[];
+  remediation_label: string;
+  remediation_detail: string;
+  verification_proof: string;
+}
+
 export interface NominalXConfig {
   schema_version: "1.0";
   account: AccountConfig;
   sold_contract: SoldContractConfig;
   environment: EnvironmentConfig;
   waivers?: WaiverInput[];
+  custom_stations?: CustomStationConfig[];
+  chaos_overrides?: ChaosOverridesConfig;
+  custom_vectors?: CustomChaosVectorConfig[];
+  disabled_alarms?: string[];
+  custom_alarms?: CustomAlarmConfig[];
 }
 
 export interface WireEvidence {
-  method: "GET" | "POST";
+  method: "GET" | "POST" | "PUT" | "PATCH";
   endpoint: string;
   httpStatus: number;
   latencyMs: number;
@@ -338,6 +410,16 @@ export interface ObservedRollbackTelemetry {
   evidence: WireEvidence;
 }
 
+export interface ObservedCustomStationTelemetry {
+  code: string;
+  httpStatus: number;
+  headerMatched: boolean;
+  observedHeaderValue?: string | null;
+  jsonFieldMatched: boolean;
+  observedJsonValue?: unknown;
+  evidence: WireEvidence;
+}
+
 export interface ObservedEnvironmentTelemetry {
   auth: ObservedAuthTelemetry;
   residency: ObservedResidencyTelemetry;
@@ -345,6 +427,7 @@ export interface ObservedEnvironmentTelemetry {
   quota: ObservedQuotaTelemetry;
   alerting: ObservedAlertingTelemetry;
   rollback: ObservedRollbackTelemetry;
+  customStations?: Record<string, ObservedCustomStationTelemetry>;
 }
 
 export interface ContractDelta {
@@ -385,12 +468,14 @@ export interface WaiverEvaluationResult {
 }
 
 export interface StationResult {
-  index: 1 | 2 | 3 | 4 | 5 | 6;
+  index: number;
   subStage: string;
   stationCode: StationCode;
   stationLabel: StationLabel;
   policyClass: PolicyClass;
   isHardStop: boolean;
+  isCustom?: boolean;
+  customSpec?: CustomStationConfig;
   accountableOwner: string;
   status: StationStatus;
   telemetryPassed: boolean;
@@ -420,7 +505,7 @@ export interface FlightCheckResult {
     nominal: number;
     noGo: number;
     heldWaived: number;
-    total: 6;
+    total: number;
     hardStopFailures: number;
   };
   verdict: MasterVerdict;
@@ -442,10 +527,11 @@ export interface StaticFireVectorObservation {
 }
 
 export interface StaticFireVectorResult extends StaticFireVectorObservation {
-  index: 1 | 2 | 3 | 4 | 5 | 6 | 7;
+  index: number;
   subStage: string;
   vectorName: string;
   shortName: string;
+  isCustom?: boolean;
   corruptionPct: number;
   accountableOwner: string;
   remediationSummary: string;
@@ -466,7 +552,7 @@ export interface FireAttemptSummary {
   corruptionPct: number;
   grade: ResilienceGrade;
   passedVectors: number;
-  totalVectors: 7;
+  totalVectors: number;
   patchesApplied: string[];
 }
 
@@ -489,7 +575,7 @@ export interface StaticFireResult {
     packetsDropped: number;
     passedVectors: number;
     failedVectors: number;
-    totalVectors: 7;
+    totalVectors: number;
   };
   corruptionPct: number;
   grade: ResilienceGrade;
@@ -518,17 +604,23 @@ export interface CrewTelemetrySample {
 
 export interface CrewAlarmScenarioSpec {
   alarmId: CrewAlarmId;
-  index: 1 | 2 | 3;
+  index: number;
   subStage: string;
   alarmName: string;
   shortName: string;
   severity: "P1";
+  isCustom?: boolean;
+  owner?: string;
+  timerSeconds?: number;
   metricLabel: string;
   metricUnit: string;
   slaThreshold: number;
   initialValue: number;
   stabilizedValue: number;
   errorTrace: string[];
+  remediationLabel?: string;
+  remediationDetail?: string;
+  verificationProofTemplate?: string;
   expectedRemediation: {
     summary: string;
     requiredPatch: Record<string, string | number | boolean>;
@@ -538,10 +630,12 @@ export interface CrewAlarmScenarioSpec {
 
 export interface CrewAlarmState {
   alarmId: CrewAlarmId;
-  index: 1 | 2 | 3;
+  index: number;
   subStage: string;
   alarmName: string;
   shortName: string;
+  isCustom?: boolean;
+  owner?: string;
   status: CrewAlarmStatus;
   timeLimitSeconds: number;
   elapsedSeconds: number;
@@ -566,17 +660,19 @@ export interface CrewDrillMachineState {
   accountId: string;
   accountName: string;
   accountableOwner: string;
+  alarmOrder: CrewAlarmId[];
   activeAlarmId: CrewAlarmId | null;
-  alarms: Record<CrewAlarmId, CrewAlarmState>;
+  alarms: Record<string, CrewAlarmState>;
   startedAt: string | null;
   completedAt: string | null;
 }
 
 export interface CrewAlarmSummary {
-  index: 1 | 2 | 3;
+  index: number;
   subStage: string;
   alarmId: CrewAlarmId;
   alarmName: string;
+  isCustom?: boolean;
   status: CrewAlarmStatus;
   overtime: boolean;
   splitMs: number | null;
@@ -597,7 +693,7 @@ export interface CrewDrillResult {
   alarms: CrewAlarmSummary[];
   stabilizedCount: number;
   overtimeCount: number;
-  totalAlarms: 3;
+  totalAlarms: number;
   totalSplitMs: number;
   allStabilized: boolean;
   passedCleanly: boolean;

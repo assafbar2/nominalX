@@ -170,41 +170,41 @@ textarea {
 .mission-bar-inner {
   max-width: 1480px;
   margin: 0 auto;
-  padding: 10px 24px;
+  padding: 9px 20px;
   display: flex;
   align-items: center;
   justify-content: space-between;
-  gap: 12px;
+  gap: 10px;
   flex-wrap: wrap;
 }
 
 .brand-group {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: 9px;
   flex-shrink: 0;
 }
 
 .brand-title {
-  font-size: 1.25rem;
+  font-size: 1.18rem;
   font-weight: 800;
   letter-spacing: 0.08em;
   line-height: 1;
 }
 
 .brand-tagline {
-  font-size: 0.72rem;
+  font-size: 0.68rem;
   color: var(--text-muted);
-  margin-top: 3px;
+  margin-top: 2px;
 }
 
 .account-switcher {
   display: flex;
   align-items: center;
-  gap: 4px;
+  gap: 3px;
   background: var(--bg-inset);
-  padding: 4px;
-  border-radius: 12px;
+  padding: 3px;
+  border-radius: 11px;
   border: 1px solid var(--border-subtle);
   flex-wrap: wrap;
 }
@@ -213,15 +213,15 @@ textarea {
   border: 1px solid transparent;
   background: transparent;
   color: var(--text-muted);
-  padding: 6px 10px;
+  padding: 5px 8px;
   border-radius: 8px;
-  font-size: 0.78rem;
+  font-size: 0.74rem;
   font-weight: 700;
   cursor: pointer;
   transition: all 0.15s ease;
   display: flex;
   align-items: center;
-  gap: 5px;
+  gap: 4px;
   white-space: nowrap;
 }
 
@@ -245,8 +245,9 @@ textarea {
 }
 
 .mission-actions .btn {
-  padding: 7px 11px;
-  font-size: 0.8rem;
+  padding: 6px 10px;
+  font-size: 0.76rem;
+  gap: 6px;
 }
 
 /* Buttons */
@@ -1323,8 +1324,8 @@ textarea {
 .overlay-backdrop {
   position: fixed;
   inset: 0;
-  background: rgba(2, 6, 23, 0.72);
-  backdrop-filter: blur(4px);
+  background: rgba(2, 6, 23, 0.48);
+  backdrop-filter: blur(1.5px);
   z-index: 80;
   display: flex;
   justify-content: flex-end;
@@ -1351,6 +1352,90 @@ textarea {
   flex-direction: column;
   overflow: hidden;
   box-shadow: -12px 0 40px rgba(0, 0, 0, 0.5);
+}
+
+.drawer-sheet-wide {
+  width: min(760px, 96vw);
+}
+
+.customize-tabs {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: 8px;
+  padding: 12px 22px;
+  border-bottom: 1px solid var(--border-subtle);
+  background: var(--bg-inset);
+}
+
+.customize-tab {
+  padding: 9px 11px;
+  border-radius: 11px;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  font-size: 0.82rem;
+  transition: all 0.14s ease;
+}
+
+.customize-tab:hover {
+  border-color: var(--active-border);
+}
+
+.customize-tab.active {
+  border-color: var(--active);
+  background: var(--active-bg);
+  box-shadow: var(--shadow-glow-active);
+}
+
+.customize-section {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--bg-surface-2);
+  border: 1px solid var(--border-subtle);
+}
+
+.customize-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.validation-alert {
+  padding: 12px 14px;
+  border-radius: 12px;
+  background: var(--nogo-bg);
+  border: 1.5px solid var(--nogo-border);
+  color: var(--nogo-text);
+  font-size: 0.82rem;
+  font-weight: 700;
+}
+
+.yaml-editor-textarea {
+  width: 100%;
+  min-height: 440px;
+  background: var(--code-bg);
+  color: #e2e8f0;
+  border: 1.5px solid var(--border-strong);
+  border-radius: 13px;
+  padding: 14px 16px;
+  font-size: 0.78rem;
+  line-height: 1.55;
+  resize: vertical;
+}
+
+.yaml-editor-textarea:focus {
+  outline: none;
+  border-color: var(--active);
 }
 
 .drawer-header {

@@ -1,0 +1,135 @@
+schema_version: "1.0"
+
+account:
+  id: "custom-payments-api"
+  name: "Apex Payments API"
+  industry: "Card Issuing & Treasury Payments"
+  tier: "Enterprise Strategic"
+  arr_band: "$520k ARR"
+  fde_owner: "alex.rivera@vendor.io"
+  cse_owner: "priya.nair@vendor.io"
+  se_owner: "jordan.lee@vendor.io"
+  support_owner: "payments-support@vendor.io"
+  tam_owner: "derek.cho@vendor.io"
+  customer_eng_lead: "maya.chen@apexpayments.example"
+  customer_security_lead: "tobias.keller@apexpayments.example"
+  customer_sre_lead: "elena.rossi@apexpayments.example"
+  target_go_live: "2026-12-08"
+  stack:
+    cloud: "aws"
+    idp: "okta-saml"
+    alerting: "pagerduty+slack"
+    webhook_runtime: "node-express"
+    deployment_tool: "terraform+argocd"
+    observability: "datadog"
+    ticketing: "linear"
+
+sold_contract:
+  auth:
+    protocol: "saml2"
+    mfa_required: true
+    min_cert_ttl_days: 30
+    reject_unsigned_assertions: true
+  residency:
+    allowed_regions:
+      - "eu-central-1"
+      - "eu-west-1"
+    strict_egress: true
+  webhooks:
+    signing: "hmac-sha256"
+    dual_secret_rotation: true
+    max_clock_skew_seconds: 300
+  quota:
+    guaranteed_rps: 50000
+    require_retry_after_header: true
+  alerting:
+    p1_channel: "#payments-p1-ops"
+    max_ack_ms: 2000
+  rollback:
+    max_rto_minutes: 5
+    dry_run_required: true
+
+environment:
+  base_url: "http://127.0.0.1:4040"
+  endpoints:
+    auth_metadata: "/sso/metadata"
+    residency_probe: "/health/region"
+    webhook_ingress: "/webhooks/events"
+    quota_status: "/internal/quota"
+    alert_sink: "/alerts/test"
+    rollback_check: "/internal/rollback/dry-run"
+  secrets:
+    webhook_secret_current: "env:NOMINALX_WEBHOOK_SECRET"
+    webhook_secret_next: "env:NOMINALX_WEBHOOK_SECRET_NEXT"
+
+waivers:
+  - station: "ROLLBACK"
+    owner: "maya.chen@apexpayments.example"
+    reason: "Automated canary rollback finishes Sprint 25; verified manual DNS revert script tested."
+    expires_at: "2026-12-15"
+    rollback_plan: "Run scripts/payments-failover.sh --region eu-central-1 (verified 8m RTO)."
+    ticket_id: "APX-842"
+    issued_at: "2026-11-20"
+
+# Gate 1: Custom Flight Check Stations (hard_stop: true is strictly non-waivable)
+custom_stations:
+  - code: "PCI_TOKEN_VAULT"
+    label: "PCI / Secret Vault"
+    owner: "tobias.keller@apexpayments.example"
+    hard_stop: true
+    endpoint: "/pci/vault/health"
+    method: "GET"
+    expected_status: 200
+    required_header:
+      name: "x-pci-vault-mode"
+      contains: "HSM-FIPS-140-3"
+    required_json_field:
+      path: "tokenization.pan_isolation"
+      equals: true
+    sold_promise: "Cardholder PAN data isolated inside FIPS 140-3 HSM token vault (Hard Stop · non-waivable)"
+    initial_status: "NO_GO"
+    failure_evidence: "GET /pci/vault/health returned x-pci-vault-mode=software-fallback & tokenization.pan_isolation=false"
+    fix_summary: "Bind HSM-FIPS-140-3 vault cluster and enforce PAN tokenization isolation on staging ingress"
+
+# Gate 2: Chaos Vector Overrides & Custom Adversarial Vectors
+chaos_overrides:
+  disabled_vectors: []
+
+custom_vectors:
+  - id: "malformed_idempotency_key"
+    label: "Malformed Idempotency Key"
+    description: "Reject malformed or overly long Idempotency-Key payloads deterministically with HTTP 400 instead of 500 or double-charging."
+    owner: "alex.rivera@vendor.io"
+    endpoint_override: "/webhooks/events"
+    method: "POST"
+    payload:
+      event_id: "evt_bad_idem_probe"
+      idempotency_key: "!!!invalid key with spaces & 256+ chars!!!"
+      type: "payment.capture"
+      amount_cents: 19900
+    expected_status: 400
+    weight: 100
+    patch_id: "idempotency-key-validator"
+    patch_label: "Validate Strict UUIDv4 / ASCII Idempotency-Key Format"
+    patch_summary: "Validate idempotency_key against ^[A-Za-z0-9_-]{8,64}$ before ledger write and return HTTP 400 on malformed keys."
+    patch_diff:
+      - "- const key = req.body.idempotency_key;"
+      - "+ const key = assertValidIdempotencyKey(req.body.idempotency_key); // returns 400 on malformed"
+
+# Gate 3: Day-30 Crew Drill Custom Alarms
+disabled_alarms: []
+
+custom_alarms:
+  - id: "webhook_dlq_backlog_spike"
+    title: "Webhook DLQ Backlog Spike"
+    owner: "priya.nair@vendor.io"
+    timer_seconds: 90
+    metric_label: "DLQ Backlog Depth"
+    trigger_symptom: "ALERT P1: Payment webhook DLQ depth spiked to 480 messages (> 25 SLA floor) after downstream timeout wave."
+    log_lines:
+      - "DLQ_CONSUMER_PAUSED queue=payments-webhooks-dlq depth=480 oldest_age_sec=412"
+      - "ROOT_CAUSE: poisoned batch partition #3 blocking consumer worker pool"
+      - "ACTION REQUIRED: Quarantine poisoned batch, scale DLQ drain workers x4, verify depth < 25"
+    remediation_label: "Quarantine Poison Batch & Enable Parallel DLQ Drain"
+    remediation_detail: "Move malformed partition #3 messages to quarantine bucket and enable 4x bounded DLQ replay workers."
+    verification_proof: "200 OK · DLQ backlog drained from 480 -> 4 msgs (< 25 SLA) · 3/3 consecutive green ticks verified"

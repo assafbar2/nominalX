@@ -35,12 +35,19 @@ export interface ExecutiveReadinessReport {
     authSso: string;
     residency: string;
     hardStopViolations: number;
+    allHardStops: Array<{
+      stationCode: string;
+      stationLabel: string;
+      status: string;
+      isCustom: boolean;
+    }>;
   };
   gate1Summary: {
     verdict: MasterVerdict;
     nominal: number;
     waived: number;
     noGo: number;
+    totalStations: number;
     blockers: string[];
   };
   gate2Summary: {
@@ -48,11 +55,13 @@ export interface ExecutiveReadinessReport {
     grade: string;
     corruptionPct: number | null;
     passedVectors: number;
+    totalVectors: number;
     attemptTrail: string;
   };
   gate3Summary: {
     executed: boolean;
     stabilizedCount: number;
+    totalAlarms: number;
     overtimeCount: number;
     totalSplitSeconds: number | null;
   };
@@ -172,6 +181,15 @@ function buildExecutiveReport(
   const residencyStation = gate1.stations.find(
     (s) => s.stationCode === "RESIDENCY",
   )!;
+  const allHardStops = gate1.stations
+    .filter((s) => s.isHardStop)
+    .map((s) => ({
+      stationCode: String(s.stationCode),
+      stationLabel: String(s.stationLabel),
+      status: s.status,
+      isCustom: Boolean(s.isCustom),
+    }));
+  const hardStopNamesText = allHardStops.map((h) => h.stationLabel).join(", ");
 
   const blockers = gate1.stations
     .filter((s) => s.status === "NO_GO")
@@ -194,7 +212,7 @@ function buildExecutiveReport(
 
   let recommendedAction: string;
   if (gate1.verdict === "NO_GO") {
-    recommendedAction = `HOLD LAUNCH — Resolve ${gate1.counts.noGo} Gate 1 NO-GO station(s) owned by ${gate1.accountableOwner} (Hard Stops AUTH / SSO and RESIDENCY cannot be waived).`;
+    recommendedAction = `HOLD LAUNCH — Resolve ${gate1.counts.noGo} Gate 1 NO-GO station(s) owned by ${gate1.accountableOwner} (Hard Stops ${hardStopNamesText} cannot be waived).`;
   } else if (!gate2 || !gate2.passed) {
     recommendedAction = `COMPLETE SPRINT 2 — Execute Gate 2 (2 of 3): Static Fire patch/re-fire loops until corruption drops to 0.0% (Grade A).`;
   } else if (!gate3 || !gate3.allStabilized) {
@@ -204,6 +222,9 @@ function buildExecutiveReport(
   } else {
     recommendedAction = `GO FOR LAUNCH — All 3 Gates verified NOMINAL with 0 active waivers; transition Day-1 Runbook to Stage 5 Support Engineers.`;
   }
+
+  const totalVectors = gate2?.totals.totalVectors ?? 7;
+  const totalAlarms = gate3?.totalAlarms ?? 3;
 
   const basePayload = {
     reportType: "exec" as const,
@@ -219,12 +240,14 @@ function buildExecutiveReport(
       authSso: authStation.status,
       residency: residencyStation.status,
       hardStopViolations: gate1.waiverAudit.hardStopViolations.length,
+      allHardStops,
     },
     gate1Summary: {
       verdict: gate1.verdict,
       nominal: gate1.counts.nominal,
       waived: gate1.counts.heldWaived,
       noGo: gate1.counts.noGo,
+      totalStations: gate1.counts.total,
       blockers,
     },
     gate2Summary: {
@@ -232,11 +255,13 @@ function buildExecutiveReport(
       grade: gate2?.grade ?? "PENDING",
       corruptionPct: gate2?.corruptionPct ?? null,
       passedVectors: gate2?.totals.passedVectors ?? 0,
+      totalVectors,
       attemptTrail,
     },
     gate3Summary: {
       executed: Boolean(gate3),
       stabilizedCount: gate3?.stabilizedCount ?? 0,
+      totalAlarms,
       overtimeCount: gate3?.overtimeCount ?? 0,
       totalSplitSeconds: gate3
         ? Math.round((gate3.totalSplitMs / 1000) * 10) / 10
@@ -250,12 +275,12 @@ function buildExecutiveReport(
     },
     scopeGovernance: {
       inScopeHighlights: [
-        "Stage 2 · Gate 1 (1 of 3): Flight Check — 6-station Sold vs. Observed telemetry",
-        "Stage 3 · Gate 2 (2 of 3): Static Fire — 7-vector deterministic chaos grading",
-        "Stage 4 · Gate 3 (3 of 3): Crew Drill — 3 live 90s operational alarm drills + Handover Dossier",
+        `Stage 2 · Gate 1 (1 of 3): Flight Check — ${gate1.counts.total}-station Sold vs. Observed telemetry`,
+        `Stage 3 · Gate 2 (2 of 3): Static Fire — ${totalVectors}-vector deterministic chaos grading`,
+        `Stage 4 · Gate 3 (3 of 3): Crew Drill — ${totalAlarms} live operational alarm drills + Handover Dossier`,
       ],
       outOfScopeBoundaries: [
-        "Waiving non-negotiable Hard Stops (AUTH / SSO, RESIDENCY)",
+        `Waiving non-negotiable Hard Stops (${hardStopNamesText})`,
         "LLM-generated readiness opinions or unverified launch spreadsheets",
         "Distributed 50k RPS load testing from a laptop",
       ],
@@ -361,6 +386,13 @@ function buildOperationalDigest(
       endpointOrTarget: config.environment.endpoints.rollback_check,
       status: gate1.stations[5]!.status,
     },
+    ...gate1.stations
+      .filter((s) => s.isCustom)
+      .map((s) => ({
+        integration: `${s.stationLabel} (${s.isHardStop ? "Custom Hard Stop" : "Custom Station"})`,
+        endpointOrTarget: `${s.evidence.method} ${s.evidence.endpoint}`,
+        status: s.status,
+      })),
   ];
 
   const nextCommands: string[] = [
@@ -399,6 +431,10 @@ function buildWaiverRegisterReport(
   const { config, gate1 } = input;
   const audit = gate1.waiverAudit;
 
+  const hardStopStations = gate1.stations
+    .filter((s) => s.isHardStop)
+    .map((s) => `${s.stationLabel} (${s.subStage})`);
+
   const basePayload = {
     reportType: "waivers" as const,
     title: `Active Waiver Aging Register — ${config.account.name}`,
@@ -407,7 +443,7 @@ function buildWaiverRegisterReport(
     accountId: config.account.id,
     accountName: config.account.name,
     policyAttestation: {
-      hardStopStations: ["AUTH / SSO (1 of 6)", "RESIDENCY (2 of 6)"],
+      hardStopStations,
       hardStopWaiversForbidden: true as const,
       hardStopViolationsDetected: audit.hardStopViolations.length,
       maxActiveWaivers: audit.maxAllowedActive,
@@ -477,16 +513,19 @@ function renderExecMarkdown(r: ExecutiveReadinessReport): string {
   lines.push("| Gate | Metric | Result |");
   lines.push("|---|---|---|");
   lines.push(
-    `| Gate 1 (1 of 3): Flight Check | Station Verdict | \`${r.gate1Summary.verdict}\` (${r.gate1Summary.nominal} NOMINAL, ${r.gate1Summary.waived} WAIVED, ${r.gate1Summary.noGo} NO-GO) |`,
+    `| Gate 1 (1 of 3): Flight Check | Station Verdict | \`${r.gate1Summary.verdict}\` (${r.gate1Summary.nominal}/${r.gate1Summary.totalStations} NOMINAL, ${r.gate1Summary.waived} WAIVED, ${r.gate1Summary.noGo} NO-GO) |`,
+  );
+  const hsInline = r.hardStopCompliance.allHardStops
+    .map((h) => `${h.stationLabel} \`${h.status}\``)
+    .join(" · ");
+  lines.push(
+    `| Hard Stops (Non-Waivable) | ${r.hardStopCompliance.allHardStops.map((h) => h.stationLabel).join(" & ")} | ${hsInline} (Violations: ${r.hardStopCompliance.hardStopViolations}) |`,
   );
   lines.push(
-    `| Hard Stops (Non-Waivable) | AUTH / SSO & RESIDENCY | AUTH \`${r.hardStopCompliance.authSso}\` · RESIDENCY \`${r.hardStopCompliance.residency}\` (Violations: ${r.hardStopCompliance.hardStopViolations}) |`,
+    `| Gate 2 (2 of 3): Static Fire | Resilience Grade & Corruption | Grade \`${r.gate2Summary.grade}\` · ${r.gate2Summary.corruptionPct === null ? "PENDING" : `${r.gate2Summary.corruptionPct.toFixed(1)}%`} (${r.gate2Summary.passedVectors}/${r.gate2Summary.totalVectors}) · ${r.gate2Summary.attemptTrail} |`,
   );
   lines.push(
-    `| Gate 2 (2 of 3): Static Fire | Resilience Grade & Corruption | Grade \`${r.gate2Summary.grade}\` · ${r.gate2Summary.corruptionPct === null ? "PENDING" : `${r.gate2Summary.corruptionPct.toFixed(1)}%`} (${r.gate2Summary.passedVectors}/7) · ${r.gate2Summary.attemptTrail} |`,
-  );
-  lines.push(
-    `| Gate 3 (3 of 3): Crew Drill | Day-30 Alarm Stabilization | ${r.gate3Summary.executed ? `${r.gate3Summary.stabilizedCount}/3 stabilized (${r.gate3Summary.overtimeCount} overtime, total ${r.gate3Summary.totalSplitSeconds}s)` : "PENDING"} |`,
+    `| Gate 3 (3 of 3): Crew Drill | Day-30 Alarm Stabilization | ${r.gate3Summary.executed ? `${r.gate3Summary.stabilizedCount}/${r.gate3Summary.totalAlarms} stabilized (${r.gate3Summary.overtimeCount} overtime, total ${r.gate3Summary.totalSplitSeconds}s)` : "PENDING"} |`,
   );
   lines.push(
     `| Operational Waiver Exposure | Active Cap & Nearest Expiry | \`${r.waiverExposure.activeCount} / ${r.waiverExposure.maxAllowed}\` · Nearest expiry: \`${r.waiverExposure.nearestExpiry ?? "None"}\`${r.waiverExposure.nearestDaysRemaining !== null ? ` (${r.waiverExposure.nearestDaysRemaining}d left)` : ""} |`,
@@ -519,14 +558,17 @@ function renderExecMarkdown(r: ExecutiveReadinessReport): string {
 }
 
 function renderExecSlack(r: ExecutiveReadinessReport): string {
+  const hsSummary = r.hardStopCompliance.allHardStops
+    .map((h) => `${h.stationLabel} \`${h.status}\``)
+    .join(", ");
   const lines: string[] = [
     `*${r.title}*`,
     `*Verdict:* \`${r.masterVerdict}\` | *Target Go-Live:* \`${r.targetGoLive}\` | *Baton Owner:* \`${r.singleAccountableOwner}\``,
     "",
     `*Decision:* ${r.recommendedAction}`,
-    `• *Gate 1 (1 of 3) Flight Check:* \`${r.gate1Summary.verdict}\` (${r.gate1Summary.nominal}/6 NOMINAL, ${r.gate1Summary.waived} WAIVED, ${r.gate1Summary.noGo} NO-GO) · Hard Stops: AUTH \`${r.hardStopCompliance.authSso}\`, RESIDENCY \`${r.hardStopCompliance.residency}\``,
-    `• *Gate 2 (2 of 3) Static Fire:* Grade \`${r.gate2Summary.grade}\` · ${r.gate2Summary.attemptTrail}`,
-    `• *Gate 3 (3 of 3) Crew Drill:* ${r.gate3Summary.executed ? `${r.gate3Summary.stabilizedCount}/3 stabilized (${r.gate3Summary.overtimeCount} overtime)` : "PENDING"}`,
+    `• *Gate 1 (1 of 3) Flight Check:* \`${r.gate1Summary.verdict}\` (${r.gate1Summary.nominal}/${r.gate1Summary.totalStations} NOMINAL, ${r.gate1Summary.waived} WAIVED, ${r.gate1Summary.noGo} NO-GO) · Hard Stops: ${hsSummary}`,
+    `• *Gate 2 (2 of 3) Static Fire:* Grade \`${r.gate2Summary.grade}\` · ${r.gate2Summary.passedVectors}/${r.gate2Summary.totalVectors} · ${r.gate2Summary.attemptTrail}`,
+    `• *Gate 3 (3 of 3) Crew Drill:* ${r.gate3Summary.executed ? `${r.gate3Summary.stabilizedCount}/${r.gate3Summary.totalAlarms} stabilized (${r.gate3Summary.overtimeCount} overtime)` : "PENDING"}`,
     `• *Waiver Exposure:* \`${r.waiverExposure.activeCount}/${r.waiverExposure.maxAllowed}\` active · Nearest expiry: \`${r.waiverExposure.nearestExpiry ?? "None"}\``,
     `*Digest:* \`${r.verificationDigest}\``,
   ];
@@ -544,7 +586,7 @@ function renderOpsMarkdown(r: OperationalSprintDigest): string {
   ];
 
   if (r.stationBlockers.length === 0) {
-    lines.push("All 6 Flight Check stations are `NOMINAL`. Zero blockers.");
+    lines.push("All Flight Check stations are `NOMINAL`. Zero blockers.");
   } else {
     lines.push("| Sub-Stage | Station | Policy | Owner | Status | Sold -> Observed | Remediation |");
     lines.push("|---|---|---|---|---|---|---|");
@@ -599,7 +641,7 @@ function renderOpsSlack(r: OperationalSprintDigest): string {
     "",
   ];
   if (r.stationBlockers.length === 0) {
-    lines.push("• *Gate 1 Blockers:* None — 6/6 NOMINAL.");
+    lines.push("• *Gate 1 Blockers:* None — all stations NOMINAL.");
   } else {
     lines.push(`*Gate 1 Non-Nominal Stations (${r.stationBlockers.length}):*`);
     for (const b of r.stationBlockers) {

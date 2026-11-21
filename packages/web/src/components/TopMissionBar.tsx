@@ -1,10 +1,12 @@
 import { listAccountPresets, type AccountPresetId } from "@nominalx/core";
-import { MoonIcon, NominalXLogo, SunIcon, WireIcon } from "./Icons";
+import { MoonIcon, NominalXLogo, SlidersIcon, SunIcon, WireIcon } from "./Icons";
 
 interface TopMissionBarProps {
   activePresetId: AccountPresetId;
   onSelectPreset: (id: AccountPresetId) => void;
   onReset: () => void;
+  onOpenCustomize: () => void;
+  customCount: number;
   onOpenWireLog: () => void;
   wireLogCount: number;
   theme: "dark" | "light";
@@ -15,6 +17,8 @@ export function TopMissionBar({
   activePresetId,
   onSelectPreset,
   onReset,
+  onOpenCustomize,
+  customCount,
   onOpenWireLog,
   wireLogCount,
   theme,
@@ -64,6 +68,31 @@ export function TopMissionBar({
         </nav>
 
         <div className="mission-actions">
+          <button
+            type="button"
+            className={`btn ${customCount > 0 ? "btn-primary" : ""}`}
+            onClick={onOpenCustomize}
+            title="Customize Gate 1 stations, Gate 2 chaos vectors, Gate 3 alarms, or edit nominalx.yaml live"
+            data-testid="customize-btn"
+          >
+            <SlidersIcon />
+            <span>Customize</span>
+            {customCount > 0 && (
+              <span
+                className="mono"
+                style={{
+                  padding: "1px 6px",
+                  borderRadius: 6,
+                  background: "rgba(4, 17, 29, 0.28)",
+                  fontSize: "0.7rem",
+                  fontWeight: 800,
+                }}
+              >
+                +{customCount}
+              </span>
+            )}
+          </button>
+
           <button
             type="button"
             className="btn"

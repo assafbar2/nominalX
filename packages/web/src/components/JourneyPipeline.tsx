@@ -183,10 +183,10 @@ export function JourneyPipeline({
                     }}
                   >
                     {stage.gateNumber === 1
-                      ? "Flight Check (1–6/6)"
+                      ? `Flight Check (1–${st.pips.length}/${st.pips.length})`
                       : stage.gateNumber === 2
-                        ? "Static Fire (1–7/7)"
-                        : "Crew Drill (1–3/3) + Seal"}
+                        ? `Static Fire (1–${st.pips.length}/${st.pips.length})`
+                        : `Crew Drill (1–${Math.max(1, st.pips.length - 1)}/${Math.max(1, st.pips.length - 1)}) + Seal`}
                   </div>
                 )}
               </div>

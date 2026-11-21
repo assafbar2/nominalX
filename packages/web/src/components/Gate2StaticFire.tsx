@@ -1,6 +1,7 @@
 import type {
   AccountPreset,
   ChaosVectorId,
+  CustomChaosVectorConfig,
   StaticFireResult,
   TelemetryPoint,
 } from "@nominalx/core";
@@ -8,6 +9,7 @@ import { VectorGlyph } from "./Icons";
 
 interface Gate2StaticFireProps {
   preset: AccountPreset;
+  customVectors: readonly CustomChaosVectorConfig[];
   staticFire: StaticFireResult;
   stagedPatches: ChaosVectorId[];
   isFiring: boolean;
@@ -144,6 +146,7 @@ function TelemetryWaveformChart({
 
 export function Gate2StaticFire({
   preset,
+  customVectors,
   staticFire,
   stagedPatches,
   isFiring,
@@ -152,7 +155,22 @@ export function Gate2StaticFire({
   onIgniteFire,
   onProceedToGate3,
 }: Gate2StaticFireProps) {
-  const vectorPatches = preset.patchDiffs.filter((d) => d.targetType === "vector");
+  const activeVectorIds = new Set(staticFire.vectors.map((v) => v.vectorId));
+  const builtInVectorPatches = preset.patchDiffs.filter(
+    (d) => d.targetType === "vector" && activeVectorIds.has(d.targetId),
+  );
+  const customVectorPatches = customVectors.map((cv) => ({
+    patchKey: cv.patch_id,
+    label: cv.patch_label,
+    targetType: "vector" as const,
+    targetId: cv.id as ChaosVectorId,
+    diffLines: cv.patch_diff,
+    isCustom: true,
+  }));
+  const vectorPatches = [
+    ...builtInVectorPatches.map((p) => ({ ...p, isCustom: false })),
+    ...customVectorPatches,
+  ];
   const stagedSet = new Set(stagedPatches);
   const gColor = gradeColor(staticFire.grade);
 
@@ -170,7 +188,7 @@ export function Gate2StaticFire({
             STAGE 3: INTEGRATION &amp; CUTOVER · GATE 2 (2 OF 3): STATIC FIRE · SPRINT 2
           </div>
           <h2 className="gate-title-xl">
-            Staging Failure Test Stand (7 Real-World Scenarios · Target 0.0% Data Loss, Grade A)
+            Staging Failure Test Stand ({staticFire.totals.totalVectors} Real-World Scenarios · Target 0.0% Data Loss, Grade A)
           </h2>
         </div>
 
@@ -275,16 +293,21 @@ export function Gate2StaticFire({
           </div>
         </div>
 
-        {/* Block 2: 7-LED FAULT STRIP */}
+        {/* Block 2: N-LED FAULT STRIP */}
         <div className="panel score-block">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span className="eyebrow">7-SCENARIO FAILURE STATUS</span>
+            <span className="eyebrow">{staticFire.totals.totalVectors}-SCENARIO FAILURE STATUS</span>
             <span className="mono" style={{ fontSize: "0.86rem", fontWeight: 800, color: staticFire.passed ? "var(--nominal-text)" : "var(--nogo-text)" }}>
-              {staticFire.totals.passedVectors} / 7 NOMINAL
+              {staticFire.totals.passedVectors} / {staticFire.totals.totalVectors} NOMINAL
             </span>
           </div>
 
-          <div className="fault-led-grid">
+          <div
+            className="fault-led-grid"
+            style={{
+              gridTemplateColumns: `repeat(${Math.min(10, Math.max(1, staticFire.vectors.length))}, 1fr)`,
+            }}
+          >
             {staticFire.vectors.map((v) => (
               <div
                 key={v.vectorId}
@@ -293,7 +316,7 @@ export function Gate2StaticFire({
               >
                 <span className={`fault-led-lamp ${v.passed ? "pass" : "fail"}`} />
                 <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 800 }}>
-                  {v.index}/7
+                  {v.index}/{staticFire.totals.totalVectors}
                 </span>
                 <span
                   className="mono"
@@ -459,8 +482,15 @@ export function Gate2StaticFire({
                     <VectorGlyph id={v.vectorId} color={color} />
                   </div>
                   <div>
-                    <div className="mono" style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--active-text)" }}>
-                      {v.subStage}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 800, color: "var(--active-text)" }}>
+                        {v.subStage}
+                      </span>
+                      {v.isCustom && (
+                        <span className="mono" style={{ fontSize: "0.6rem", fontWeight: 800, padding: "1px 5px", borderRadius: 4, background: "var(--active-bg)", color: "var(--active-text)", border: "1px solid var(--active-border)" }}>
+                          CUSTOM
+                        </span>
+                      )}
                     </div>
                     <div style={{ fontSize: "0.92rem", fontWeight: 800, lineHeight: 1.15 }}>
                       {v.shortName}

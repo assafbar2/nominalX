@@ -15,9 +15,10 @@ interface ProbeHttpResult {
   body: Record<string, unknown>;
 }
 
-async function postChaosEvent(
+async function sendChaosRequest(
   url: string,
-  rawBody: string,
+  method: "GET" | "POST" | "PUT" | "PATCH",
+  rawBody: string | undefined,
   headers: Record<string, string>,
   timeoutMs: number,
 ): Promise<ProbeHttpResult> {
@@ -26,12 +27,12 @@ async function postChaosEvent(
   const started = Date.now();
   try {
     const res = await fetch(url, {
-      method: "POST",
+      method,
       headers: {
-        "content-type": "application/json",
+        ...(method !== "GET" ? { "content-type": "application/json" } : {}),
         ...headers,
       },
-      body: rawBody,
+      ...(method !== "GET" && rawBody !== undefined ? { body: rawBody } : {}),
       signal: controller.signal,
     });
     const latencyMs = Math.max(1, Date.now() - started);
@@ -66,6 +67,15 @@ async function postChaosEvent(
   }
 }
 
+async function postChaosEvent(
+  url: string,
+  rawBody: string,
+  headers: Record<string, string>,
+  timeoutMs: number,
+): Promise<ProbeHttpResult> {
+  return sendChaosRequest(url, "POST", rawBody, headers, timeoutMs);
+}
+
 function p95(values: number[]): number {
   if (values.length === 0) return 1;
   const sorted = [...values].sort((a, b) => a - b);
@@ -90,12 +100,16 @@ export async function runLiveStaticFire(
   const secrets = resolveWebhookSecrets(config);
   const runSalt = Date.now().toString(36);
   const nowSec = Math.floor(Date.now() / 1000);
-  const endpointPath = new URL(targetUrl).pathname;
+  const parsedTarget = new URL(targetUrl);
+  const endpointPath = parsedTarget.pathname;
+  const disabledVectors = new Set(
+    config.chaos_overrides?.disabled_vectors ?? [],
+  );
 
   const observations: StaticFireVectorObservation[] = [];
 
   // 1 of 7: Duplicate webhook delivery (10 identical event_ids)
-  {
+  if (!disabledVectors.has("duplicate_webhook")) {
     const eventId = `evt_dup_${runSalt}`;
     const rawBody = JSON.stringify({
       event_id: eventId,
@@ -165,7 +179,7 @@ export async function runLiveStaticFire(
   }
 
   // 2 of 7: Out-of-order events (v2 canceled followed by v1 created, across 5 entities = 10 packets)
-  {
+  if (!disabledVectors.has("out_of_order")) {
     const statuses: number[] = [];
     const latencies: number[] = [];
     let resurrectedCount = 0;
@@ -254,7 +268,7 @@ export async function runLiveStaticFire(
   }
 
   // 3 of 7: 429 rate-limit burst (10 burst probes)
-  {
+  if (!disabledVectors.has("rate_limit_429")) {
     const statuses: number[] = [];
     const latencies: number[] = [];
     let badBurst = 0;
@@ -324,7 +338,7 @@ export async function runLiveStaticFire(
   }
 
   // 4 of 7: 30-second upstream timeout (6 stall probes with bounded deadline)
-  {
+  if (!disabledVectors.has("upstream_timeout_30s")) {
     const statuses: number[] = [];
     const latencies: number[] = [];
     let exhaustedCount = 0;
@@ -393,7 +407,7 @@ export async function runLiveStaticFire(
   }
 
   // 5 of 7: Dual HMAC secret rotation (4 v1 + 4 v2 + 2 forged = 10 probes)
-  {
+  if (!disabledVectors.has("dual_hmac_rotation")) {
     const statuses: number[] = [];
     const latencies: number[] = [];
     let failedHmac = 0;
@@ -503,7 +517,7 @@ export async function runLiveStaticFire(
   }
 
   // 6 of 7: Additive / unknown JSON fields (8 forward-compatible payloads)
-  {
+  if (!disabledVectors.has("additive_json_fields")) {
     const statuses: number[] = [];
     const latencies: number[] = [];
     let schemaCrashes = 0;
@@ -568,7 +582,7 @@ export async function runLiveStaticFire(
   }
 
   // 7 of 7: 5-minute clock skew (3 at now-290s, 3 at now+290s -> 2xx; 2 stale at now-900s -> 401/403)
-  {
+  if (!disabledVectors.has("clock_skew_5m")) {
     const statuses: number[] = [];
     const latencies: number[] = [];
     let skewFailures = 0;
@@ -636,12 +650,95 @@ export async function runLiveStaticFire(
     });
   }
 
+  // Custom Chaos Vectors (Gate 2 extensibility)
+  for (const customVec of config.custom_vectors ?? []) {
+    const customUrl = customVec.endpoint_override
+      ? `${parsedTarget.origin}${customVec.endpoint_override.startsWith("/") ? customVec.endpoint_override : `/${customVec.endpoint_override}`}`
+      : targetUrl;
+    const customEndpointPath = new URL(customUrl).pathname;
+    const probeCount = Math.max(1, Math.min(20, customVec.weight ?? 6));
+    const statuses: number[] = [];
+    const latencies: number[] = [];
+    let failedCount = 0;
+
+    for (let i = 0; i < probeCount; i += 1) {
+      const payloadObj = {
+        ...(customVec.payload ?? {}),
+        nominalx_probe_seq: i,
+      };
+      const rawBody =
+        customVec.method === "GET" ? undefined : JSON.stringify(payloadObj);
+      const sig = signWebhookPayload(
+        secrets.current,
+        nowSec,
+        rawBody ?? "",
+        "v1",
+      );
+      const res = await sendChaosRequest(
+        customUrl,
+        customVec.method,
+        rawBody,
+        {
+          "x-nominalx-vector": customVec.id,
+          "x-nominalx-custom-vector": "true",
+          "x-nominalx-signature": sig.signatureHeader,
+          "x-nominalx-timestamp": sig.timestampHeader,
+          "x-nominalx-key-id": sig.keyIdHeader,
+        },
+        timeoutMs,
+      );
+      statuses.push(res.status);
+      latencies.push(res.latencyMs);
+      if (res.status !== customVec.expected_status) {
+        failedCount += 1;
+      }
+    }
+
+    const passed = failedCount === 0;
+    observations.push({
+      vectorId: customVec.id,
+      packetsSent: probeCount,
+      packetsCorrupted: failedCount,
+      packetsDropped: failedCount,
+      passed,
+      p95LatencyMs: p95(latencies),
+      observedBehavior: passed
+        ? `All ${probeCount}/${probeCount} probes returned contracted HTTP ${customVec.expected_status}`
+        : `${failedCount}/${probeCount} probes returned unexpected status [${[...new Set(statuses)].join(", ")}] (expected HTTP ${customVec.expected_status})`,
+      expectedBehavior: `${customVec.method} ${customEndpointPath} returns HTTP ${customVec.expected_status}`,
+      httpStatusSamples: statuses.slice(0, 6),
+      wireEvidence: {
+        method: customVec.method,
+        endpoint: customEndpointPath,
+        httpStatus: statuses[0] ?? 500,
+        latencyMs: p95(latencies),
+        headers: {
+          "x-nominalx-vector": customVec.id,
+          "x-nominalx-custom-vector": "true",
+        },
+        payload: {
+          vector: customVec.id,
+          probes: probeCount,
+          failed: failedCount,
+          expected_status: customVec.expected_status,
+          observed_statuses: statuses.slice(0, 6),
+        },
+        highlightLines: [
+          passed
+            ? `Custom vector "${customVec.label}" verified HTTP ${customVec.expected_status} across ${probeCount}/${probeCount} probes`
+            : `Custom vector "${customVec.label}" failed ${failedCount}/${probeCount} probes (expected HTTP ${customVec.expected_status}, got [${[...new Set(statuses)].join(", ")}])`,
+        ],
+      },
+    });
+  }
+
   return scoreStaticFire({
     accountId: config.account.id,
     accountName: config.account.name,
     targetUrl,
     accountableOwner: config.account.fde_owner,
     observations,
+    config,
     previousAttempts: options.previousAttempts,
     patchesApplied: options.patchesApplied,
     executedAt: options.executedAt,

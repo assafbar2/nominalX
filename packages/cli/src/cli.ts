@@ -139,7 +139,10 @@ async function resolveArtifactsForReporting(
         alarms: [],
         stabilizedCount: 0,
         overtimeCount: 0,
-        totalAlarms: 3,
+        totalAlarms:
+          3 -
+          (config.disabled_alarms?.length ?? 0) +
+          (config.custom_alarms?.length ?? 0),
         totalSplitMs: 0,
         allStabilized: false,
         passedCleanly: false,

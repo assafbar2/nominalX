@@ -1,10 +1,12 @@
 import { GATE1_SUB_STAGES } from "./lifecycle.js";
 import type {
   ContractDelta,
+  CustomStationConfig,
   EvaluatedWaiver,
   FlightCheckResult,
   MasterVerdict,
   NominalXConfig,
+  ObservedCustomStationTelemetry,
   ObservedEnvironmentTelemetry,
   PolicyClass,
   StationCode,
@@ -49,7 +51,7 @@ const STATION_ALIASES: Record<string, StationCode> = {
   ROLLBACK: "ROLLBACK",
 };
 
-const STATION_LABEL_BY_CODE: Record<StationCode, StationLabel> = {
+const STATION_LABEL_BY_CODE: Record<string, StationLabel> = {
   AUTH_SSO: "AUTH / SSO",
   RESIDENCY: "RESIDENCY",
   WEBHOOKS: "WEBHOOKS",
@@ -58,21 +60,60 @@ const STATION_LABEL_BY_CODE: Record<StationCode, StationLabel> = {
   ROLLBACK: "ROLLBACK",
 };
 
-export function normalizeStationCode(input: string): StationCode | null {
+export function normalizeStationCode(
+  input: string,
+  customStations?: readonly CustomStationConfig[],
+): StationCode | null {
   const normalized = input.trim().toUpperCase().replace(/\s+/g, " ");
-  return STATION_ALIASES[normalized] ?? null;
+  if (STATION_ALIASES[normalized]) {
+    return STATION_ALIASES[normalized]!;
+  }
+  if (customStations) {
+    for (const custom of customStations) {
+      const codeNorm = custom.code.trim().toUpperCase();
+      const labelNorm = custom.label.trim().toUpperCase().replace(/\s+/g, " ");
+      if (normalized === codeNorm || normalized === labelNorm) {
+        return custom.code;
+      }
+    }
+  }
+  return null;
 }
 
-export function getStationLabel(code: StationCode): StationLabel {
-  return STATION_LABEL_BY_CODE[code];
+export function getStationLabel(
+  code: StationCode,
+  customStations?: readonly CustomStationConfig[],
+): StationLabel {
+  if (STATION_LABEL_BY_CODE[code]) {
+    return STATION_LABEL_BY_CODE[code]!;
+  }
+  const match = customStations?.find(
+    (c) => c.code.toUpperCase() === code.toUpperCase(),
+  );
+  return match?.label ?? code;
 }
 
-export function isHardStopStation(code: StationCode): boolean {
-  return HARD_STOP_STATIONS.includes(code);
+export function isHardStopStation(
+  code: StationCode,
+  customStations?: readonly CustomStationConfig[],
+): boolean {
+  if (HARD_STOP_STATIONS.includes(code)) {
+    return true;
+  }
+  return Boolean(
+    customStations?.some(
+      (c) => c.code.toUpperCase() === code.toUpperCase() && Boolean(c.hard_stop),
+    ),
+  );
 }
 
-export function getStationPolicyClass(code: StationCode): PolicyClass {
-  return isHardStopStation(code) ? "HARD_STOP" : "OPERATIONAL_WAIVER";
+export function getStationPolicyClass(
+  code: StationCode,
+  customStations?: readonly CustomStationConfig[],
+): PolicyClass {
+  return isHardStopStation(code, customStations)
+    ? "HARD_STOP"
+    : "OPERATIONAL_WAIVER";
 }
 
 function parseUtcDate(dateStr: string): number | null {
@@ -113,6 +154,7 @@ export function computeWaiverAgingBand(
 export function evaluateWaivers(
   waivers: readonly WaiverInput[],
   referenceDateIso: string = todayIsoUtc(),
+  customStations?: readonly CustomStationConfig[],
 ): WaiverEvaluationResult {
   const refMs = parseUtcDate(referenceDateIso) ?? parseUtcDate(todayIsoUtc())!;
   const allWaivers: EvaluatedWaiver[] = [];
@@ -121,12 +163,12 @@ export function evaluateWaivers(
   const hardStopViolations: EvaluatedWaiver[] = [];
 
   for (const waiver of waivers) {
-    const stationCode = normalizeStationCode(waiver.station);
+    const stationCode = normalizeStationCode(waiver.station, customStations);
     const stationLabel = stationCode
-      ? getStationLabel(stationCode)
+      ? getStationLabel(stationCode, customStations)
       : waiver.station;
     const policyClass = stationCode
-      ? getStationPolicyClass(stationCode)
+      ? getStationPolicyClass(stationCode, customStations)
       : "UNKNOWN";
 
     const expiryMs = parseUtcDate(waiver.expires_at);
@@ -160,7 +202,7 @@ export function evaluateWaivers(
       continue;
     }
 
-    if (isHardStopStation(stationCode)) {
+    if (isHardStopStation(stationCode, customStations)) {
       const evaluated: EvaluatedWaiver = {
         stationInput: waiver.station,
         stationCode,
@@ -337,6 +379,92 @@ export interface EvaluateFlightCheckOptions {
   extraWaivers?: WaiverInput[];
 }
 
+export function buildSimulatedCustomStationTelemetry(
+  custom: CustomStationConfig,
+  patched: boolean,
+): ObservedCustomStationTelemetry {
+  const expectedStatus = custom.expected_status ?? 200;
+  const shouldPass = patched || custom.initial_status === "NOMINAL";
+  const httpStatus = shouldPass ? expectedStatus : 503;
+
+  const headers: Record<string, string> = {
+    "content-type": "application/json",
+    "x-nominalx-custom-station": custom.code,
+  };
+  let observedHeaderValue: string | null = null;
+  if (custom.required_header) {
+    observedHeaderValue = shouldPass
+      ? custom.required_header.contains
+      : "unverified-default";
+    headers[custom.required_header.name.toLowerCase()] = observedHeaderValue;
+  }
+
+  const payload: Record<string, unknown> = {
+    station: custom.code,
+    status: shouldPass ? "nominal" : "drift_detected",
+  };
+  let observedJsonValue: unknown = undefined;
+  if (custom.required_json_field) {
+    observedJsonValue = shouldPass
+      ? custom.required_json_field.equals
+      : typeof custom.required_json_field.equals === "boolean"
+        ? !custom.required_json_field.equals
+        : "mismatch";
+    setNestedJsonPath(payload, custom.required_json_field.path, observedJsonValue);
+  }
+
+  const highlightLines = shouldPass
+    ? [
+        custom.fix_summary
+          ? `NOMINAL: ${custom.fix_summary}`
+          : `${custom.method} ${custom.endpoint} -> HTTP ${httpStatus} (contract verified)`,
+      ]
+    : [
+        custom.failure_evidence ??
+          `${custom.method} ${custom.endpoint} returned HTTP ${httpStatus} (expected ${expectedStatus})`,
+      ];
+
+  return {
+    code: custom.code,
+    httpStatus,
+    headerMatched: !custom.required_header || shouldPass,
+    observedHeaderValue,
+    jsonFieldMatched: !custom.required_json_field || shouldPass,
+    observedJsonValue,
+    evidence: {
+      method: custom.method,
+      endpoint: custom.endpoint,
+      httpStatus,
+      latencyMs: shouldPass ? 34 : 92,
+      headers,
+      payload,
+      highlightLines,
+    },
+  };
+}
+
+function setNestedJsonPath(
+  target: Record<string, unknown>,
+  path: string,
+  value: unknown,
+): void {
+  const parts = path.split(".").filter(Boolean);
+  if (parts.length === 0) return;
+  let cursor: Record<string, unknown> = target;
+  for (let i = 0; i < parts.length - 1; i += 1) {
+    const key = parts[i]!;
+    if (
+      !cursor[key] ||
+      typeof cursor[key] !== "object" ||
+      Array.isArray(cursor[key])
+    ) {
+      cursor[key] = {};
+    }
+    cursor = cursor[key] as Record<string, unknown>;
+  }
+  cursor[parts[parts.length - 1]!] = value;
+}
+
 export function evaluateFlightCheck(
   config: NominalXConfig,
   observed: ObservedEnvironmentTelemetry,
@@ -344,12 +472,17 @@ export function evaluateFlightCheck(
 ): FlightCheckResult {
   const evaluatedAt = options.evaluatedAt ?? new Date().toISOString();
   const referenceDate = options.referenceDate ?? evaluatedAt.slice(0, 10);
+  const customStations = config.custom_stations ?? [];
 
   const combinedWaivers: WaiverInput[] = [
     ...(config.waivers ?? []),
     ...(options.extraWaivers ?? []),
   ];
-  const waiverAudit = evaluateWaivers(combinedWaivers, referenceDate);
+  const waiverAudit = evaluateWaivers(
+    combinedWaivers,
+    referenceDate,
+    customStations,
+  );
 
   const activeWaiverByStation = new Map<StationCode, EvaluatedWaiver>();
   for (const w of waiverAudit.activeWaivers) {
@@ -363,7 +496,8 @@ export function evaluateFlightCheck(
     }
   }
 
-  const stations: StationResult[] = [
+  const totalStations = 6 + customStations.length;
+  const builtInStations: StationResult[] = [
     evaluateAuthStation(config, observed, violationByStation.get("AUTH_SSO")),
     evaluateResidencyStation(
       config,
@@ -394,6 +528,32 @@ export function evaluateFlightCheck(
       activeWaiverByStation.get("ROLLBACK"),
       violationByStation.get("ROLLBACK"),
     ),
+  ].map((s, idx) => ({
+    ...s,
+    index: idx + 1,
+    subStage: `${idx + 1} of ${totalStations}`,
+  }));
+
+  const evaluatedCustomStations: StationResult[] = customStations.map(
+    (custom, idx) => {
+      const stationIndex = 6 + idx + 1;
+      const customObs =
+        observed.customStations?.[custom.code] ??
+        buildSimulatedCustomStationTelemetry(custom, false);
+      return evaluateCustomStation(
+        custom,
+        customObs,
+        stationIndex,
+        totalStations,
+        activeWaiverByStation.get(custom.code),
+        violationByStation.get(custom.code),
+      );
+    },
+  );
+
+  const stations: StationResult[] = [
+    ...builtInStations,
+    ...evaluatedCustomStations,
   ];
 
   const nominal = stations.filter((s) => s.status === "NOMINAL").length;
@@ -430,12 +590,111 @@ export function evaluateFlightCheck(
       nominal,
       noGo,
       heldWaived,
-      total: 6,
+      total: stations.length,
       hardStopFailures,
     },
     verdict,
     passed: verdict !== "NO_GO",
     exitCode: verdict === "NO_GO" ? 1 : 0,
+  };
+}
+
+function evaluateCustomStation(
+  custom: CustomStationConfig,
+  obs: ObservedCustomStationTelemetry,
+  index: number,
+  totalStations: number,
+  activeWaiver?: EvaluatedWaiver,
+  waiverViolation?: EvaluatedWaiver,
+): StationResult {
+  const isHardStop = Boolean(custom.hard_stop);
+  const expectedStatus = custom.expected_status ?? 200;
+  const severity: ContractDelta["severity"] = isHardStop
+    ? "hard_stop"
+    : "operational";
+
+  const deltas: ContractDelta[] = [
+    {
+      field: `${custom.code.toLowerCase()}.http_status`,
+      sold: `HTTP ${expectedStatus} (${custom.method} ${custom.endpoint})`,
+      observed: `HTTP ${obs.httpStatus}`,
+      matched: obs.httpStatus === expectedStatus,
+      severity,
+    },
+  ];
+
+  if (custom.required_header) {
+    deltas.push({
+      field: `${custom.code.toLowerCase()}.header.${custom.required_header.name.toLowerCase()}`,
+      sold: `contains "${custom.required_header.contains}"`,
+      observed: obs.observedHeaderValue ?? "missing",
+      matched: obs.headerMatched,
+      severity,
+    });
+  }
+
+  if (custom.required_json_field) {
+    deltas.push({
+      field: `${custom.code.toLowerCase()}.json.${custom.required_json_field.path}`,
+      sold: String(custom.required_json_field.equals),
+      observed:
+        obs.observedJsonValue === undefined
+          ? "missing"
+          : String(obs.observedJsonValue),
+      matched: obs.jsonFieldMatched,
+      severity,
+    });
+  }
+
+  const telemetryPassed = deltas.every((d) => d.matched);
+  const status: StationResult["status"] = isHardStop
+    ? telemetryPassed && !waiverViolation
+      ? "NOMINAL"
+      : "NO_GO"
+    : telemetryPassed
+      ? "NOMINAL"
+      : activeWaiver
+        ? "HOLD_WAIVED"
+        : "NO_GO";
+
+  const observedParts: string[] = [`HTTP ${obs.httpStatus}`];
+  if (custom.required_header) {
+    observedParts.push(
+      `${custom.required_header.name}=${obs.observedHeaderValue ?? "missing"}`,
+    );
+  }
+  if (custom.required_json_field) {
+    observedParts.push(
+      `${custom.required_json_field.path}=${obs.observedJsonValue === undefined ? "missing" : String(obs.observedJsonValue)}`,
+    );
+  }
+
+  return {
+    index,
+    subStage: `${index} of ${totalStations}`,
+    stationCode: custom.code,
+    stationLabel: custom.label,
+    policyClass: isHardStop ? "HARD_STOP" : "OPERATIONAL_WAIVER",
+    isHardStop,
+    isCustom: true,
+    customSpec: custom,
+    accountableOwner: custom.owner,
+    status,
+    telemetryPassed,
+    soldSummary: custom.sold_promise,
+    observedSummary: observedParts.join(" · "),
+    deltas,
+    latencyMs: obs.evidence.latencyMs,
+    evidence: obs.evidence,
+    remediationHint: waiverViolation
+      ? waiverViolation.violationMessage ??
+        `Remove illegal Hard Stop waiver on ${custom.label} and pass live telemetry.`
+      : telemetryPassed
+        ? `${custom.label} verified NOMINAL.`
+        : custom.fix_summary ??
+          `Configure ${custom.method} ${custom.endpoint} to return HTTP ${expectedStatus} matching contracted header/JSON assertions.`,
+    activeWaiver: !isHardStop && status === "HOLD_WAIVED" ? activeWaiver : undefined,
+    waiverViolation: status === "NO_GO" ? waiverViolation : undefined,
   };
 }
 

@@ -1,10 +1,13 @@
 import { execFile } from "node:child_process";
+import http from "node:http";
 import { mkdtemp, readFile, rm, writeFile } from "node:fs/promises";
 import os from "node:os";
 import path from "node:path";
 import { fileURLToPath } from "node:url";
 import { promisify } from "node:util";
 import { afterEach, describe, expect, it } from "vitest";
+import { hmacSha256Hex } from "@nominalx/core";
+import { DEMO_SECRET_CURRENT, DEMO_SECRET_NEXT } from "../src/config.js";
 import { createDemoTargetServer, type DemoTargetHandle } from "../src/demo-target.js";
 
 const execFileAsync = promisify(execFile);
@@ -431,5 +434,310 @@ describe("nominalx CLI end-to-end against real demo-target HTTP server", () => {
     ]);
     expect(hFire2.exitCode).toBe(0);
     expect(JSON.parse(hFire2.stdout).grade).toBe("A");
+  });
+
+  it("executes live HTTP probes for custom Hard Stop stations, disabled built-in vectors, and custom chaos vectors", async () => {
+    let pciPatched = false;
+    let idempotencyValidatorPatched = false;
+    const seenEvents = new Map<string, number>();
+    const entityStates = new Map<string, { state: string; version: number }>();
+
+    const customServer = http.createServer(async (req, res) => {
+      const urlObj = new URL(req.url ?? "/", "http://127.0.0.1");
+      const pathname = urlObj.pathname;
+      const chunks: Buffer[] = [];
+      for await (const chunk of req) chunks.push(chunk as Buffer);
+      const rawBody = Buffer.concat(chunks).toString("utf8");
+
+      const reply = (
+        status: number,
+        payload: unknown,
+        headers: Record<string, string> = {},
+      ) => {
+        const body = JSON.stringify(payload);
+        res.writeHead(status, {
+          "content-type": "application/json",
+          "content-length": String(Buffer.byteLength(body)),
+          ...headers,
+        });
+        res.end(body);
+      };
+
+      if (pathname === "/sso/metadata") {
+        reply(200, {
+          protocol: "saml2",
+          mfa_enforced: true,
+          cert_ttl_days: 180,
+          reject_unsigned_assertions: true,
+        });
+        return;
+      }
+      if (pathname === "/health/region") {
+        reply(
+          200,
+          {
+            region: "eu-central-1",
+            storage_regions: ["eu-central-1"],
+            egress_regions: ["eu-central-1"],
+          },
+          { "x-served-region": "eu-central-1" },
+        );
+        return;
+      }
+      if (pathname === "/internal/quota") {
+        reply(
+          200,
+          {
+            provisioned_rps: 50000,
+            returns_retry_after: true,
+            sample_retry_after_seconds: 2,
+            burst_drop_rate_pct: 0,
+          },
+          { "x-ratelimit-limit": "50000", "retry-after": "2" },
+        );
+        return;
+      }
+      if (pathname === "/alerts/test") {
+        reply(200, {
+          channel_active: true,
+          channel_name: "#payments-p1-ops",
+          ack_latency_ms: 190,
+        });
+        return;
+      }
+      if (pathname === "/internal/rollback/dry-run") {
+        reply(200, {
+          dry_run_passed: true,
+          observed_rto_minutes: 3.0,
+          artifact_version: "v2.5.0",
+          data_loss_detected: false,
+        });
+        return;
+      }
+      if (pathname === "/pci/vault/health") {
+        if (!pciPatched) {
+          reply(
+            200,
+            { tokenization: { pan_isolation: false } },
+            { "x-pci-vault-mode": "software-fallback" },
+          );
+        } else {
+          reply(
+            200,
+            { tokenization: { pan_isolation: true } },
+            { "x-pci-vault-mode": "HSM-FIPS-140-3" },
+          );
+        }
+        return;
+      }
+      if (pathname === "/webhooks/events") {
+        const sig = String(req.headers["x-nominalx-signature"] ?? "");
+        const ts = Number(req.headers["x-nominalx-timestamp"] ?? 0);
+        const vector = String(req.headers["x-nominalx-vector"] ?? "");
+        if (!sig) {
+          reply(401, { error: "missing_signature" });
+          return;
+        }
+        const v1 = `v1=${hmacSha256Hex(DEMO_SECRET_CURRENT, `${ts}.${rawBody}`)}`;
+        const v2 = `v2=${hmacSha256Hex(DEMO_SECRET_NEXT, `${ts}.${rawBody}`)}`;
+        if (sig !== v1 && sig !== v2) {
+          reply(401, { error: "invalid_signature" });
+          return;
+        }
+        if (Math.abs(Math.floor(Date.now() / 1000) - ts) > 300) {
+          reply(401, { error: "stale_timestamp" });
+          return;
+        }
+
+        const parsed = JSON.parse(rawBody) as Record<string, unknown>;
+        if (vector === "malformed_idempotency_key") {
+          if (idempotencyValidatorPatched) {
+            reply(400, { error: "malformed_idempotency_key_rejected" });
+          } else {
+            reply(500, { error: "unhandled_key_length_crash" });
+          }
+          return;
+        }
+        if (vector === "rate_limit_429") {
+          const idx = Number(req.headers["x-nominalx-burst-index"] ?? 0);
+          if (idx >= 4) {
+            reply(429, { backoff_honored: true }, { "retry-after": "2" });
+            return;
+          }
+        }
+        if (vector === "upstream_timeout_30s") {
+          reply(
+            202,
+            { dlq_routed: true, worker_exhaustion: false },
+            { "x-nominalx-dlq-routed": "true" },
+          );
+          return;
+        }
+
+        const eventId = String(parsed.event_id ?? "");
+        const prev = seenEvents.get(eventId) ?? 0;
+        if (prev > 0) {
+          reply(200, { deduplicated: true, mutations: prev });
+          return;
+        }
+        seenEvents.set(eventId, prev + 1);
+
+        const entityId = String(parsed.entity_id ?? "");
+        const ver = Number(parsed.version ?? 1);
+        const state = String(
+          ((parsed.data as Record<string, unknown> | undefined)?.state) ??
+            "ok",
+        );
+        if (entityId) {
+          const cur = entityStates.get(entityId);
+          if (!cur || (ver > cur.version && cur.state !== "canceled")) {
+            entityStates.set(entityId, { state, version: ver });
+          }
+          reply(200, {
+            ok: true,
+            mutations: 1,
+            entity_state: entityStates.get(entityId)!.state,
+          });
+          return;
+        }
+        reply(200, { ok: true, mutations: 1 });
+        return;
+      }
+
+      reply(404, { error: "not_found" });
+    });
+
+    await new Promise<void>((resolve) =>
+      customServer.listen(0, "127.0.0.1", () => resolve()),
+    );
+    const addr = customServer.address();
+    const port = typeof addr === "object" && addr ? addr.port : 0;
+    const baseUrl = `http://127.0.0.1:${port}`;
+
+    try {
+      const tmpDir = await mkdtemp(path.join(os.tmpdir(), "nominalx-custom-"));
+      tempDirs.push(tmpDir);
+
+      const templateYaml = await readFile(
+        path.join(EXAMPLES_DIR, "custom-payments-api/nominalx.yaml"),
+        "utf8",
+      );
+      const liveYaml = templateYaml
+        .replace("http://127.0.0.1:4040", baseUrl)
+        .replace(
+          "disabled_vectors: []",
+          'disabled_vectors:\n    - "additive_json_fields"',
+        );
+
+      const cfgPath = path.join(tmpDir, "custom-payments.yaml");
+      await writeFile(cfgPath, liveYaml, "utf8");
+
+      // 1. Custom Hard Stop PCI_TOKEN_VAULT fails initially -> NO_GO, exit code 1
+      const c1 = await runCli([
+        "check",
+        cfgPath,
+        "--as-of",
+        "2026-11-20",
+        "--json",
+      ]);
+      expect(c1.exitCode).toBe(1);
+      const fc1 = JSON.parse(c1.stdout);
+      expect(fc1.verdict).toBe("NO_GO");
+      expect(fc1.counts.total).toBe(7);
+      expect(fc1.counts.hardStopFailures).toBe(1);
+      const pci1 = fc1.stations.find(
+        (s: { stationCode: string }) => s.stationCode === "PCI_TOKEN_VAULT",
+      );
+      expect(pci1.status).toBe("NO_GO");
+      expect(pci1.isHardStop).toBe(true);
+      expect(pci1.evidence.highlightLines.join(" ")).toContain(
+        "software-fallback",
+      );
+
+      // 2. Attempt illegal waiver on custom Hard Stop PCI_TOKEN_VAULT -> HARD_STOP_WAIVER_FORBIDDEN
+      const illegalWaiverPath = path.join(tmpDir, "custom-illegal.yaml");
+      await writeFile(
+        illegalWaiverPath,
+        liveYaml.replace(
+          'station: "ROLLBACK"',
+          'station: "PCI_TOKEN_VAULT"',
+        ),
+        "utf8",
+      );
+      const cIllegal = await runCli([
+        "check",
+        illegalWaiverPath,
+        "--as-of",
+        "2026-11-20",
+        "--json",
+      ]);
+      expect(cIllegal.exitCode).toBe(1);
+      const fcIllegal = JSON.parse(cIllegal.stdout);
+      expect(fcIllegal.waiverAudit.hardStopViolations).toHaveLength(1);
+      expect(fcIllegal.waiverAudit.hardStopViolations[0].violationCode).toBe(
+        "HARD_STOP_WAIVER_FORBIDDEN",
+      );
+
+      // 3. Patch PCI vault endpoint -> live check passes 7/7 NOMINAL
+      pciPatched = true;
+      const c2 = await runCli([
+        "check",
+        cfgPath,
+        "--as-of",
+        "2026-11-20",
+        "--json",
+      ]);
+      expect(c2.exitCode).toBe(0);
+      const fc2 = JSON.parse(c2.stdout);
+      expect(fc2.verdict).toBe("NOMINAL");
+      expect(fc2.counts.nominal).toBe(7);
+      expect(fc2.counts.total).toBe(7);
+
+      // 4. Static Fire with 1 disabled built-in + 1 custom vector (initially failing)
+      const f1 = await runCli([
+        "fire",
+        "--url",
+        `${baseUrl}/webhooks/events`,
+        "--config",
+        cfgPath,
+        "--json",
+      ]);
+      expect(f1.exitCode).toBe(1);
+      const sf1 = JSON.parse(f1.stdout);
+      expect(sf1.totals.totalVectors).toBe(7); // 7 - 1 disabled + 1 custom
+      expect(sf1.totals.failedVectors).toBe(1);
+      expect(
+        sf1.vectors.some(
+          (v: { vectorId: string }) => v.vectorId === "additive_json_fields",
+        ),
+      ).toBe(false);
+      const customVec1 = sf1.vectors.find(
+        (v: { vectorId: string }) =>
+          v.vectorId === "malformed_idempotency_key",
+      );
+      expect(customVec1.passed).toBe(false);
+
+      // 5. Patch custom idempotency validator -> Grade A 0.0% across 7/7 active vectors
+      idempotencyValidatorPatched = true;
+      seenEvents.clear();
+      entityStates.clear();
+      const f2 = await runCli([
+        "fire",
+        "--url",
+        `${baseUrl}/webhooks/events`,
+        "--config",
+        cfgPath,
+        "--json",
+      ]);
+      expect(f2.exitCode).toBe(0);
+      const sf2 = JSON.parse(f2.stdout);
+      expect(sf2.passed).toBe(true);
+      expect(sf2.grade).toBe("A");
+      expect(sf2.corruptionPct).toBe(0);
+      expect(sf2.totals.passedVectors).toBe(7);
+      expect(sf2.totals.totalVectors).toBe(7);
+    } finally {
+      await new Promise<void>((resolve) => customServer.close(() => resolve()));
+    }
   });
 });

@@ -12,8 +12,8 @@ import {
   type WaiverAgingRegisterReport,
 } from "@nominalx/core";
 import {
-  buildEffectiveConfig,
   downloadTextFile,
+  getEffectiveConfigForMission,
   type AccountMissionState,
 } from "../state/missionState";
 import { ShieldLockIcon } from "./Icons";
@@ -58,13 +58,8 @@ export function ReportsDossierHub({
   const [copyToast, setCopyToast] = useState<string | null>(null);
 
   const effectiveConfig = useMemo(
-    () =>
-      buildEffectiveConfig(
-        preset,
-        mission.customWaivers,
-        mission.removedPresetWaiverStations,
-      ),
-    [preset, mission.customWaivers, mission.removedPresetWaiverStations],
+    () => getEffectiveConfigForMission(preset, mission),
+    [preset, mission],
   );
 
   const generatedAt = `${preset.referenceDate}T16:45:00.000Z`;
@@ -325,7 +320,7 @@ export function ReportsDossierHub({
                 <div className="kpi-box">
                   <span className="eyebrow">GATE 1 (1/3)</span>
                   <div className="mono" style={{ fontSize: "1.6rem", fontWeight: 800 }}>
-                    {dossier.gate1.counts.nominal + dossier.gate1.counts.heldWaived}/6
+                    {dossier.gate1.counts.nominal + dossier.gate1.counts.heldWaived}/{dossier.gate1.counts.total}
                   </div>
                   <span className="mono" style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
                     {dossier.gate1.verdict}
@@ -337,13 +332,13 @@ export function ReportsDossierHub({
                     {dossier.gate2.grade} · {dossier.gate2.corruptionPct.toFixed(1)}%
                   </div>
                   <span className="mono" style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
-                    {dossier.gate2.totals.passedVectors}/7 VECTORS
+                    {dossier.gate2.totals.passedVectors}/{dossier.gate2.totals.totalVectors} VECTORS
                   </span>
                 </div>
                 <div className="kpi-box">
                   <span className="eyebrow">GATE 3 (3/3)</span>
                   <div className="mono" style={{ fontSize: "1.6rem", fontWeight: 800 }}>
-                    {dossier.gate3.stabilizedCount}/3
+                    {dossier.gate3.stabilizedCount}/{dossier.gate3.totalAlarms}
                   </div>
                   <span className="mono" style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
                     {(dossier.gate3.totalSplitMs / 1000).toFixed(1)}s TOTAL
@@ -531,19 +526,21 @@ export function ReportsDossierHub({
 
           <div className="kpi-4-grid">
             <div className="panel kpi-box">
-              <span className="eyebrow">HARD STOP COMPLIANCE</span>
-              <div className="mono" style={{ fontSize: "1.15rem", fontWeight: 800, marginTop: 4 }}>
-                AUTH: <span style={{ color: execReport.hardStopCompliance.authSso === "NOMINAL" ? "var(--nominal-text)" : "var(--nogo-text)" }}>{execReport.hardStopCompliance.authSso}</span>
-              </div>
-              <div className="mono" style={{ fontSize: "1.15rem", fontWeight: 800 }}>
-                RESIDENCY: <span style={{ color: execReport.hardStopCompliance.residency === "NOMINAL" ? "var(--nominal-text)" : "var(--nogo-text)" }}>{execReport.hardStopCompliance.residency}</span>
-              </div>
+              <span className="eyebrow">HARD STOP COMPLIANCE ({execReport.hardStopCompliance.allHardStops.length})</span>
+              {execReport.hardStopCompliance.allHardStops.map((hs) => (
+                <div key={hs.stationCode} className="mono" style={{ fontSize: "0.95rem", fontWeight: 800, marginTop: 2 }}>
+                  {hs.stationLabel}:{" "}
+                  <span style={{ color: hs.status === "NOMINAL" ? "var(--nominal-text)" : "var(--nogo-text)" }}>
+                    {hs.status}
+                  </span>
+                </div>
+              ))}
             </div>
 
             <div className="panel kpi-box">
               <span className="eyebrow">GATE 1 · FLIGHT CHECK</span>
               <div className="mono" style={{ fontSize: "1.8rem", fontWeight: 800 }}>
-                {execReport.gate1Summary.nominal}/6 NOMINAL
+                {execReport.gate1Summary.nominal}/{execReport.gate1Summary.totalStations} NOMINAL
               </div>
               <span className="mono" style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}>
                 {execReport.gate1Summary.waived} WAIVED · {execReport.gate1Summary.noGo} NO-GO
@@ -636,7 +633,7 @@ export function ReportsDossierHub({
               <span className="eyebrow">GATE 1 NON-NOMINAL STATIONS ({opsReport.stationBlockers.length})</span>
               {opsReport.stationBlockers.length === 0 ? (
                 <div style={{ marginTop: 10, color: "var(--nominal-text)", fontWeight: 800 }}>
-                  All 6 Flight Check stations are NOMINAL.
+                  All {mission.flightCheck.counts.total} Flight Check stations are NOMINAL.
                 </div>
               ) : (
                 <div style={{ display: "flex", flexDirection: "column", gap: 10, marginTop: 10 }}>

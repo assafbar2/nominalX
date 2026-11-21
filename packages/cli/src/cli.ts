@@ -203,7 +203,7 @@ export function createCliProgram(): Command {
   program
     .command("fire")
     .description(
-      "Gate 2 (2 of 3): Static Fire — run 7 live adversarial HTTP chaos vectors and grade resilience (A-F)",
+      "Gate 2 (2 of 3): Static Fire — run 7 realistic failure scenarios against staging and grade resilience (A-F)",
     )
     .requiredOption("--url <url>", "Target staging webhook/API URL")
     .requiredOption("--config <config>", "Path to nominalx.yaml contract config")
@@ -258,7 +258,7 @@ export function createCliProgram(): Command {
   program
     .command("dossier")
     .description(
-      "Handover Sprint — generate Signed NOMINAL Dossier & Stack-Tailored Day-1 Runbook (md | json | slack)",
+      "Handover Sprint — generate tamper-evident (SHA-256 signed) NOMINAL Dossier & stack-tailored Day-1 Runbook (md | json | slack)",
     )
     .requiredOption("--config <config>", "Path to nominalx.yaml contract config")
     .option("--format <format>", "Output format: md | json | slack", "md")

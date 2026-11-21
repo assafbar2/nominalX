@@ -253,9 +253,9 @@ export function buildDossier(input: BuildDossierInput): SignedNominalDossier {
   const scopeSummary = {
     inScopeVerified: [
       `Stage 2 · Gate 1 (1 of 3): Flight Check — ${gate1.counts.total}/${gate1.counts.total} stations diffed Sold vs. Observed`,
-      `Stage 3 · Gate 2 (2 of 3): Static Fire — ${gate2.totals.totalVectors}/${gate2.totals.totalVectors} adversarial failure vectors scored deterministically`,
+      `Stage 3 · Gate 2 (2 of 3): Static Fire — ${gate2.totals.totalVectors}/${gate2.totals.totalVectors} real-world failure scenarios verified deterministically`,
       `Stage 4 · Gate 3 (3 of 3): Crew Drill — ${gate3.totalAlarms}/${gate3.totalAlarms} live timed operational alarms verified`,
-      "Handover Sprint — Stack-tailored Day-1 Runbook & SHA-256 verification seal",
+      "Handover Sprint — Tamper-evident (SHA-256 signed) launch dossier & stack-tailored Day-1 Runbook",
     ],
     outOfScopeBoundaries: [
       ...LIFECYCLE_STAGES[1]!.outOfScope,

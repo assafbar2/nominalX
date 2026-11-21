@@ -8,6 +8,7 @@
     "node": ">=20.0.0"
   },
   "scripts": {
+    "nominalx": "node packages/cli/dist/cli.js",
     "typecheck": "pnpm --filter @nominalx/core build && pnpm -r typecheck",
     "build": "pnpm -r build",
     "test": "pnpm -r test",

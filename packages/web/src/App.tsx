@@ -67,6 +67,7 @@ export function App() {
     useState<StageNumber | null>(null);
   const [sweepingIndex, setSweepingIndex] = useState<number | null>(null);
   const [isFiring, setIsFiring] = useState(false);
+  const [focusDiffNonce, setFocusDiffNonce] = useState(0);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -97,17 +98,29 @@ export function App() {
   };
 
   const handleSelectView = (view: CockpitView) => {
+    setFocusDiffNonce(0);
     setActiveView(view);
     window.scrollTo({ top: 0, behavior: "instant" });
   };
 
+  const handleInspectHardStop = (stationCode: StationCode) => {
+    setActiveView("gate1");
+    updateCurrentMission((prev) => ({
+      ...prev,
+      selectedStation: stationCode,
+    }));
+    setFocusDiffNonce((n) => n + 1);
+  };
+
   const handleSelectPreset = (id: AccountPresetId) => {
+    setFocusDiffNonce(0);
     setActivePresetId(id);
     setSweepingIndex(null);
     setIsFiring(false);
   };
 
   const handleResetScenario = () => {
+    setFocusDiffNonce(0);
     setSweepingIndex(null);
     setIsFiring(false);
     setMissions((prev) => ({
@@ -432,6 +445,7 @@ export function App() {
           mission={mission}
           activeView={activeView}
           onSelectView={handleSelectView}
+          onInspectHardStop={handleInspectHardStop}
         />
 
         <SprintContractStrip
@@ -448,6 +462,7 @@ export function App() {
             flightCheck={mission.flightCheck}
             selectedStation={mission.selectedStation}
             sweepingIndex={sweepingIndex}
+            focusDiffNonce={focusDiffNonce}
             onSelectStation={(code) =>
               updateCurrentMission((prev) => ({
                 ...prev,

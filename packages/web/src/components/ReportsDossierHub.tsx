@@ -316,7 +316,7 @@ export function ReportsDossierHub({
                   {dossier.account.name} — Handover Certificate
                 </h3>
                 <div style={{ fontSize: "0.88rem", color: "var(--text-secondary)" }}>
-                  Deterministic launch telemetry verified across Stages 2 → 4 and sealed for Stage 5 Support Engineers &amp; Customer On-Call SREs.
+                  Tamper-evident (SHA-256 signed) launch readiness dossier recording every passed check, active waiver, failure-test grade, and drill time — paired with a Day-1 Runbook tailored to this customer&apos;s exact stack, endpoints, and alert channels.
                 </div>
               </div>
 

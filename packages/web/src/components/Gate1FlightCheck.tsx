@@ -1,4 +1,4 @@
-import { useState } from "react";
+import { useEffect, useRef, useState } from "react";
 import {
   evaluateWaivers,
   GATE1_SUB_STAGES,
@@ -15,6 +15,7 @@ interface Gate1FlightCheckProps {
   flightCheck: FlightCheckResult;
   selectedStation: StationCode;
   sweepingIndex: number | null;
+  focusDiffNonce?: number;
   onSelectStation: (code: StationCode) => void;
   onRunFlightCheck: () => void;
   onApplyStationFix: (code: StationCode) => void;
@@ -109,6 +110,7 @@ export function Gate1FlightCheck({
   flightCheck,
   selectedStation,
   sweepingIndex,
+  focusDiffNonce = 0,
   onSelectStation,
   onRunFlightCheck,
   onApplyStationFix,
@@ -116,6 +118,7 @@ export function Gate1FlightCheck({
   onRevokeWaiver,
   onProceedToGate2,
 }: Gate1FlightCheckProps) {
+  const diffInspectorRef = useRef<HTMLElement | null>(null);
   const [waiverModalStation, setWaiverModalStation] =
     useState<StationResult | null>(null);
   const [waiverOwner, setWaiverOwner] = useState(
@@ -126,6 +129,17 @@ export function Gate1FlightCheck({
   const [waiverRollback, setWaiverRollback] = useState("");
   const [waiverTicket, setWaiverTicket] = useState("OPS-2041");
   const [waiverError, setWaiverError] = useState<string | null>(null);
+
+  useEffect(() => {
+    if (focusDiffNonce === 0) return;
+    const frame = window.requestAnimationFrame(() => {
+      diffInspectorRef.current?.scrollIntoView({
+        behavior: "smooth",
+        block: "start",
+      });
+    });
+    return () => window.cancelAnimationFrame(frame);
+  }, [focusDiffNonce]);
 
   const activeStation =
     flightCheck.stations.find((s) => s.stationCode === selectedStation) ??
@@ -335,7 +349,9 @@ export function Gate1FlightCheck({
 
       {/* Selected Station Visual Contract Diff Inspector */}
       <section
+        ref={diffInspectorRef}
         className="panel diff-inspector"
+        style={{ scrollMarginTop: 88 }}
         aria-label="Contract vs Live Telemetry Diff Inspector"
         data-testid="station-diff-inspector"
       >

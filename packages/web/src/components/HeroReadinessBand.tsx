@@ -1,4 +1,4 @@
-import type { AccountPreset } from "@nominalx/core";
+import type { AccountPreset, StationCode } from "@nominalx/core";
 import {
   computeReadinessScore,
   type AccountMissionState,
@@ -11,6 +11,7 @@ interface HeroReadinessBandProps {
   mission: AccountMissionState;
   activeView: CockpitView;
   onSelectView: (view: CockpitView) => void;
+  onInspectHardStop: (stationCode: StationCode) => void;
 }
 
 function RadialReadinessGauge({
@@ -117,6 +118,7 @@ export function HeroReadinessBand({
   mission,
   activeView,
   onSelectView,
+  onInspectHardStop,
 }: HeroReadinessBandProps) {
   const { flightCheck, staticFire, crewSummary } = mission;
   const account = preset.config.account;
@@ -124,6 +126,7 @@ export function HeroReadinessBand({
   const hardStopFailingStations = flightCheck.stations.filter(
     (s) => s.isHardStop && s.status !== "NOMINAL",
   );
+  const firstFailingHardStop = hardStopFailingStations[0];
   const hardStopBlocked = hardStopFailingStations.length > 0;
 
   const g1Cleared = flightCheck.counts.nominal + flightCheck.counts.heldWaived;
@@ -189,13 +192,14 @@ export function HeroReadinessBand({
               </div>
             </div>
           </div>
-          {activeView !== "gate1" && (
+          {firstFailingHardStop && (
             <button
               type="button"
               className="btn btn-nogo"
-              onClick={() => onSelectView("gate1")}
+              onClick={() => onInspectHardStop(firstFailingHardStop.stationCode)}
+              data-testid="fix-hard-stop-cta"
             >
-              Inspect Gate 1 Hard Stop
+              Fix Failing Hard Stop in Gate 1
             </button>
           )}
         </div>

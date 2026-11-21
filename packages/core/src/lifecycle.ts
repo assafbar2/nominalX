@@ -208,7 +208,7 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
     gateNumber: 2,
     gateLabel: "Gate 2 (2 of 3): Static Fire",
     sprintLabel: "Sprint 2",
-    goal: "Bolt staging integration to the adversarial test stand and fire 7 failure vectors until corruption reaches 0.0% (Grade A).",
+    goal: "Run 7 realistic failure scenarios against staging (duplicates, out-of-order events, bursts, timeouts, secret rotation, new JSON fields, and clock drift), fix where it breaks, and re-run until zero records are lost or corrupted (0.0%, Grade A).",
     singleAccountableOwner: "Lead Forward-Deployed Engineer (FDE)",
     vendorEngineers: [
       "Lead Forward-Deployed Engineer (FDE)",
@@ -228,12 +228,12 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
       "Live staging webhook/API endpoint",
       "Dual HMAC test secrets (v1 current + v2 next)",
       "Handler config and deployment access",
-      "nominalx fire adversarial chaos harness",
+      "nominalx fire automated 7-scenario failure runner",
     ],
     timeBox: "1 short engineering sprint (tight 15-30 min fire -> patch -> re-fire loops)",
     trigger: "Gate 1 (1 of 3): Flight Check clears with zero NO-GO stations.",
     inScope: [
-      "Adversarial verification of all 7 chaos vectors (1 of 7 through 7 of 7)",
+      "Automated verification of 7 real-world failure scenarios (1 of 7 through 7 of 7)",
       "Live handler patching, config diffs, and multi-attempt before/after corruption telemetry",
       "Deterministic resilience grading (A-F) down to 0.0% corruption",
     ],
@@ -260,7 +260,7 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
     gateNumber: 3,
     gateLabel: "Gate 3 (3 of 3): Crew Drill + Handover Sprint",
     sprintLabel: "Sprint 3 & Handover Sprint",
-    goal: "Prove customer on-call engineers can stabilize 3 live Day-30 alarms under a 90s clock, then sign the NOMINAL Dossier & Day-1 Runbook.",
+    goal: "Prove customer on-call engineers can stabilize 3 live Day-30 alarms under a 90s clock, then generate a tamper-evident (SHA-256 signed) NOMINAL Dossier and stack-tailored Day-1 Runbook.",
     singleAccountableOwner: "Lead Customer Success Engineer (CSE)",
     vendorEngineers: [
       "Lead Customer Success Engineer (CSE)",
@@ -876,7 +876,7 @@ export const GATE3_SUB_STAGES: readonly Gate3SubStageMetadata[] = [
 export const HANDOVER_SPRINT_METADATA: HandoverSprintMetadata = {
   sprintName: "Handover Sprint: Signed NOMINAL Dossier & Tailored Day-1 Runbook",
   stageLabel: "Stage 4 -> Stage 5 Handover",
-  goal: "Seal telemetry from Gates 1-3 with a deterministic SHA-256 verification digest and hand a stack-tailored Day-1 Runbook to Support Engineers and Customer On-Call SREs.",
+  goal: "Generate a tamper-evident (SHA-256 signed) launch readiness dossier recording every passed check, active waiver, failure-test grade, and drill time, paired with a Day-1 Runbook tailored to the customer's exact stack, endpoints, and alert channels.",
   singleAccountableOwner: "Lead Forward-Deployed Engineer (FDE)",
   coSigners: [
     "Lead Customer Success Engineer (CSE)",

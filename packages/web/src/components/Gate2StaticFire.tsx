@@ -170,7 +170,7 @@ export function Gate2StaticFire({
             STAGE 3: INTEGRATION &amp; CUTOVER · GATE 2 (2 OF 3): STATIC FIRE · SPRINT 2
           </div>
           <h2 className="gate-title-xl">
-            Adversarial Chaos Test Stand (7 Failure Vectors · Target 0.0% Grade A)
+            Staging Failure Test Stand (7 Real-World Scenarios · Target 0.0% Data Loss, Grade A)
           </h2>
         </div>
 
@@ -278,7 +278,7 @@ export function Gate2StaticFire({
         {/* Block 2: 7-LED FAULT STRIP */}
         <div className="panel score-block">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span className="eyebrow">7-LED ADVERSARIAL FAULT STRIP</span>
+            <span className="eyebrow">7-SCENARIO FAILURE STATUS</span>
             <span className="mono" style={{ fontSize: "0.86rem", fontWeight: 800, color: staticFire.passed ? "var(--nominal-text)" : "var(--nogo-text)" }}>
               {staticFire.totals.passedVectors} / 7 NOMINAL
             </span>

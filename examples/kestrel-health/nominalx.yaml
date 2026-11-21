@@ -1,0 +1,65 @@
+schema_version: "1.0"
+
+account:
+  id: "kestrel-health"
+  name: "Kestrel Health"
+  industry: "HIPAA Clinical Systems"
+  tier: "Enterprise Regulated"
+  arr_band: "$320k ARR"
+  fde_owner: "sam.patel@vendor.io"
+  cse_owner: "claire.bennett@vendor.io"
+  se_owner: "jordan.lee@vendor.io"
+  support_owner: "hipaa-support@vendor.io"
+  tam_owner: "derek.cho@vendor.io"
+  customer_eng_lead: "dr.hannah.brooks@kestrel.example"
+  customer_security_lead: "marcus.wright@kestrel.example"
+  customer_sre_lead: "devon.okafor@kestrel.example"
+  target_go_live: "2026-12-05"
+  stack:
+    cloud: "gcp"
+    idp: "entra-oidc"
+    alerting: "pagerduty"
+    webhook_runtime: "go-chi"
+    deployment_tool: "terraform+cloudbuild"
+    observability: "prometheus+grafana"
+    ticketing: "jira"
+
+sold_contract:
+  auth:
+    protocol: "oidc"
+    mfa_required: true
+    min_cert_ttl_days: 30
+    reject_unsigned_assertions: true
+  residency:
+    allowed_regions:
+      - "us-east-1"
+      - "us-west-2"
+    strict_egress: true
+  webhooks:
+    signing: "hmac-sha256"
+    dual_secret_rotation: true
+    max_clock_skew_seconds: 300
+  quota:
+    guaranteed_rps: 20000
+    require_retry_after_header: true
+  alerting:
+    p1_channel: "#hipaa-sre-p1"
+    max_ack_ms: 1500
+  rollback:
+    max_rto_minutes: 5
+    dry_run_required: true
+
+environment:
+  base_url: "http://127.0.0.1:4041"
+  endpoints:
+    auth_metadata: "/sso/metadata"
+    residency_probe: "/health/region"
+    webhook_ingress: "/webhooks/events"
+    quota_status: "/internal/quota"
+    alert_sink: "/alerts/test"
+    rollback_check: "/internal/rollback/dry-run"
+  secrets:
+    webhook_secret_current: "env:NOMINALX_WEBHOOK_SECRET"
+    webhook_secret_next: "env:NOMINALX_WEBHOOK_SECRET_NEXT"
+
+waivers: []

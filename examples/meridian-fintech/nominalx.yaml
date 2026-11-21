@@ -1,0 +1,72 @@
+schema_version: "1.0"
+
+account:
+  id: "meridian-fintech"
+  name: "Meridian FinTech"
+  industry: "Payments & Settlement"
+  tier: "Enterprise Strategic"
+  arr_band: "$450k ARR"
+  fde_owner: "alex.rivera@vendor.io"
+  cse_owner: "priya.nair@vendor.io"
+  se_owner: "jordan.lee@vendor.io"
+  support_owner: "sre-tier3@vendor.io"
+  tam_owner: "derek.cho@vendor.io"
+  customer_eng_lead: "maya.chen@meridian.example"
+  customer_security_lead: "tobias.keller@meridian.example"
+  customer_sre_lead: "elena.rossi@meridian.example"
+  target_go_live: "2026-12-01"
+  stack:
+    cloud: "aws"
+    idp: "okta-saml"
+    alerting: "pagerduty+slack"
+    webhook_runtime: "node-express"
+    deployment_tool: "terraform+argocd"
+    observability: "datadog"
+    ticketing: "linear"
+
+sold_contract:
+  auth:
+    protocol: "saml2"
+    mfa_required: true
+    min_cert_ttl_days: 30
+    reject_unsigned_assertions: true
+  residency:
+    allowed_regions:
+      - "eu-central-1"
+      - "eu-west-1"
+    strict_egress: true
+  webhooks:
+    signing: "hmac-sha256"
+    dual_secret_rotation: true
+    max_clock_skew_seconds: 300
+  quota:
+    guaranteed_rps: 50000
+    require_retry_after_header: true
+  alerting:
+    p1_channel: "#eng-meridian-p1"
+    max_ack_ms: 2000
+  rollback:
+    max_rto_minutes: 5
+    dry_run_required: true
+
+environment:
+  base_url: "http://127.0.0.1:4040"
+  endpoints:
+    auth_metadata: "/sso/metadata"
+    residency_probe: "/health/region"
+    webhook_ingress: "/webhooks/events"
+    quota_status: "/internal/quota"
+    alert_sink: "/alerts/test"
+    rollback_check: "/internal/rollback/dry-run"
+  secrets:
+    webhook_secret_current: "env:NOMINALX_WEBHOOK_SECRET"
+    webhook_secret_next: "env:NOMINALX_WEBHOOK_SECRET_NEXT"
+
+waivers:
+  - station: "ROLLBACK"
+    owner: "maya.chen@meridian.example"
+    reason: "Automated blue/green ArgoCD cutover ships Sprint 24; verified manual DNS failover active."
+    expires_at: "2026-12-15"
+    rollback_plan: "Run scripts/dns-failover.sh --cluster eu-central-v18 to revert traffic within 9 minutes."
+    ticket_id: "MER-4182"
+    issued_at: "2026-11-20"

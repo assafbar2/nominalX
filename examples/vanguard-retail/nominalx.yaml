@@ -1,0 +1,66 @@
+schema_version: "1.0"
+
+account:
+  id: "vanguard-retail"
+  name: "Vanguard Retail"
+  industry: "High-Throughput Peak Commerce"
+  tier: "Enterprise High-Volume"
+  arr_band: "$600k ARR"
+  fde_owner: "marcus.chen@vendor.io"
+  cse_owner: "nina.alvarez@vendor.io"
+  se_owner: "jordan.lee@vendor.io"
+  support_owner: "commerce-support@vendor.io"
+  tam_owner: "rachel.kim@vendor.io"
+  customer_eng_lead: "omar.farooq@vanguard.example"
+  customer_security_lead: "chloe.grant@vanguard.example"
+  customer_sre_lead: "liam.murphy@vanguard.example"
+  target_go_live: "2026-12-03"
+  stack:
+    cloud: "aws"
+    idp: "okta-oidc"
+    alerting: "opsgenie+slack"
+    webhook_runtime: "python-fastapi"
+    deployment_tool: "github-actions+argocd"
+    observability: "newrelic"
+    ticketing: "jira"
+
+sold_contract:
+  auth:
+    protocol: "oidc"
+    mfa_required: true
+    min_cert_ttl_days: 30
+    reject_unsigned_assertions: true
+  residency:
+    allowed_regions:
+      - "us-east-1"
+      - "us-west-2"
+      - "eu-west-1"
+    strict_egress: true
+  webhooks:
+    signing: "hmac-sha256"
+    dual_secret_rotation: true
+    max_clock_skew_seconds: 300
+  quota:
+    guaranteed_rps: 50000
+    require_retry_after_header: true
+  alerting:
+    p1_channel: "#commerce-p1-ops"
+    max_ack_ms: 2000
+  rollback:
+    max_rto_minutes: 5
+    dry_run_required: true
+
+environment:
+  base_url: "http://127.0.0.1:4042"
+  endpoints:
+    auth_metadata: "/sso/metadata"
+    residency_probe: "/health/region"
+    webhook_ingress: "/webhooks/events"
+    quota_status: "/internal/quota"
+    alert_sink: "/alerts/test"
+    rollback_check: "/internal/rollback/dry-run"
+  secrets:
+    webhook_secret_current: "env:NOMINALX_WEBHOOK_SECRET"
+    webhook_secret_next: "env:NOMINALX_WEBHOOK_SECRET_NEXT"
+
+waivers: []

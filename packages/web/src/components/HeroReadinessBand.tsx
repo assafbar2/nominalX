@@ -1,6 +1,7 @@
 import type { AccountPreset } from "@nominalx/core";
 import {
   computeReadinessScore,
+  getEffectiveConfigForMission,
   type AccountMissionState,
   type CockpitView,
 } from "../state/missionState";
@@ -119,7 +120,8 @@ export function HeroReadinessBand({
   onSelectView,
 }: HeroReadinessBandProps) {
   const { flightCheck, staticFire, crewSummary } = mission;
-  const account = preset.config.account;
+  const effectiveConfig = getEffectiveConfigForMission(preset, mission);
+  const account = effectiveConfig.account;
   const score = computeReadinessScore(mission);
   const hardStopFailingStations = flightCheck.stations.filter(
     (s) => s.isHardStop && s.status !== "NOMINAL",
@@ -254,7 +256,7 @@ export function HeroReadinessBand({
           <div>
             <div className="kpi-xl" style={{ color: flightCheck.passed ? "var(--nominal-text)" : "var(--nogo-text)" }}>
               {g1Cleared}
-              <span style={{ fontSize: "1.25rem", color: "var(--text-dim)" }}>/6</span>
+              <span style={{ fontSize: "1.25rem", color: "var(--text-dim)" }}>/{flightCheck.counts.total}</span>
             </div>
             <div style={{ fontSize: "0.86rem", fontWeight: 800, marginTop: 4 }}>
               Flight Check
@@ -290,7 +292,7 @@ export function HeroReadinessBand({
             </div>
           </div>
           <div className="mono" style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}>
-            {staticFire.totals.passedVectors}/7 VECTORS · ATTEMPT #{staticFire.attemptNumber}
+            {staticFire.totals.passedVectors}/{staticFire.totals.totalVectors} VECTORS · ATTEMPT #{staticFire.attemptNumber}
           </div>
         </button>
 
@@ -304,7 +306,7 @@ export function HeroReadinessBand({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
             <span className="eyebrow">STAGE 4 · GATE 3 (3/3)</span>
             <span className={`status-pill ${g3Pill}`}>
-              {crewSummary.allStabilized ? "STABILIZED" : `${crewSummary.stabilizedCount}/3 LIVE`}
+              {crewSummary.allStabilized ? "STABILIZED" : `${crewSummary.stabilizedCount}/${crewSummary.totalAlarms} LIVE`}
             </span>
           </div>
           <div>
@@ -319,7 +321,7 @@ export function HeroReadinessBand({
               }}
             >
               {crewSummary.stabilizedCount}
-              <span style={{ fontSize: "1.25rem", color: "var(--text-dim)" }}>/3</span>
+              <span style={{ fontSize: "1.25rem", color: "var(--text-dim)" }}>/{crewSummary.totalAlarms}</span>
             </div>
             <div style={{ fontSize: "0.86rem", fontWeight: 800, marginTop: 4 }}>
               Crew Drill Alarms

@@ -1,18 +1,28 @@
-import { evaluateFlightCheck } from "./gate1.js";
-import { scoreStaticFire } from "./gate2.js";
+import {
+  buildSimulatedCustomStationTelemetry,
+  evaluateFlightCheck,
+} from "./gate1.js";
+import { resolveActiveChaosVectors, scoreStaticFire } from "./gate2.js";
 import {
   applyCrewRemediation,
   createCrewDrillState,
+  resolveCrewDrillScenarios,
   startCrewAlarm,
   summarizeCrewDrill,
 } from "./gate3.js";
 import type {
   AccountPresetId,
+  BuiltInChaosVectorId,
+  BuiltInCrewAlarmId,
   ChaosVectorId,
   CrewAlarmScenarioSpec,
   CrewDrillResult,
+  CustomAlarmConfig,
+  CustomChaosVectorConfig,
+  CustomStationConfig,
   FlightCheckResult,
   NominalXConfig,
+  ObservedCustomStationTelemetry,
   ObservedEnvironmentTelemetry,
   StaticFireResult,
   StaticFireVectorObservation,
@@ -40,16 +50,12 @@ export interface AccountPreset {
   initialChaosFailures: ChaosVectorId[];
   /** Per-vector packet corruption counts when unpatched (total 1000 packets across 7 vectors). */
   unpatchedVectorCounts: Record<
-    ChaosVectorId,
+    BuiltInChaosVectorId,
     { sent: number; corrupted: number; dropped: number; p95LatencyMs: number }
   >;
   patchDiffs: PresetPatchDiff[];
   crewDrillScenarios: CrewAlarmScenarioSpec[];
-  defaultCrewDrillSplitsSec: {
-    runaway_ingestion_storm: number;
-    sso_cert_expiring_24h: number;
-    dead_p1_alert_channel: number;
-  };
+  defaultCrewDrillSplitsSec: Record<BuiltInCrewAlarmId, number>;
 }
 
 const DEFAULT_REFERENCE_DATE = "2026-11-20";
@@ -1485,6 +1491,205 @@ export function listAccountPresets(): AccountPreset[] {
   ];
 }
 
+export const CUSTOM_STATION_TEMPLATES: readonly CustomStationConfig[] = [
+  {
+    code: "PCI_TOKEN_VAULT",
+    label: "PCI / Secret Vault",
+    owner: "tobias.keller@meridian.example",
+    hard_stop: true,
+    endpoint: "/pci/vault/health",
+    method: "GET",
+    expected_status: 200,
+    required_header: {
+      name: "x-pci-vault-mode",
+      contains: "HSM-FIPS-140-3",
+    },
+    required_json_field: {
+      path: "tokenization.pan_isolation",
+      equals: true,
+    },
+    sold_promise:
+      "Cardholder PAN data isolated inside FIPS 140-3 HSM token vault (Hard Stop · non-waivable)",
+    initial_status: "NO_GO",
+    failure_evidence:
+      "GET /pci/vault/health returned x-pci-vault-mode=software-fallback & tokenization.pan_isolation=false",
+    fix_summary:
+      "Bind HSM-FIPS-140-3 vault cluster and enforce PAN tokenization isolation on staging ingress",
+  },
+  {
+    code: "PARTNER_SLA_GATEWAY",
+    label: "Custom SLA Endpoint",
+    owner: "maya.chen@meridian.example",
+    hard_stop: false,
+    endpoint: "/health/partner-sla",
+    method: "GET",
+    expected_status: 200,
+    required_header: {
+      name: "x-sla-tier",
+      contains: "enterprise",
+    },
+    required_json_field: {
+      path: "sla.healthy",
+      equals: true,
+    },
+    sold_promise:
+      "Enterprise SLA health endpoint reports active circuit-breaker state with tier header",
+    initial_status: "NO_GO",
+    failure_evidence:
+      "GET /health/partner-sla returned HTTP 503 with missing x-sla-tier header",
+    fix_summary:
+      "Enable enterprise SLA gateway route and publish x-sla-tier: enterprise header",
+  },
+];
+
+export const CUSTOM_VECTOR_TEMPLATES: readonly CustomChaosVectorConfig[] = [
+  {
+    id: "malformed_idempotency_key",
+    label: "Malformed Idempotency Key",
+    description:
+      "Reject malformed or overly long Idempotency-Key payloads deterministically with HTTP 400 instead of 500 or double-charging.",
+    owner: "alex.rivera@vendor.io",
+    endpoint_override: "/webhooks/events",
+    method: "POST",
+    payload: {
+      event_id: "evt_bad_idem_probe",
+      idempotency_key: "!!!invalid key with spaces & 256+ chars!!!",
+      type: "payment.capture",
+      amount_cents: 19900,
+    },
+    expected_status: 400,
+    weight: 100,
+    patch_id: "idempotency-key-validator",
+    patch_label: "Validate Strict UUIDv4 / ASCII Idempotency-Key Format",
+    patch_summary:
+      "Validate idempotency_key against ^[A-Za-z0-9_-]{8,64}$ before ledger write and return HTTP 400 on malformed keys.",
+    patch_diff: [
+      "- const key = req.body.idempotency_key;",
+      "+ const key = assertValidIdempotencyKey(req.body.idempotency_key); // returns 400 on malformed",
+    ],
+  },
+];
+
+export const CUSTOM_ALARM_TEMPLATES: readonly CustomAlarmConfig[] = [
+  {
+    id: "webhook_dlq_backlog_spike",
+    title: "Webhook DLQ Backlog Spike",
+    owner: "priya.nair@vendor.io",
+    timer_seconds: 90,
+    metric_label: "DLQ Backlog Depth",
+    trigger_symptom:
+      "ALERT P1: Payment webhook DLQ depth spiked to 480 messages (> 25 SLA floor) after downstream timeout wave.",
+    log_lines: [
+      "DLQ_CONSUMER_PAUSED queue=payments-webhooks-dlq depth=480 oldest_age_sec=412",
+      "ROOT_CAUSE: poisoned batch partition #3 blocking consumer worker pool",
+      "ACTION REQUIRED: Quarantine poisoned batch, scale DLQ drain workers x4, verify depth < 25",
+    ],
+    remediation_label: "Quarantine Poison Batch & Enable Parallel DLQ Drain",
+    remediation_detail:
+      "Move malformed partition #3 messages to quarantine bucket and enable 4x bounded DLQ replay workers.",
+    verification_proof:
+      "200 OK · DLQ backlog drained from 480 -> 4 msgs (< 25 SLA) · 3/3 consecutive green ticks verified",
+  },
+];
+
+export const CUSTOM_PAYMENTS_EXAMPLE_CONFIG: NominalXConfig = {
+  schema_version: "1.0",
+  account: {
+    id: "custom-payments-api",
+    name: "Apex Payments API",
+    industry: "Card Issuing & Treasury Payments",
+    tier: "Enterprise Strategic",
+    arr_band: "$520k ARR",
+    fde_owner: "alex.rivera@vendor.io",
+    cse_owner: "priya.nair@vendor.io",
+    se_owner: "jordan.lee@vendor.io",
+    support_owner: "payments-support@vendor.io",
+    tam_owner: "derek.cho@vendor.io",
+    customer_eng_lead: "maya.chen@apexpayments.example",
+    customer_security_lead: "tobias.keller@apexpayments.example",
+    customer_sre_lead: "elena.rossi@apexpayments.example",
+    target_go_live: "2026-12-08",
+    stack: {
+      cloud: "aws",
+      idp: "okta-saml",
+      alerting: "pagerduty+slack",
+      webhook_runtime: "node-express",
+      deployment_tool: "terraform+argocd",
+      observability: "datadog",
+      ticketing: "linear",
+    },
+  },
+  sold_contract: {
+    auth: {
+      protocol: "saml2",
+      mfa_required: true,
+      min_cert_ttl_days: 30,
+      reject_unsigned_assertions: true,
+    },
+    residency: {
+      allowed_regions: ["eu-central-1", "eu-west-1"],
+      strict_egress: true,
+    },
+    webhooks: {
+      signing: "hmac-sha256",
+      dual_secret_rotation: true,
+      max_clock_skew_seconds: 300,
+    },
+    quota: {
+      guaranteed_rps: 50000,
+      require_retry_after_header: true,
+    },
+    alerting: {
+      p1_channel: "#payments-p1-ops",
+      max_ack_ms: 2000,
+    },
+    rollback: {
+      max_rto_minutes: 5,
+      dry_run_required: true,
+    },
+  },
+  environment: {
+    base_url: "http://127.0.0.1:4040",
+    endpoints: {
+      auth_metadata: "/sso/metadata",
+      residency_probe: "/health/region",
+      webhook_ingress: "/webhooks/events",
+      quota_status: "/internal/quota",
+      alert_sink: "/alerts/test",
+      rollback_check: "/internal/rollback/dry-run",
+    },
+    secrets: {
+      webhook_secret_current: "env:NOMINALX_WEBHOOK_SECRET",
+      webhook_secret_next: "env:NOMINALX_WEBHOOK_SECRET_NEXT",
+    },
+  },
+  waivers: [
+    {
+      station: "ROLLBACK",
+      owner: "maya.chen@apexpayments.example",
+      reason:
+        "Automated canary rollback finishes Sprint 25; verified manual DNS revert script tested.",
+      expires_at: "2026-12-15",
+      rollback_plan:
+        "Run scripts/payments-failover.sh --region eu-central-1 (verified 8m RTO).",
+      ticket_id: "APX-842",
+      issued_at: "2026-11-20",
+    },
+  ],
+  custom_stations: [
+    {
+      ...CUSTOM_STATION_TEMPLATES[0]!,
+      owner: "tobias.keller@apexpayments.example",
+    },
+  ],
+  chaos_overrides: {
+    disabled_vectors: [],
+  },
+  custom_vectors: [CUSTOM_VECTOR_TEMPLATES[0]!],
+  disabled_alarms: [],
+  custom_alarms: [CUSTOM_ALARM_TEMPLATES[0]!],
+};
+
 export function simulateFlightCheckForPreset(
   presetId: AccountPresetId,
   options: {
@@ -1492,10 +1697,20 @@ export function simulateFlightCheckForPreset(
     extraWaivers?: WaiverInput[];
     referenceDate?: string;
     evaluatedAt?: string;
+    overrideConfig?: NominalXConfig;
   } = {},
 ): FlightCheckResult {
   const preset = ACCOUNT_PRESETS[presetId];
+  const effectiveConfig = options.overrideConfig ?? preset.config;
   const patched = new Set(options.patchedStations ?? []);
+
+  const customStationsObs: Record<string, ObservedCustomStationTelemetry> = {};
+  for (const custom of effectiveConfig.custom_stations ?? []) {
+    customStationsObs[custom.code] = buildSimulatedCustomStationTelemetry(
+      custom,
+      patched.has(custom.code),
+    );
+  }
 
   const observed: ObservedEnvironmentTelemetry = {
     auth: patched.has("AUTH_SSO")
@@ -1516,9 +1731,11 @@ export function simulateFlightCheckForPreset(
     rollback: patched.has("ROLLBACK")
       ? preset.patchedObserved.rollback
       : preset.initialObserved.rollback,
+    customStations:
+      Object.keys(customStationsObs).length > 0 ? customStationsObs : undefined,
   };
 
-  return evaluateFlightCheck(preset.config, observed, {
+  return evaluateFlightCheck(effectiveConfig, observed, {
     referenceDate: options.referenceDate ?? preset.referenceDate,
     evaluatedAt: options.evaluatedAt ?? `${preset.referenceDate}T16:00:00.000Z`,
     extraWaivers: options.extraWaivers,
@@ -1532,26 +1749,80 @@ export function simulateStaticFireForPreset(
     attemptNumber?: number;
     previousAttempts?: StaticFireResult["attemptHistory"];
     executedAt?: string;
+    overrideConfig?: NominalXConfig;
   } = {},
 ): StaticFireResult {
   const preset = ACCOUNT_PRESETS[presetId];
+  const effectiveConfig = options.overrideConfig ?? preset.config;
   const patchedSet = new Set(options.patchedVectors ?? []);
   const failingInitially = new Set(preset.initialChaosFailures);
+  const activeSpecs = resolveActiveChaosVectors(effectiveConfig);
 
-  const observations: StaticFireVectorObservation[] = (
-    Object.keys(preset.unpatchedVectorCounts) as ChaosVectorId[]
-  ).map((vectorId) => {
-    const counts = preset.unpatchedVectorCounts[vectorId];
+  const observations: StaticFireVectorObservation[] = activeSpecs.map(
+    (spec): StaticFireVectorObservation => {
+    if (spec.isCustom && spec.customConfig) {
+      const custom = spec.customConfig;
+      const sent = Math.max(10, custom.weight ?? 100);
+      const stillFailing = !patchedSet.has(custom.id);
+      const corrupted = stillFailing ? Math.max(1, Math.round(sent * 0.6)) : 0;
+      const endpoint =
+        custom.endpoint_override ??
+        effectiveConfig.environment.endpoints.webhook_ingress;
+      return {
+        vectorId: custom.id,
+        packetsSent: sent,
+        packetsCorrupted: corrupted,
+        packetsDropped: stillFailing ? Math.round(corrupted * 0.5) : 0,
+        passed: !stillFailing,
+        p95LatencyMs: stillFailing ? 86 : 29,
+        observedBehavior: stillFailing
+          ? `${corrupted}/${sent} probes returned HTTP 500 (expected HTTP ${custom.expected_status})`
+          : `0/${sent} corrupted · returned contracted HTTP ${custom.expected_status} (${custom.patch_label})`,
+        expectedBehavior: `HTTP ${custom.expected_status} on ${custom.method} ${endpoint} (0.0% · NOMINAL)`,
+        httpStatusSamples: stillFailing
+          ? [500, 500, 200]
+          : [custom.expected_status, custom.expected_status, custom.expected_status],
+        wireEvidence: {
+          method: custom.method,
+          endpoint,
+          httpStatus: stillFailing ? 500 : custom.expected_status,
+          latencyMs: stillFailing ? 86 : 29,
+          headers: {
+            "x-nominalx-vector": custom.id,
+            "x-nominalx-custom": "true",
+            "x-nominalx-result": stillFailing ? "CORRUPTED" : "NOMINAL",
+          },
+          payload: {
+            vector: custom.id,
+            packets_sent: sent,
+            packets_corrupted: corrupted,
+            expected_status: custom.expected_status,
+          },
+          highlightLines: stillFailing
+            ? [
+                `Custom vector ${custom.label}: ${corrupted}/${sent} probes failed HTTP ${custom.expected_status} assertion`,
+              ]
+            : [
+                `Custom vector ${custom.label}: 0 corrupted packets (HTTP ${custom.expected_status} verified)`,
+              ],
+        },
+      };
+    }
+
+    const counts =
+      preset.unpatchedVectorCounts[spec.vectorId as BuiltInChaosVectorId];
     const stillFailing =
-      failingInitially.has(vectorId) && !patchedSet.has(vectorId);
+      failingInitially.has(spec.vectorId) && !patchedSet.has(spec.vectorId);
 
     return {
-      vectorId,
+      vectorId: spec.vectorId,
       packetsSent: counts.sent,
       packetsCorrupted: stillFailing ? counts.corrupted : 0,
       packetsDropped: stillFailing ? counts.dropped : 0,
       passed: !stillFailing,
-      p95LatencyMs: stillFailing ? counts.p95LatencyMs : Math.min(counts.p95LatencyMs, 42),
+      p95LatencyMs: stillFailing
+        ? counts.p95LatencyMs
+        : Math.min(counts.p95LatencyMs, 42),
       observedBehavior: stillFailing
         ? `${counts.corrupted}/${counts.sent} packets failed resilience assertion`
         : `0/${counts.sent} corrupted · deterministic resilience verified`,
@@ -1559,31 +1830,32 @@ export function simulateStaticFireForPreset(
       httpStatusSamples: stillFailing ? [500, 401, 200] : [200, 200, 200],
       wireEvidence: {
         method: "POST",
-        endpoint: preset.config.environment.endpoints.webhook_ingress,
+        endpoint: effectiveConfig.environment.endpoints.webhook_ingress,
         httpStatus: stillFailing ? 500 : 200,
         latencyMs: stillFailing ? counts.p95LatencyMs : 32,
         headers: {
-          "x-nominalx-vector": vectorId,
+          "x-nominalx-vector": spec.vectorId,
           "x-nominalx-result": stillFailing ? "CORRUPTED" : "NOMINAL",
         },
         payload: {
-          vector: vectorId,
+          vector: spec.vectorId,
           packets_sent: counts.sent,
           packets_corrupted: stillFailing ? counts.corrupted : 0,
         },
         highlightLines: stillFailing
-          ? [`Vector ${vectorId}: ${counts.corrupted} corrupted packets detected`]
-          : [`Vector ${vectorId}: 0 corrupted packets (NOMINAL)`],
+          ? [`Vector ${spec.vectorId}: ${counts.corrupted} corrupted packets detected`]
+          : [`Vector ${spec.vectorId}: 0 corrupted packets (NOMINAL)`],
       },
     };
   });
 
   return scoreStaticFire({
-    accountId: preset.config.account.id,
-    accountName: preset.config.account.name,
-    targetUrl: `${preset.config.environment.base_url}${preset.config.environment.endpoints.webhook_ingress}`,
-    accountableOwner: preset.config.account.fde_owner,
+    accountId: effectiveConfig.account.id,
+    accountName: effectiveConfig.account.name,
+    targetUrl: `${effectiveConfig.environment.base_url}${effectiveConfig.environment.endpoints.webhook_ingress}`,
+    accountableOwner: effectiveConfig.account.fde_owner,
     observations,
+    config: effectiveConfig,
     attemptNumber: options.attemptNumber,
     patchesApplied: [...patchedSet],
     previousAttempts: options.previousAttempts,
@@ -1594,19 +1866,28 @@ export function simulateStaticFireForPreset(
 export function simulateCompletedCrewDrillForPreset(
   presetId: AccountPresetId,
   executedAt?: string,
+  overrideConfig?: NominalXConfig,
 ): CrewDrillResult {
   const preset = ACCOUNT_PRESETS[presetId];
+  const effectiveConfig = overrideConfig ?? preset.config;
   const timestamp = executedAt ?? `${preset.referenceDate}T16:30:00.000Z`;
+  const scenarios = resolveCrewDrillScenarios(
+    preset.crewDrillScenarios,
+    effectiveConfig,
+  );
   let state = createCrewDrillState({
-    accountId: preset.config.account.id,
-    accountName: preset.config.account.name,
-    accountableOwner: preset.config.account.cse_owner,
-    scenarios: preset.crewDrillScenarios,
+    accountId: effectiveConfig.account.id,
+    accountName: effectiveConfig.account.name,
+    accountableOwner: effectiveConfig.account.cse_owner,
+    scenarios,
   });
 
-  for (const scenario of preset.crewDrillScenarios) {
+  for (const scenario of scenarios) {
     state = startCrewAlarm(state, scenario.alarmId, timestamp);
-    const splitSec = preset.defaultCrewDrillSplitsSec[scenario.alarmId];
+    const splitSec =
+      preset.defaultCrewDrillSplitsSec[
+        scenario.alarmId as BuiltInCrewAlarmId
+      ] ?? 22.4;
     const res = applyCrewRemediation(
       state,
       scenario.alarmId,

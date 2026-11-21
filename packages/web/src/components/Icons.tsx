@@ -129,6 +129,13 @@ export function StationGlyph({
           />
         </svg>
       );
+    default:
+      return (
+        <svg width="26" height="26" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <rect x="3.5" y="4.5" width="17" height="15" rx="3" stroke={color} strokeWidth="2" />
+          <path d="M8 10L10.5 12L8 14M12.5 14H16" stroke={color} strokeWidth="2" strokeLinecap="round" strokeLinejoin="round" />
+        </svg>
+      );
   }
 }
 
@@ -190,6 +197,13 @@ export function VectorGlyph({
           <path d="M12 7V12L16 10" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
         </svg>
       );
+    default:
+      return (
+        <svg width="22" height="22" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+          <path d="M12 3L4 7.5V16.5L12 21L20 16.5V7.5L12 3Z" stroke={color} strokeWidth="2" strokeLinejoin="round" />
+          <path d="M12 8.5V13M12 16H12.01" stroke={color} strokeWidth="2.2" strokeLinecap="round" />
+        </svg>
+      );
   }
 }
 
@@ -240,6 +254,17 @@ export function WireIcon() {
     <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
       <path d="M4 17L10 11L4 5" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" strokeLinejoin="round" />
       <path d="M12 19H20" stroke="currentColor" strokeWidth="2.2" strokeLinecap="round" />
+    </svg>
+  );
+}
+
+export function SlidersIcon() {
+  return (
+    <svg width="16" height="16" viewBox="0 0 24 24" fill="none" aria-hidden="true">
+      <path d="M4 6H20M4 12H20M4 18H20" stroke="currentColor" strokeWidth="2" strokeLinecap="round" />
+      <circle cx="9" cy="6" r="2.2" fill="var(--bg-surface)" stroke="currentColor" strokeWidth="2" />
+      <circle cx="16" cy="12" r="2.2" fill="var(--bg-surface)" stroke="currentColor" strokeWidth="2" />
+      <circle cx="11" cy="18" r="2.2" fill="var(--bg-surface)" stroke="currentColor" strokeWidth="2" />
     </svg>
   );
 }

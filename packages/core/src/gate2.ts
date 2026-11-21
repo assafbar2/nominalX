@@ -1,7 +1,10 @@
 import { GATE2_SUB_STAGES } from "./lifecycle.js";
 import type {
+  BuiltInChaosVectorId,
   ChaosVectorId,
+  CustomChaosVectorConfig,
   FireAttemptSummary,
+  NominalXConfig,
   ResilienceGrade,
   StaticFireResult,
   StaticFireVectorObservation,
@@ -9,7 +12,7 @@ import type {
   TelemetryPoint,
 } from "./types.js";
 
-export const CHAOS_VECTOR_ORDER: readonly ChaosVectorId[] = [
+export const CHAOS_VECTOR_ORDER: readonly BuiltInChaosVectorId[] = [
   "duplicate_webhook",
   "out_of_order",
   "rate_limit_429",
@@ -18,6 +21,64 @@ export const CHAOS_VECTOR_ORDER: readonly ChaosVectorId[] = [
   "additive_json_fields",
   "clock_skew_5m",
 ];
+
+export interface ResolvedChaosVectorSpec {
+  index: number;
+  ofTotal: number;
+  subStage: string;
+  vectorId: ChaosVectorId;
+  vectorName: string;
+  shortName: string;
+  description: string;
+  owner: string;
+  isCustom: boolean;
+  remediationSummary: string;
+  customConfig?: CustomChaosVectorConfig;
+}
+
+export function resolveActiveChaosVectors(
+  config?: Pick<NominalXConfig, "chaos_overrides" | "custom_vectors"> & {
+    account?: Pick<NominalXConfig["account"], "fde_owner">;
+  },
+): ResolvedChaosVectorSpec[] {
+  const disabledSet = new Set(config?.chaos_overrides?.disabled_vectors ?? []);
+  const defaultOwner = config?.account?.fde_owner ?? "Lead FDE";
+
+  const builtIns: Array<Omit<ResolvedChaosVectorSpec, "index" | "ofTotal" | "subStage">> =
+    GATE2_SUB_STAGES.filter((meta) => !disabledSet.has(meta.vectorId)).map(
+      (meta) => ({
+        vectorId: meta.vectorId,
+        vectorName: meta.vectorName,
+        shortName: meta.shortName,
+        description: meta.goal,
+        owner: defaultOwner,
+        isCustom: false,
+        remediationSummary: meta.remediationSummary,
+      }),
+    );
+
+  const customSpecs: Array<
+    Omit<ResolvedChaosVectorSpec, "index" | "ofTotal" | "subStage">
+  > = (config?.custom_vectors ?? []).map((vec) => ({
+    vectorId: vec.id,
+    vectorName: vec.label,
+    shortName: vec.label.length > 24 ? `${vec.label.slice(0, 22)}..` : vec.label,
+    description: vec.description,
+    owner: vec.owner,
+    isCustom: true,
+    remediationSummary: vec.patch_summary,
+    customConfig: vec,
+  }));
+
+  const combined = [...builtIns, ...customSpecs];
+  const total = combined.length;
+  return combined.map((item, idx) => ({
+    ...item,
+    index: idx + 1,
+    ofTotal: total,
+    subStage: `${idx + 1} of ${total}`,
+  }));
+}
 
 export function calculateResilienceGrade(
   corruptionPct: number,
@@ -46,7 +107,6 @@ function buildDeterministicTelemetrySeries(
 
   const series: TelemetryPoint[] = [];
   for (let tick = 0; tick < totalTicks; tick += 1) {
-    // Ramp up thrust from tick 0..4, sustain burn 5..19, cool down 20..23
     const envelope =
       tick < 4
         ? (tick + 1) / 4
@@ -54,9 +114,9 @@ function buildDeterministicTelemetrySeries(
           ? Math.max(0.25, (totalTicks - tick) / 5)
           : 1.0;
 
-    // Deterministic harmonic modulation based on vector index
-    const activeVector = vectors[tick % vectors.length]!;
-    const vectorFactor = activeVector.passed ? 0.12 : 1.35;
+    const activeVector =
+      vectors.length > 0 ? vectors[tick % vectors.length]! : undefined;
+    const vectorFactor = activeVector?.passed ? 0.12 : 1.35;
     const wave = 1 + 0.14 * Math.sin((tick + 1) * 1.15);
 
     const packetsPerSec = Math.round(420 * envelope * wave);
@@ -73,10 +133,15 @@ function buildDeterministicTelemetrySeries(
       failedCount === 0
         ? 0
         : roundToOneDecimal(
-            Math.min(100, corruptionRatePct * 1.15 + (activeVector.passed ? 0 : 4.2)),
+            Math.min(
+              100,
+              corruptionRatePct * 1.15 + (activeVector?.passed ? 0 : 4.2),
+            ),
           );
     const p95LatencyMs = Math.round(
-      avgLatency * (0.85 + 0.25 * envelope) * (activeVector.passed ? 0.9 : 1.3),
+      avgLatency *
+        (0.85 + 0.25 * envelope) *
+        (activeVector?.passed ? 0.9 : 1.3),
     );
 
     series.push({
@@ -97,6 +162,10 @@ export interface ScoreStaticFireInput {
   targetUrl: string;
   accountableOwner: string;
   observations: readonly StaticFireVectorObservation[];
+  config?: Pick<NominalXConfig, "chaos_overrides" | "custom_vectors"> & {
+    account?: Pick<NominalXConfig["account"], "fde_owner">;
+  };
+  activeVectors?: readonly ResolvedChaosVectorSpec[];
   attemptNumber?: number;
   patchesApplied?: readonly string[];
   previousAttempts?: readonly FireAttemptSummary[];
@@ -110,11 +179,14 @@ export function scoreStaticFire(input: ScoreStaticFireInput): StaticFireResult {
     obsById.set(obs.vectorId, obs);
   }
 
-  const vectors: StaticFireVectorResult[] = GATE2_SUB_STAGES.map((meta) => {
+  const activeSpecs =
+    input.activeVectors ?? resolveActiveChaosVectors(input.config);
+
+  const vectors: StaticFireVectorResult[] = activeSpecs.map((meta) => {
     const obs = obsById.get(meta.vectorId);
     if (!obs) {
       throw new Error(
-        `Missing Static Fire vector observation for "${meta.vectorId}" (${meta.subStageLabel})`,
+        `Missing Static Fire vector observation for "${meta.vectorId}" (${meta.subStage})`,
       );
     }
     const corruptionPct =
@@ -127,11 +199,12 @@ export function scoreStaticFire(input: ScoreStaticFireInput): StaticFireResult {
     return {
       ...obs,
       index: meta.index,
-      subStage: meta.subStageLabel,
+      subStage: meta.subStage,
       vectorName: meta.vectorName,
       shortName: meta.shortName,
+      isCustom: meta.isCustom || undefined,
       corruptionPct,
-      accountableOwner: input.accountableOwner,
+      accountableOwner: meta.isCustom ? meta.owner : input.accountableOwner,
       remediationSummary: meta.remediationSummary,
     };
   });
@@ -144,6 +217,7 @@ export function scoreStaticFire(input: ScoreStaticFireInput): StaticFireResult {
   const packetsDropped = vectors.reduce((sum, v) => sum + v.packetsDropped, 0);
   const passedVectors = vectors.filter((v) => v.passed).length;
   const failedVectors = vectors.length - passedVectors;
+  const totalVectors = vectors.length;
 
   const corruptionPct =
     packetsSent > 0
@@ -152,7 +226,7 @@ export function scoreStaticFire(input: ScoreStaticFireInput): StaticFireResult {
         ? 0
         : 100;
 
-  const allVectorsPassed = failedVectors === 0;
+  const allVectorsPassed = totalVectors > 0 && failedVectors === 0;
   const grade = calculateResilienceGrade(corruptionPct, allVectorsPassed);
   const passed = corruptionPct === 0 && allVectorsPassed;
 
@@ -166,7 +240,7 @@ export function scoreStaticFire(input: ScoreStaticFireInput): StaticFireResult {
     corruptionPct,
     grade,
     passedVectors,
-    totalVectors: 7,
+    totalVectors,
     patchesApplied,
   };
 
@@ -199,7 +273,7 @@ export function scoreStaticFire(input: ScoreStaticFireInput): StaticFireResult {
       packetsDropped,
       passedVectors,
       failedVectors,
-      totalVectors: 7,
+      totalVectors,
     },
     corruptionPct,
     grade,

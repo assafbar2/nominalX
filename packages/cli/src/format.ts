@@ -96,7 +96,7 @@ export function formatFlightCheckTerminal(result: FlightCheckResult): string {
 
   lines.push(hr);
   lines.push(
-    `VERDICT: ${badgeStatus(result.verdict)}  |  NOMINAL: ${result.counts.nominal}/6  |  WAIVED: ${result.counts.heldWaived}/${result.waiverAudit.maxAllowedActive}  |  NO-GO: ${result.counts.noGo}  |  HARD STOP FAILURES: ${result.counts.hardStopFailures}`,
+    `VERDICT: ${badgeStatus(result.verdict)}  |  NOMINAL: ${result.counts.nominal}/${result.counts.total}  |  WAIVED: ${result.counts.heldWaived}/${result.waiverAudit.maxAllowedActive}  |  NO-GO: ${result.counts.noGo}  |  HARD STOP FAILURES: ${result.counts.hardStopFailures}`,
   );
   lines.push(hr);
   return `${lines.join("\n")}\n`;
@@ -139,7 +139,7 @@ export function formatStaticFireTerminal(result: StaticFireResult): string {
   }
   lines.push(hr);
   lines.push(
-    `STATIC FIRE RESULT: ${badgeGrade(result.grade)}  |  CORRUPTION: ${result.corruptionPct.toFixed(1)}%  |  VECTORS PASSED: ${result.totals.passedVectors}/7  |  ${result.passed ? badgeStatus("NOMINAL") : badgeStatus("NO_GO")}`,
+    `STATIC FIRE RESULT: ${badgeGrade(result.grade)}  |  CORRUPTION: ${result.corruptionPct.toFixed(1)}%  |  VECTORS PASSED: ${result.totals.passedVectors}/${result.totals.totalVectors}  |  ${result.passed ? badgeStatus("NOMINAL") : badgeStatus("NO_GO")}`,
   );
   lines.push(hr);
   return `${lines.join("\n")}\n`;

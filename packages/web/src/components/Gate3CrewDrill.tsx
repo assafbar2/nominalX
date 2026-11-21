@@ -1,10 +1,9 @@
 import { useEffect, useState } from "react";
-import {
-  CREW_DRILL_ALARM_ORDER,
-  type CrewAlarmId,
-  type CrewAlarmState,
-  type CrewDrillMachineState,
-  type CrewDrillResult,
+import type {
+  CrewAlarmId,
+  CrewAlarmState,
+  CrewDrillMachineState,
+  CrewDrillResult,
 } from "@nominalx/core";
 
 interface Gate3CrewDrillProps {
@@ -144,26 +143,40 @@ export function Gate3CrewDrill({
   onProceedToDossier,
 }: Gate3CrewDrillProps) {
   const [selectedAlarmId, setSelectedAlarmId] = useState<CrewAlarmId>(
-    crewDrill.activeAlarmId ?? "runaway_ingestion_storm",
+    crewDrill.activeAlarmId ?? crewDrill.alarmOrder[0] ?? "runaway_ingestion_storm",
   );
 
-  // Sync active alarm selection when advancing after stabilization
+  // Sync active alarm selection when advancing after stabilization or when alarm list changes
   useEffect(() => {
-    if (crewDrill.activeAlarmId) {
+    if (crewDrill.activeAlarmId && crewDrill.alarms[crewDrill.activeAlarmId]) {
       setSelectedAlarmId(crewDrill.activeAlarmId);
+    } else if (!crewDrill.alarms[selectedAlarmId] && crewDrill.alarmOrder[0]) {
+      setSelectedAlarmId(crewDrill.alarmOrder[0]);
     }
-  }, [crewDrill.activeAlarmId]);
+  }, [crewDrill.activeAlarmId, crewDrill.alarmOrder, crewDrill.alarms, selectedAlarmId]);
 
-  const activeAlarm = crewDrill.alarms[selectedAlarmId];
+  const activeAlarm =
+    crewDrill.alarms[selectedAlarmId] ??
+    crewDrill.alarms[crewDrill.alarmOrder[0]!]!;
 
   // Local tactile config form state per alarm (real ops controls, zero multiple-choice)
-  const req1 = crewDrill.alarms.runaway_ingestion_storm.scenario.expectedRemediation.requiredPatch;
-  const req2 = crewDrill.alarms.sso_cert_expiring_24h.scenario.expectedRemediation.requiredPatch;
-  const req3 = crewDrill.alarms.dead_p1_alert_channel.scenario.expectedRemediation.requiredPatch;
+  const req1 =
+    crewDrill.alarms.runaway_ingestion_storm?.scenario.expectedRemediation
+      .requiredPatch;
+  const req2 =
+    crewDrill.alarms.sso_cert_expiring_24h?.scenario.expectedRemediation
+      .requiredPatch;
+  const req3 =
+    crewDrill.alarms.dead_p1_alert_channel?.scenario.expectedRemediation
+      .requiredPatch;
+  const defaultDeadChannel = String(
+    crewDrill.alarms.dead_p1_alert_channel?.scenario.defaultContext
+      .active_p1_channel ?? "#legacy-archived",
+  );
 
   const [sourceKey, setSourceKey] = useState<string>("none");
   const [rateCapRps, setRateCapRps] = useState<number>(
-    Number(req1.rate_cap_rps) * 3,
+    Number(req1?.rate_cap_rps ?? 5000) * 3,
   );
   const [dlqEnabled, setDlqEnabled] = useState<boolean>(false);
 
@@ -172,27 +185,35 @@ export function Gate3CrewDrill({
   );
   const [dualGraceMode, setDualGraceMode] = useState<boolean>(false);
 
-  const [p1Channel, setP1Channel] = useState<string>(
-    String(crewDrill.alarms.dead_p1_alert_channel.scenario.defaultContext.active_p1_channel),
-  );
+  const [p1Channel, setP1Channel] = useState<string>(defaultDeadChannel);
   const [pingVerified, setPingVerified] = useState<boolean>(false);
+
+  // Custom alarm tactile controls
+  const [customFixApplied, setCustomFixApplied] = useState<boolean>(false);
+  const [customProofConfirmed, setCustomProofConfirmed] = useState<boolean>(false);
+
   const [feedback, setFeedback] = useState<{ ok: boolean; text: string } | null>(
     null,
   );
 
-  // Reset form defaults cleanly when account changes
+  // Reset form defaults cleanly when account or selected custom alarm changes
   useEffect(() => {
     setSourceKey("none");
-    setRateCapRps(Number(req1.rate_cap_rps) * 3);
+    setRateCapRps(Number(req1?.rate_cap_rps ?? 5000) * 3);
     setDlqEnabled(false);
     setCertFingerprint("SHA256:OLD:EXPIRING:CERT");
     setDualGraceMode(false);
-    setP1Channel(
-      String(crewDrill.alarms.dead_p1_alert_channel.scenario.defaultContext.active_p1_channel),
-    );
+    setP1Channel(defaultDeadChannel);
     setPingVerified(false);
+    setCustomFixApplied(false);
+    setCustomProofConfirmed(false);
     setFeedback(null);
-  }, [crewDrill.accountId, req1.rate_cap_rps, crewDrill.alarms.dead_p1_alert_channel.scenario.defaultContext.active_p1_channel]);
+  }, [crewDrill.accountId, req1?.rate_cap_rps, defaultDeadChannel]);
+
+  useEffect(() => {
+    setCustomFixApplied(false);
+    setCustomProofConfirmed(false);
+  }, [selectedAlarmId]);
 
   // Live 1-second timer tick for active/overtime alarm
   useEffect(() => {
@@ -211,24 +232,29 @@ export function Gate3CrewDrill({
     }
     const elapsed = Math.max(1.2, activeAlarm.elapsedSeconds || 4.2);
     let patch: Record<string, string | number | boolean> = {};
-    if (selectedAlarmId === "runaway_ingestion_storm") {
+    if (activeAlarm.alarmId === "runaway_ingestion_storm") {
       patch = {
         isolated_source_key: sourceKey.trim(),
         rate_cap_rps: Number(rateCapRps),
         dlq_overflow_enabled: dlqEnabled,
       };
-    } else if (selectedAlarmId === "sso_cert_expiring_24h") {
+    } else if (activeAlarm.alarmId === "sso_cert_expiring_24h") {
       patch = {
         promote_cert_fingerprint: certFingerprint.trim(),
         dual_cert_grace_mode: dualGraceMode,
       };
-    } else {
+    } else if (activeAlarm.alarmId === "dead_p1_alert_channel") {
       patch = {
         active_p1_channel: p1Channel.trim(),
         synthetic_ping_verified: pingVerified,
       };
+    } else {
+      patch = {
+        custom_remediation_applied: customFixApplied,
+        verification_probe_confirmed: customProofConfirmed,
+      };
     }
-    const res = onApplyRemediation(selectedAlarmId, patch, elapsed);
+    const res = onApplyRemediation(activeAlarm.alarmId, patch, elapsed);
     setFeedback({ ok: res.accepted, text: res.message });
   };
 
@@ -258,7 +284,7 @@ export function Gate3CrewDrill({
           <span
             className={`status-pill lg ${crewSummary.allStabilized ? "status-nominal" : "status-active"}`}
           >
-            {crewSummary.stabilizedCount} / 3 ALARMS STABILIZED
+            {crewSummary.stabilizedCount} / {crewSummary.totalAlarms} ALARMS STABILIZED
           </span>
 
           {activeAlarm.status === "idle" && (
@@ -267,7 +293,7 @@ export function Gate3CrewDrill({
               className="btn btn-primary btn-lg"
               onClick={() => {
                 setFeedback(null);
-                onStartAlarm(selectedAlarmId);
+                onStartAlarm(activeAlarm.alarmId);
               }}
               data-testid="start-crew-drill-btn"
             >
@@ -290,11 +316,11 @@ export function Gate3CrewDrill({
 
       {/* 3-Column Game-Day Cockpit */}
       <div className="drill-layout">
-        {/* Left: 3 Big Drill Cards (1 of 3 -> 3 of 3) */}
+        {/* Left: Dynamic Drill Cards (1 of N -> N of N) */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-          {CREW_DRILL_ALARM_ORDER.map((id) => {
-            const alarm = crewDrill.alarms[id];
-            const isSelected = id === selectedAlarmId;
+          {crewDrill.alarmOrder.map((id) => {
+            const alarm = crewDrill.alarms[id]!;
+            const isSelected = id === activeAlarm.alarmId;
             const pillClass =
               alarm.status === "stabilized"
                 ? alarm.overtime
@@ -318,9 +344,16 @@ export function Gate3CrewDrill({
                 data-testid={`drill-card-${id}`}
               >
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-                  <span className="mono" style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--active-text)" }}>
-                    {alarm.subStage} · P1 ALARM
-                  </span>
+                  <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                    <span className="mono" style={{ fontSize: "0.74rem", fontWeight: 800, color: "var(--active-text)" }}>
+                      {alarm.subStage} · P1 ALARM
+                    </span>
+                    {alarm.isCustom && (
+                      <span className="mono" style={{ fontSize: "0.6rem", fontWeight: 800, padding: "1px 5px", borderRadius: 4, background: "var(--active-bg)", color: "var(--active-text)", border: "1px solid var(--active-border)" }}>
+                        CUSTOM
+                      </span>
+                    )}
+                  </div>
                   <span className={`status-pill ${pillClass}`}>
                     {alarm.status === "stabilized"
                       ? alarm.overtime
@@ -336,7 +369,7 @@ export function Gate3CrewDrill({
 
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
                   <span className="mono" style={{ fontSize: "1.35rem", fontWeight: 800 }}>
-                    {alarm.splitMs !== null ? `${(alarm.splitMs / 1000).toFixed(1)}s` : "90.0s"}
+                    {alarm.splitMs !== null ? `${(alarm.splitMs / 1000).toFixed(1)}s` : `${alarm.timeLimitSeconds.toFixed(1)}s`}
                   </span>
                   <div style={{ display: "flex", alignItems: "center", gap: 5 }}>
                     {[1, 2, 3].map((tick) => (
@@ -393,7 +426,7 @@ export function Gate3CrewDrill({
                     : formatClock(activeAlarm.remainingSeconds)}
               </div>
               <div className="mono" style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
-                {activeAlarm.overtime ? "OVERTIME" : "90s SLA BUDGET"}
+                {activeAlarm.overtime ? "OVERTIME" : `${activeAlarm.timeLimitSeconds}s SLA BUDGET`}
               </div>
             </div>
           </div>
@@ -450,7 +483,7 @@ export function Gate3CrewDrill({
               </h3>
             </div>
 
-            {selectedAlarmId === "runaway_ingestion_storm" && (
+            {activeAlarm.alarmId === "runaway_ingestion_storm" && req1 && (
               <>
                 <div className="field-group">
                   <label className="field-label" htmlFor="drill-source-key">
@@ -512,7 +545,7 @@ export function Gate3CrewDrill({
               </>
             )}
 
-            {selectedAlarmId === "sso_cert_expiring_24h" && (
+            {activeAlarm.alarmId === "sso_cert_expiring_24h" && req2 && (
               <>
                 <div className="field-group">
                   <label className="field-label" htmlFor="drill-cert-fp">
@@ -553,7 +586,7 @@ export function Gate3CrewDrill({
               </>
             )}
 
-            {selectedAlarmId === "dead_p1_alert_channel" && (
+            {activeAlarm.alarmId === "dead_p1_alert_channel" && req3 && (
               <>
                 <div className="field-group">
                   <label className="field-label" htmlFor="drill-p1-channel">
@@ -589,6 +622,62 @@ export function Gate3CrewDrill({
                     checked={pingVerified}
                     onChange={(e) => setPingVerified(e.target.checked)}
                     data-testid="drill3-ping-checkbox"
+                  />
+                </label>
+              </>
+            )}
+
+            {activeAlarm.isCustom && (
+              <>
+                <div
+                  style={{
+                    padding: "12px 14px",
+                    borderRadius: 12,
+                    background: "var(--bg-surface-2)",
+                    border: "1px solid var(--border-subtle)",
+                    fontSize: "0.82rem",
+                    color: "var(--text-secondary)",
+                  }}
+                >
+                  <div className="eyebrow" style={{ color: "var(--active-text)" }}>
+                    CUSTOM DAY-30 PLAYBOOK · OWNER: {activeAlarm.owner ?? crewDrill.accountableOwner}
+                  </div>
+                  <div style={{ marginTop: 6, fontWeight: 700, color: "var(--text-primary)" }}>
+                    {activeAlarm.scenario.remediationDetail ?? activeAlarm.scenario.expectedRemediation.summary}
+                  </div>
+                </div>
+
+                <label className={`switch-row ${customFixApplied ? "checked" : ""}`}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>
+                      {activeAlarm.scenario.remediationLabel ?? "Apply Custom Remediation"}
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                      Execute live configuration remediation on customer staging/prod control plane
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={customFixApplied}
+                    onChange={(e) => setCustomFixApplied(e.target.checked)}
+                    data-testid="custom-alarm-fix-checkbox"
+                  />
+                </label>
+
+                <label className={`switch-row ${customProofConfirmed ? "checked" : ""}`}>
+                  <div>
+                    <div style={{ fontWeight: 800, fontSize: "0.88rem" }}>
+                      Confirm Live Verification Probe
+                    </div>
+                    <div style={{ fontSize: "0.75rem", color: "var(--text-muted)" }}>
+                      {activeAlarm.scenario.verificationProofTemplate ?? "Require 3/3 consecutive green SLA ticks"}
+                    </div>
+                  </div>
+                  <input
+                    type="checkbox"
+                    checked={customProofConfirmed}
+                    onChange={(e) => setCustomProofConfirmed(e.target.checked)}
+                    data-testid="custom-alarm-proof-checkbox"
                   />
                 </label>
               </>
@@ -631,10 +720,10 @@ export function Gate3CrewDrill({
                 className="btn btn-primary btn-lg"
                 onClick={() => {
                   setFeedback(null);
-                  onStartAlarm(selectedAlarmId);
+                  onStartAlarm(activeAlarm.alarmId);
                 }}
               >
-                Start 90s Alarm Clock
+                Start {activeAlarm.timeLimitSeconds}s Alarm Clock
               </button>
             )}
 

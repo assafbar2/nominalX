@@ -3,6 +3,7 @@ import {
   evaluateWaivers,
   GATE1_SUB_STAGES,
   type AccountPreset,
+  type CustomStationConfig,
   type FlightCheckResult,
   type StationCode,
   type StationResult,
@@ -12,6 +13,7 @@ import { ShieldLockIcon, StationGlyph } from "./Icons";
 
 interface Gate1FlightCheckProps {
   preset: AccountPreset;
+  customStations: readonly CustomStationConfig[];
   flightCheck: FlightCheckResult;
   selectedStation: StationCode;
   sweepingIndex: number | null;
@@ -81,6 +83,19 @@ function stationPrimaryReadout(
         fillPct: station.telemetryPassed ? 100 : station.status === "HOLD_WAIVED" ? 68 : 35,
       };
     }
+    default: {
+      return {
+        value: station.telemetryPassed
+          ? `HTTP ${station.evidence.httpStatus}`
+          : station.isHardStop
+            ? "LOCKED"
+            : `HTTP ${station.evidence.httpStatus}`,
+        unit: station.isHardStop
+          ? "CUSTOM HARD STOP PROBE"
+          : "CUSTOM TELEMETRY PROBE",
+        fillPct: station.telemetryPassed ? 100 : station.status === "HOLD_WAIVED" ? 66 : 18,
+      };
+    }
   }
 }
 
@@ -106,6 +121,7 @@ function statusDisplay(status: StationResult["status"]): string {
 
 export function Gate1FlightCheck({
   preset,
+  customStations,
   flightCheck,
   selectedStation,
   sweepingIndex,
@@ -130,9 +146,14 @@ export function Gate1FlightCheck({
   const activeStation =
     flightCheck.stations.find((s) => s.stationCode === selectedStation) ??
     flightCheck.stations[0]!;
-  const activeMeta = GATE1_SUB_STAGES.find(
+  const builtInMeta = GATE1_SUB_STAGES.find(
     (m) => m.stationCode === activeStation.stationCode,
-  )!;
+  );
+  const activeOwnerLabel =
+    builtInMeta?.singleAccountableOwner ?? activeStation.accountableOwner;
+  const activeEngineersLabel = builtInMeta
+    ? `${builtInMeta.vendorEngineers.join(", ")} + ${builtInMeta.customerEngineers.join(", ")}`
+    : `Lead FDE + ${activeStation.accountableOwner} (Custom Station Owner)`;
   const matchingPatchDiff = preset.patchDiffs.find(
     (d) => d.targetType === "station" && d.targetId === activeStation.stationCode,
   );
@@ -180,6 +201,7 @@ export function Gate1FlightCheck({
     const audit = evaluateWaivers(
       [...existingActive, candidate],
       preset.referenceDate,
+      customStations,
     );
     const rejected = audit.rejectedWaivers.find(
       (w) => w.stationCode === waiverModalStation.stationCode,
@@ -205,7 +227,7 @@ export function Gate1FlightCheck({
             STAGE 2: SALES-TO-FDE HANDOFF · GATE 1 (1 OF 3): FLIGHT CHECK · SPRINT 1
           </div>
           <h2 className="gate-title-xl">
-            Sold Contract vs. Live Staging Telemetry (6 Parallel Stations)
+            Sold Contract vs. Live Staging Telemetry ({flightCheck.counts.total} Parallel Stations)
           </h2>
         </div>
 
@@ -269,8 +291,15 @@ export function Gate1FlightCheck({
                     <StationGlyph code={station.stationCode} color={color} />
                   </div>
                   <div>
-                    <div className="mono" style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--active-text)" }}>
-                      {station.subStage}
+                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                      <span className="mono" style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--active-text)" }}>
+                        {station.subStage}
+                      </span>
+                      {station.isCustom && (
+                        <span className="mono" style={{ fontSize: "0.62rem", fontWeight: 800, padding: "1px 5px", borderRadius: 5, background: "var(--active-bg)", color: "var(--active-text)", border: "1px solid var(--active-border)" }}>
+                          CUSTOM
+                        </span>
+                      )}
                     </div>
                     <div className="station-name-lg">{station.stationLabel}</div>
                   </div>
@@ -568,13 +597,13 @@ export function Gate1FlightCheck({
             <div>
               <div className="eyebrow">SUB-STAGE OWNER</div>
               <div style={{ fontSize: "0.82rem", fontWeight: 800, marginTop: 3 }}>
-                {activeMeta.singleAccountableOwner}
+                {activeOwnerLabel}
               </div>
             </div>
             <div>
               <div className="eyebrow">REQUIRED ENGINEERS</div>
               <div style={{ fontSize: "0.78rem", color: "var(--text-secondary)", marginTop: 3 }}>
-                {activeMeta.vendorEngineers.join(", ")} + {activeMeta.customerEngineers.join(", ")}
+                {activeEngineersLabel}
               </div>
             </div>
           </div>

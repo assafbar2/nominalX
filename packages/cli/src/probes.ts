@@ -1,8 +1,10 @@
 import {
   evaluateFlightCheck,
   hmacSha256Hex,
+  type CustomStationConfig,
   type FlightCheckResult,
   type NominalXConfig,
+  type ObservedCustomStationTelemetry,
   type ObservedEnvironmentTelemetry,
 } from "@nominalx/core";
 import { resolveWebhookSecrets } from "./config.js";
@@ -62,6 +64,121 @@ export function signWebhookPayload(
 
 function joinUrl(baseUrl: string, path: string): string {
   return `${baseUrl.replace(/\/+$/, "")}${path.startsWith("/") ? path : `/${path}`}`;
+}
+
+export function getNestedJsonField(obj: unknown, path: string): unknown {
+  if (!obj || typeof obj !== "object") return undefined;
+  const parts = path.split(".").filter(Boolean);
+  let cursor: unknown = obj;
+  for (const part of parts) {
+    if (cursor === null || typeof cursor !== "object" || Array.isArray(cursor)) {
+      return undefined;
+    }
+    cursor = (cursor as Record<string, unknown>)[part];
+  }
+  return cursor;
+}
+
+async function probeCustomStation(
+  baseUrl: string,
+  accountId: string,
+  custom: CustomStationConfig,
+  timeoutMs: number,
+): Promise<ObservedCustomStationTelemetry> {
+  const expectedStatus = custom.expected_status ?? 200;
+  const init: RequestInit = {
+    method: custom.method,
+    headers: {
+      accept: "application/json",
+      "x-nominalx-probe": "true",
+      "x-nominalx-station": custom.code,
+      ...(custom.method === "POST" ? { "content-type": "application/json" } : {}),
+    },
+    ...(custom.method === "POST"
+      ? {
+          body: JSON.stringify({
+            probe: true,
+            station: custom.code,
+            account_id: accountId,
+          }),
+        }
+      : {}),
+  };
+
+  const res = await fetchJsonProbe(
+    joinUrl(baseUrl, custom.endpoint),
+    init,
+    timeoutMs,
+  );
+
+  const highlights: string[] = [];
+  const statusMatched = res.status === expectedStatus;
+  if (!statusMatched) {
+    highlights.push(
+      `${custom.hard_stop ? "HARD STOP: " : ""}${custom.method} ${custom.endpoint} returned HTTP ${res.status} (expected ${expectedStatus})`,
+    );
+  }
+
+  let headerMatched = true;
+  let observedHeaderValue: string | null = null;
+  if (custom.required_header) {
+    const headerKey = custom.required_header.name.toLowerCase();
+    observedHeaderValue = res.headers[headerKey] ?? null;
+    headerMatched =
+      observedHeaderValue !== null &&
+      observedHeaderValue.includes(custom.required_header.contains);
+    if (!headerMatched) {
+      highlights.push(
+        `${custom.hard_stop ? "HARD STOP: " : ""}Header ${custom.required_header.name}="${observedHeaderValue ?? "missing"}" does not contain "${custom.required_header.contains}"`,
+      );
+    }
+  }
+
+  let jsonFieldMatched = true;
+  let observedJsonValue: unknown = undefined;
+  if (custom.required_json_field) {
+    observedJsonValue = getNestedJsonField(
+      res.body,
+      custom.required_json_field.path,
+    );
+    jsonFieldMatched = observedJsonValue === custom.required_json_field.equals;
+    if (!jsonFieldMatched) {
+      highlights.push(
+        `${custom.hard_stop ? "HARD STOP: " : ""}JSON field ${custom.required_json_field.path}=${observedJsonValue === undefined ? "missing" : JSON.stringify(observedJsonValue)} (expected ${JSON.stringify(custom.required_json_field.equals)})`,
+      );
+    }
+  }
+
+  if (highlights.length === 0) {
+    const okParts = [`${custom.method} ${custom.endpoint} -> HTTP ${res.status}`];
+    if (custom.required_header) {
+      okParts.push(`${custom.required_header.name}=${observedHeaderValue}`);
+    }
+    if (custom.required_json_field) {
+      okParts.push(
+        `${custom.required_json_field.path}=${String(observedJsonValue)}`,
+      );
+    }
+    highlights.push(okParts.join(" · "));
+  }
+
+  return {
+    code: custom.code,
+    httpStatus: res.status,
+    headerMatched,
+    observedHeaderValue,
+    jsonFieldMatched,
+    observedJsonValue,
+    evidence: {
+      method: custom.method,
+      endpoint: custom.endpoint,
+      httpStatus: res.status,
+      latencyMs: res.latencyMs,
+      headers: res.headers,
+      payload: res.body,
+      highlightLines: highlights,
+    },
+  };
 }
 
 export interface RunLiveFlightCheckOptions {
@@ -399,6 +516,17 @@ export async function probeEnvironmentTelemetry(
     );
   }
 
+  // Custom Stations (Gate 1 extensibility)
+  const customStationsObs: Record<string, ObservedCustomStationTelemetry> = {};
+  for (const custom of config.custom_stations ?? []) {
+    customStationsObs[custom.code] = await probeCustomStation(
+      baseUrl,
+      config.account.id,
+      custom,
+      timeoutMs,
+    );
+  }
+
   return {
     auth: {
       observedProtocol,
@@ -505,6 +633,8 @@ export async function probeEnvironmentTelemetry(
         highlightLines: rollbackHighlights,
       },
     },
+    customStations:
+      Object.keys(customStationsObs).length > 0 ? customStationsObs : undefined,
   };
 }
 

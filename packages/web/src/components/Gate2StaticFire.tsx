@@ -5,6 +5,8 @@ import type {
   StaticFireResult,
   TelemetryPoint,
 } from "@nominalx/core";
+import { getVectorHelp } from "../data/helpCopy";
+import { HelpTip } from "./HelpTip";
 import { VectorGlyph } from "./Icons";
 
 interface Gate2StaticFireProps {
@@ -184,8 +186,11 @@ export function Gate2StaticFire({
       {/* Gate 2 Action Header */}
       <div className="panel gate-action-header">
         <div>
-          <div className="eyebrow">
-            STAGE 3: INTEGRATION &amp; CUTOVER · GATE 2 (2 OF 3): STATIC FIRE · SPRINT 2
+          <div className="help-inline">
+            <div className="eyebrow">
+              STAGE 3: INTEGRATION &amp; CUTOVER · GATE 2 (2 OF 3): STATIC FIRE · SPRINT 2
+            </div>
+            <HelpTip copyKey="gate2.header" />
           </div>
           <h2 className="gate-title-xl">
             Staging Failure Test Stand ({staticFire.totals.totalVectors} Real-World Scenarios · Target 0.0% Data Loss, Grade A)
@@ -194,28 +199,34 @@ export function Gate2StaticFire({
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
           {/* Multi-Attempt History Delta Trail */}
-          {staticFire.attemptHistory.map((attempt) => (
-            <span
-              key={attempt.attemptNumber}
-              className={`status-pill ${attempt.grade === "A" ? "status-nominal" : "status-nogo"}`}
-            >
-              FIRE #{attempt.attemptNumber}: {attempt.corruptionPct.toFixed(1)}% · GRADE {attempt.grade}
-            </span>
-          ))}
+          <div className="help-inline" style={{ flexWrap: "wrap" }}>
+            {staticFire.attemptHistory.map((attempt) => (
+              <span
+                key={attempt.attemptNumber}
+                className={`status-pill ${attempt.grade === "A" ? "status-nominal" : "status-nogo"}`}
+              >
+                FIRE #{attempt.attemptNumber}: {attempt.corruptionPct.toFixed(1)}% · GRADE {attempt.grade}
+              </span>
+            ))}
+            <HelpTip copyKey="gate2.attemptHistory" />
+          </div>
 
-          <button
-            type="button"
-            className="btn btn-primary btn-lg"
-            onClick={onIgniteFire}
-            disabled={isFiring}
-            data-testid="ignite-static-fire-btn"
-          >
-            {isFiring
-              ? "FIRING TEST STAND..."
-              : staticFire.attemptNumber > 1 || stagedPatches.length > 0
-                ? "RE-FIRE TEST STAND"
-                : "IGNITE STATIC FIRE"}
-          </button>
+          <div className="help-control-wrap">
+            <button
+              type="button"
+              className="btn btn-primary btn-lg"
+              onClick={onIgniteFire}
+              disabled={isFiring}
+              data-testid="ignite-static-fire-btn"
+            >
+              {isFiring
+                ? "FIRING TEST STAND..."
+                : staticFire.attemptNumber > 1 || stagedPatches.length > 0
+                  ? "RE-FIRE TEST STAND"
+                  : "IGNITE STATIC FIRE"}
+            </button>
+            <HelpTip copyKey="gate2.igniteBtn" />
+          </div>
 
           {staticFire.passed && (
             <button
@@ -234,8 +245,11 @@ export function Gate2StaticFire({
       <div className="fire-scoreboard">
         {/* Block 1: DATA CORRUPTION % Gauge */}
         <div className="panel score-block">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span className="eyebrow">DATA CORRUPTION RATE</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <span className="help-inline">
+              <span className="eyebrow">DATA CORRUPTION RATE</span>
+              <HelpTip copyKey="gate2.corruptionRate" />
+            </span>
             <span className={`status-pill ${staticFire.passed ? "status-nominal" : "status-nogo"}`}>
               {staticFire.totals.packetsCorrupted} / {staticFire.totals.packetsSent} PACKETS
             </span>
@@ -295,8 +309,11 @@ export function Gate2StaticFire({
 
         {/* Block 2: N-LED FAULT STRIP */}
         <div className="panel score-block">
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-            <span className="eyebrow">{staticFire.totals.totalVectors}-SCENARIO FAILURE STATUS</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
+            <span className="help-inline">
+              <span className="eyebrow">{staticFire.totals.totalVectors}-SCENARIO FAILURE STATUS</span>
+              <HelpTip copyKey="gate2.scenarioStrip" />
+            </span>
             <span className="mono" style={{ fontSize: "0.86rem", fontWeight: 800, color: staticFire.passed ? "var(--nominal-text)" : "var(--nogo-text)" }}>
               {staticFire.totals.passedVectors} / {staticFire.totals.totalVectors} NOMINAL
             </span>
@@ -339,7 +356,10 @@ export function Gate2StaticFire({
 
         {/* Block 3: GIANT GRADE STAMP */}
         <div className="panel score-block" style={{ alignItems: "center", justifyContent: "center" }}>
-          <span className="eyebrow">RESILIENCE GRADE</span>
+          <span className="help-inline">
+            <span className="eyebrow">RESILIENCE GRADE</span>
+            <HelpTip copyKey="gate2.resilienceGrade" />
+          </span>
           <div
             className="grade-stamp"
             style={{ color: gColor }}
@@ -360,7 +380,10 @@ export function Gate2StaticFire({
       <section className="panel panel-pad">
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 10, flexWrap: "wrap", gap: 10 }}>
           <div>
-            <span className="eyebrow">LIVE TEST STAND TELEMETRY WAVEFORM</span>
+            <span className="help-inline">
+              <span className="eyebrow">LIVE TEST STAND TELEMETRY WAVEFORM</span>
+              <HelpTip copyKey="gate2.waveform" />
+            </span>
             <h3 style={{ margin: "2px 0 0", fontSize: "1.1rem", fontWeight: 800 }}>
               Packet Throughput (req/s) vs. Error / Corruption Rate (%)
             </h3>
@@ -388,7 +411,10 @@ export function Gate2StaticFire({
       <section className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div>
-            <span className="eyebrow">LIVE HANDLER PATCH SWITCHBOARD · {preset.config.account.stack.webhook_runtime.toUpperCase()}</span>
+            <span className="help-inline">
+              <span className="eyebrow">LIVE HANDLER PATCH SWITCHBOARD · {preset.config.account.stack.webhook_runtime.toUpperCase()}</span>
+              <HelpTip copyKey="gate2.patchSwitchboard" />
+            </span>
             <h3 style={{ margin: "2px 0 0", fontSize: "1.18rem", fontWeight: 800 }}>
               Toggle Real Handler Fixes &amp; Re-Fire Test Stand
             </h3>
@@ -492,8 +518,14 @@ export function Gate2StaticFire({
                         </span>
                       )}
                     </div>
-                    <div style={{ fontSize: "0.92rem", fontWeight: 800, lineHeight: 1.15 }}>
-                      {v.shortName}
+                    <div className="help-inline" style={{ gap: 5 }}>
+                      <div style={{ fontSize: "0.92rem", fontWeight: 800, lineHeight: 1.15 }}>
+                        {v.shortName}
+                      </div>
+                      <HelpTip
+                        entry={getVectorHelp(v)}
+                        testId={`help-tip-vector-${v.vectorId}`}
+                      />
                     </div>
                   </div>
                 </div>
@@ -514,8 +546,11 @@ export function Gate2StaticFire({
                   >
                     {v.corruptionPct.toFixed(1)}%
                   </span>
-                  <span className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                    p95 {v.p95LatencyMs}ms
+                  <span className="help-inline" style={{ gap: 4 }}>
+                    <span className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+                      p95 {v.p95LatencyMs}ms
+                    </span>
+                    <HelpTip copyKey="gate2.vectorMetrics" />
                   </span>
                 </div>
                 <div className="health-bar-track" style={{ marginTop: 6 }}>

@@ -4,6 +4,7 @@ import {
   type StageMetadata,
   type StageNumber,
 } from "@nominalx/core";
+import { HelpTip } from "./HelpTip";
 import { ShieldLockIcon } from "./Icons";
 
 interface SprintContractStripProps {
@@ -40,12 +41,18 @@ export function SprintContractStrip({
   return (
     <section className="sprint-strip" aria-label="Sprint Contract Summary">
       <div className="sprint-tile">
-        <span className="eyebrow">GOAL</span>
+        <span className="help-inline">
+          <span className="eyebrow">GOAL</span>
+          <HelpTip copyKey="sprint.goal" />
+        </span>
         <div className="sprint-tile-value">{goal}</div>
       </div>
 
       <div className="sprint-tile">
-        <span className="eyebrow">SINGLE OWNER</span>
+        <span className="help-inline">
+          <span className="eyebrow">SINGLE OWNER</span>
+          <HelpTip copyKey="sprint.owner" />
+        </span>
         <div className="sprint-tile-value" style={{ color: "var(--active-text)" }}>
           {owner}
         </div>
@@ -55,7 +62,10 @@ export function SprintContractStrip({
       </div>
 
       <div className="sprint-tile">
-        <span className="eyebrow">TEAM &amp; INTEGRATIONS</span>
+        <span className="help-inline">
+          <span className="eyebrow">TEAM &amp; INTEGRATIONS</span>
+          <HelpTip copyKey="sprint.team" />
+        </span>
         <div className="sprint-tile-value">
           {teamCount} Engineering Roles · {integrationsCount} Integrations
         </div>
@@ -65,12 +75,18 @@ export function SprintContractStrip({
       </div>
 
       <div className="sprint-tile">
-        <span className="eyebrow">TRIGGER</span>
+        <span className="help-inline">
+          <span className="eyebrow">TRIGGER</span>
+          <HelpTip copyKey="sprint.trigger" />
+        </span>
         <div className="sprint-tile-value">{trigger}</div>
       </div>
 
       <div className="sprint-tile">
-        <span className="eyebrow">DONE WHEN</span>
+        <span className="help-inline">
+          <span className="eyebrow">DONE WHEN</span>
+          <HelpTip copyKey="sprint.doneWhen" />
+        </span>
         <div className="sprint-tile-value">{doneWhen}</div>
       </div>
 
@@ -78,6 +94,7 @@ export function SprintContractStrip({
         type="button"
         className="btn"
         style={{
+          position: "relative",
           flexDirection: "column",
           padding: "12px 16px",
           borderColor: "var(--active-border)",
@@ -87,6 +104,9 @@ export function SprintContractStrip({
         onClick={onOpenGovernanceDrawer}
         data-testid="open-scope-governance-btn"
       >
+        <span style={{ position: "absolute", top: 6, right: 6 }}>
+          <HelpTip asSpan copyKey="sprint.scopeGovernanceBtn" />
+        </span>
         <ShieldLockIcon size={20} />
         <span style={{ fontSize: "0.78rem" }}>Scope &amp;</span>
         <span style={{ fontSize: "0.78rem" }}>Governance</span>
@@ -118,10 +138,13 @@ export function ScopeGovernanceDrawer({
       <div className="drawer-sheet" onClick={(e) => e.stopPropagation()}>
         <div className="drawer-header">
           <div>
-            <div className="eyebrow">
-              {stage.inUnverifiedGap
-                ? `THE UNVERIFIED GAP · ${stage.sprintLabel.toUpperCase()}`
-                : stage.sprintLabel.toUpperCase()}
+            <div className="help-inline">
+              <div className="eyebrow">
+                {stage.inUnverifiedGap
+                  ? `THE UNVERIFIED GAP · ${stage.sprintLabel.toUpperCase()}`
+                  : stage.sprintLabel.toUpperCase()}
+              </div>
+              <HelpTip copyKey="governance.header" />
             </div>
             <h2 style={{ margin: "4px 0 0", fontSize: "1.3rem", fontWeight: 800 }}>
               {stage.displayTitle}
@@ -137,13 +160,19 @@ export function ScopeGovernanceDrawer({
           {/* Owner & Timebox */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10 }}>
             <div className="kpi-box">
-              <span className="eyebrow">SINGLE ACCOUNTABLE OWNER</span>
+              <span className="help-inline">
+                <span className="eyebrow">SINGLE ACCOUNTABLE OWNER</span>
+                <HelpTip copyKey="governance.owner" />
+              </span>
               <div style={{ fontWeight: 800, color: "var(--active-text)", fontSize: "0.95rem" }}>
                 {stage.singleAccountableOwner}
               </div>
             </div>
             <div className="kpi-box">
-              <span className="eyebrow">SPRINT TIMEBOX</span>
+              <span className="help-inline">
+                <span className="eyebrow">SPRINT TIMEBOX</span>
+                <HelpTip copyKey="governance.timebox" />
+              </span>
               <div style={{ fontWeight: 700, fontSize: "0.9rem" }}>{stage.timeBox}</div>
             </div>
           </div>
@@ -163,6 +192,7 @@ export function ScopeGovernanceDrawer({
             >
               <ShieldLockIcon size={15} />
               <span>NON-NEGOTIABLE HARD STOPS</span>
+              <HelpTip copyKey="governance.hardStops" />
             </div>
             <ul style={{ margin: "8px 0 0", paddingLeft: 18, fontSize: "0.86rem", display: "grid", gap: 5 }}>
               {stage.hardStops.map((hs) => (
@@ -181,8 +211,11 @@ export function ScopeGovernanceDrawer({
                 border: "1px solid var(--nominal-border)",
               }}
             >
-              <div className="eyebrow" style={{ color: "var(--nominal-text)" }}>
-                STRICTLY IN-SCOPE
+              <div className="help-inline">
+                <div className="eyebrow" style={{ color: "var(--nominal-text)" }}>
+                  STRICTLY IN-SCOPE
+                </div>
+                <HelpTip copyKey="governance.inScope" />
               </div>
               <ul style={{ margin: "8px 0 0", paddingLeft: 16, fontSize: "0.82rem", display: "grid", gap: 6 }}>
                 {stage.inScope.map((item) => (
@@ -199,8 +232,11 @@ export function ScopeGovernanceDrawer({
                 border: "1px solid var(--border-strong)",
               }}
             >
-              <div className="eyebrow" style={{ color: "var(--waived-text)" }}>
-                EXPLICITLY OUT-OF-SCOPE
+              <div className="help-inline">
+                <div className="eyebrow" style={{ color: "var(--waived-text)" }}>
+                  EXPLICITLY OUT-OF-SCOPE
+                </div>
+                <HelpTip copyKey="governance.outOfScope" />
               </div>
               <ul style={{ margin: "8px 0 0", paddingLeft: 16, fontSize: "0.82rem", display: "grid", gap: 6 }}>
                 {stage.outOfScope.map((item) => (
@@ -213,7 +249,10 @@ export function ScopeGovernanceDrawer({
           {/* Engineer Roster */}
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 12 }}>
             <div className="kpi-box">
-              <span className="eyebrow">CUSTOMER-FACING ENGINEERS (VENDOR)</span>
+              <span className="help-inline">
+                <span className="eyebrow">CUSTOMER-FACING ENGINEERS (VENDOR)</span>
+                <HelpTip copyKey="governance.vendorEngineers" />
+              </span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
                 {stage.vendorEngineers.map((eng) => (
                   <span key={eng} className="stack-chip">
@@ -223,7 +262,10 @@ export function ScopeGovernanceDrawer({
               </div>
             </div>
             <div className="kpi-box">
-              <span className="eyebrow">CUSTOMER ENGINEERS</span>
+              <span className="help-inline">
+                <span className="eyebrow">CUSTOMER ENGINEERS</span>
+                <HelpTip copyKey="governance.customerEngineers" />
+              </span>
               <div style={{ display: "flex", flexWrap: "wrap", gap: 6, marginTop: 4 }}>
                 {stage.customerEngineers.map((eng) => (
                   <span key={eng} className="stack-chip">
@@ -236,7 +278,10 @@ export function ScopeGovernanceDrawer({
 
           {/* Connected Integrations Matrix */}
           <div className="kpi-box">
-            <span className="eyebrow">CONNECTED INTEGRATIONS MATRIX</span>
+            <span className="help-inline">
+              <span className="eyebrow">CONNECTED INTEGRATIONS MATRIX</span>
+              <HelpTip copyKey="governance.integrations" />
+            </span>
             <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 6 }}>
               {stage.integrations.map((intg) => (
                 <div
@@ -264,7 +309,10 @@ export function ScopeGovernanceDrawer({
 
           {/* Resources & Definition of Done */}
           <div className="kpi-box">
-            <span className="eyebrow">REQUIRED RESOURCES</span>
+            <span className="help-inline">
+              <span className="eyebrow">REQUIRED RESOURCES</span>
+              <HelpTip copyKey="governance.resources" />
+            </span>
             <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: "0.84rem", display: "grid", gap: 4 }}>
               {stage.resources.map((res) => (
                 <li key={res}>{res}</li>
@@ -273,7 +321,10 @@ export function ScopeGovernanceDrawer({
           </div>
 
           <div className="kpi-box">
-            <span className="eyebrow">DEFINITION OF DONE</span>
+            <span className="help-inline">
+              <span className="eyebrow">DEFINITION OF DONE</span>
+              <HelpTip copyKey="governance.dod" />
+            </span>
             <ul style={{ margin: "6px 0 0", paddingLeft: 18, fontSize: "0.84rem", display: "grid", gap: 5 }}>
               {stage.definitionOfDone.map((dod) => (
                 <li key={dod}>{dod}</li>

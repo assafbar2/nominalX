@@ -13,13 +13,17 @@ import {
 import {
   applyCustomizationsToMission,
   applyYamlToMission,
+  clearStoredCustomizations,
   computeMissionJourney,
   computeReadinessScore,
+  countActiveCustomizations,
   createEmptyCustomizations,
   createInitialMissionState,
   evaluateMissionStaticFire,
   evaluatePresetFlightCheck,
   getEffectiveConfigForMission,
+  loadStoredCustomizations,
+  saveStoredCustomizations,
   serializeMissionToYaml,
 } from "./missionState";
 
@@ -181,6 +185,61 @@ describe("web missionState engine integration", () => {
       expect(reapplied.config.custom_stations).toHaveLength(1);
       expect(reapplied.config.custom_vectors).toHaveLength(1);
       expect(reapplied.config.custom_alarms).toHaveLength(1);
+    }
+  });
+
+  it("clears stored customizations for the active account without affecting other accounts on Reset Scenario", () => {
+    const store = new Map<string, string>();
+    const prevWindow = (globalThis as { window?: unknown }).window;
+    (globalThis as { window: unknown }).window = {
+      localStorage: {
+        getItem: (key: string) => store.get(key) ?? null,
+        setItem: (key: string, value: string) => {
+          store.set(key, value);
+        },
+      },
+    };
+
+    try {
+      const meridianCustom = {
+        ...createEmptyCustomizations(),
+        customStations: [CUSTOM_STATION_TEMPLATES[0]!],
+      };
+      const heliosCustom = {
+        ...createEmptyCustomizations(),
+        customVectors: [CUSTOM_VECTOR_TEMPLATES[0]!],
+      };
+
+      saveStoredCustomizations("meridian-fintech", meridianCustom);
+      saveStoredCustomizations("helios-logistics", heliosCustom);
+      expect(
+        countActiveCustomizations(loadStoredCustomizations("meridian-fintech")),
+      ).toBe(1);
+      expect(
+        countActiveCustomizations(loadStoredCustomizations("helios-logistics")),
+      ).toBe(1);
+
+      // Mirrors App.handleResetScenario for meridian-fintech
+      clearStoredCustomizations("meridian-fintech");
+      const resetState = createInitialMissionState("meridian-fintech", {
+        skipStorage: true,
+      });
+
+      expect(countActiveCustomizations(resetState.customizations)).toBe(0);
+      expect(resetState.flightCheck.counts.total).toBe(6);
+      expect(
+        countActiveCustomizations(loadStoredCustomizations("meridian-fintech")),
+      ).toBe(0);
+      // Other account remains untouched
+      expect(
+        countActiveCustomizations(loadStoredCustomizations("helios-logistics")),
+      ).toBe(1);
+    } finally {
+      if (prevWindow === undefined) {
+        delete (globalThis as { window?: unknown }).window;
+      } else {
+        (globalThis as { window: unknown }).window = prevWindow;
+      }
     }
   });
 });

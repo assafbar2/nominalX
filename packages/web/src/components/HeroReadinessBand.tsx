@@ -5,6 +5,7 @@ import {
   type AccountMissionState,
   type CockpitView,
 } from "../state/missionState";
+import { HelpTip } from "./HelpTip";
 import { ShieldLockIcon } from "./Icons";
 
 interface HeroReadinessBandProps {
@@ -181,8 +182,11 @@ export function HeroReadinessBand({
               <ShieldLockIcon size={24} />
             </div>
             <div>
-              <div className="hard-stop-title">
-                HARD STOP LOCK ACTIVE · NON-WAIVABLE SECURITY / COMPLIANCE BOUNDARY
+              <div className="help-inline">
+                <div className="hard-stop-title">
+                  HARD STOP LOCK ACTIVE · NON-WAIVABLE SECURITY / COMPLIANCE BOUNDARY
+                </div>
+                <HelpTip copyKey="hero.hardStopBanner" />
               </div>
               <div className="hard-stop-sub">
                 <strong>
@@ -212,8 +216,11 @@ export function HeroReadinessBand({
         <div className="panel hero-account-card">
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-              <span className="eyebrow">
-                {account.tier ?? "Enterprise"} · {account.industry ?? "Production"}
+              <span className="help-inline">
+                <span className="eyebrow">
+                  {account.tier ?? "Enterprise"} · {account.industry ?? "Production"}
+                </span>
+                <HelpTip copyKey="hero.accountMeta" />
               </span>
               <span
                 className="mono"
@@ -236,11 +243,12 @@ export function HeroReadinessBand({
             </div>
           </div>
 
-          <div className="stack-chips">
+          <div className="stack-chips" style={{ alignItems: "center" }}>
             <span className="stack-chip">CLOUD: {account.stack.cloud.toUpperCase()}</span>
             <span className="stack-chip">IDP: {account.stack.idp.toUpperCase()}</span>
             <span className="stack-chip">RUNTIME: {account.stack.webhook_runtime}</span>
             <span className="stack-chip">P1: {account.stack.alerting}</span>
+            <HelpTip copyKey="hero.stackChips" />
           </div>
         </div>
 
@@ -251,8 +259,11 @@ export function HeroReadinessBand({
           onClick={() => onSelectView("gate1")}
           data-testid="hero-gate1-card"
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-            <span className="eyebrow">STAGE 2 · GATE 1 (1/3)</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+            <span className="help-inline">
+              <span className="eyebrow">STAGE 2 · GATE 1 (1/3)</span>
+              <HelpTip asSpan copyKey="hero.gate1Card" />
+            </span>
             <span className={`status-pill ${g1Pill}`}>
               {flightCheck.verdict.replace("_", " ")}
             </span>
@@ -278,8 +289,11 @@ export function HeroReadinessBand({
           onClick={() => onSelectView("gate2")}
           data-testid="hero-gate2-card"
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-            <span className="eyebrow">STAGE 3 · GATE 2 (2/3)</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+            <span className="help-inline">
+              <span className="eyebrow">STAGE 3 · GATE 2 (2/3)</span>
+              <HelpTip asSpan copyKey="hero.gate2Card" />
+            </span>
             <span className={`status-pill ${g2Pill}`}>
               GRADE {staticFire.grade}
             </span>
@@ -307,8 +321,11 @@ export function HeroReadinessBand({
           onClick={() => onSelectView("gate3")}
           data-testid="hero-gate3-card"
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-            <span className="eyebrow">STAGE 4 · GATE 3 (3/3)</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+            <span className="help-inline">
+              <span className="eyebrow">STAGE 4 · GATE 3 (3/3)</span>
+              <HelpTip asSpan copyKey="hero.gate3Card" />
+            </span>
             <span className={`status-pill ${g3Pill}`}>
               {crewSummary.allStabilized ? "STABILIZED" : `${crewSummary.stabilizedCount}/${crewSummary.totalAlarms} LIVE`}
             </span>
@@ -339,7 +356,10 @@ export function HeroReadinessBand({
         </button>
 
         {/* Radial Readiness Gauge */}
-        <div className="panel radial-card">
+        <div className="panel radial-card" style={{ position: "relative" }}>
+          <div style={{ position: "absolute", top: 10, right: 10 }}>
+            <HelpTip copyKey="hero.readinessIndex" />
+          </div>
           <RadialReadinessGauge
             score={score}
             hardStopBlocked={hardStopBlocked}

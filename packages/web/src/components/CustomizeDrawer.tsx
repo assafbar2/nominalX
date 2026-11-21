@@ -21,6 +21,7 @@ import {
   type AccountCustomizations,
   type AccountMissionState,
 } from "../state/missionState";
+import { HelpTip } from "./HelpTip";
 import { ShieldLockIcon } from "./Icons";
 
 type CustomizeTab = "gate1" | "gate2" | "gate3" | "yaml";
@@ -495,8 +496,11 @@ export function CustomizeDrawer({
         {/* Header */}
         <div className="drawer-header">
           <div>
-            <div className="eyebrow">
-              LIVE GATE CUSTOMIZER · NOMINALX.YAML · {mission.flightCheck.accountName.toUpperCase()}
+            <div className="help-inline">
+              <div className="eyebrow">
+                LIVE GATE CUSTOMIZER · NOMINALX.YAML · {mission.flightCheck.accountName.toUpperCase()}
+              </div>
+              <HelpTip copyKey="customize.header" />
             </div>
             <h2 style={{ margin: "4px 0 0", fontSize: "1.35rem", fontWeight: 800 }}>
               Tailor Stations, Chaos Vectors &amp; Alarms
@@ -530,7 +534,10 @@ export function CustomizeDrawer({
             }}
             data-testid="customize-tab-gate1"
           >
-            <span className="eyebrow">GATE 1</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              <span className="eyebrow">GATE 1</span>
+              <HelpTip asSpan copyKey="customize.tab.gate1" />
+            </div>
             <strong>Stations ({mission.flightCheck.counts.total})</strong>
           </button>
 
@@ -543,7 +550,10 @@ export function CustomizeDrawer({
             }}
             data-testid="customize-tab-gate2"
           >
-            <span className="eyebrow">GATE 2</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              <span className="eyebrow">GATE 2</span>
+              <HelpTip asSpan copyKey="customize.tab.gate2" />
+            </div>
             <strong>Vectors ({mission.staticFire.totals.totalVectors})</strong>
           </button>
 
@@ -556,7 +566,10 @@ export function CustomizeDrawer({
             }}
             data-testid="customize-tab-gate3"
           >
-            <span className="eyebrow">GATE 3</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              <span className="eyebrow">GATE 3</span>
+              <HelpTip asSpan copyKey="customize.tab.gate3" />
+            </div>
             <strong>Alarms ({mission.crewSummary.totalAlarms})</strong>
           </button>
 
@@ -570,7 +583,10 @@ export function CustomizeDrawer({
             }}
             data-testid="customize-tab-yaml"
           >
-            <span className="eyebrow">LIVE SYNC</span>
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
+              <span className="eyebrow">LIVE SYNC</span>
+              <HelpTip asSpan copyKey="customize.tab.yaml" />
+            </div>
             <strong>YAML (nominalx.yaml)</strong>
           </button>
         </div>
@@ -588,7 +604,10 @@ export function CustomizeDrawer({
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               {/* 1-Click Template Presets */}
               <div className="customize-section">
-                <div className="eyebrow">1-CLICK STATION TEMPLATES</div>
+                <div className="help-inline">
+                  <div className="eyebrow">1-CLICK STATION TEMPLATES</div>
+                  <HelpTip copyKey="customize.g1.templates" />
+                </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
                   <button
                     type="button"
@@ -613,8 +632,11 @@ export function CustomizeDrawer({
               {/* Active Stations Roster */}
               <div className="customize-section">
                 <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center" }}>
-                  <span className="eyebrow">
-                    ACTIVE FLIGHT CHECK STATIONS ({mission.flightCheck.counts.total})
+                  <span className="help-inline">
+                    <span className="eyebrow">
+                      ACTIVE FLIGHT CHECK STATIONS ({mission.flightCheck.counts.total})
+                    </span>
+                    <HelpTip copyKey="customize.g1.roster" />
                   </span>
                   <span className="mono" style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
                     HARD STOPS ARE NON-WAIVABLE
@@ -675,7 +697,10 @@ export function CustomizeDrawer({
                 <div className="eyebrow">ADD CUSTOM GATE 1 STATION</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-code">Station Code (UPPER_SLUG)</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-code">Station Code (UPPER_SLUG)</label>
+                      <HelpTip copyKey="customize.g1.code" />
+                    </div>
                     <input
                       id="cs-code"
                       className="field-input mono"
@@ -685,7 +710,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-label">Display Label</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-label">Display Label</label>
+                      <HelpTip copyKey="customize.g1.label" />
+                    </div>
                     <input
                       id="cs-label"
                       className="field-input"
@@ -695,7 +723,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-endpoint">Probe Endpoint Path</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-endpoint">Probe Endpoint Path</label>
+                      <HelpTip copyKey="customize.g1.endpoint" />
+                    </div>
                     <input
                       id="cs-endpoint"
                       className="field-input mono"
@@ -705,7 +736,10 @@ export function CustomizeDrawer({
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     <div className="field-group">
-                      <label className="field-label" htmlFor="cs-method">Method</label>
+                      <div className="help-label-row">
+                        <label className="field-label" htmlFor="cs-method">Method</label>
+                        <HelpTip copyKey="customize.g1.method" />
+                      </div>
                       <select
                         id="cs-method"
                         className="field-input mono"
@@ -717,7 +751,10 @@ export function CustomizeDrawer({
                       </select>
                     </div>
                     <div className="field-group">
-                      <label className="field-label" htmlFor="cs-status">Expected HTTP</label>
+                      <div className="help-label-row">
+                        <label className="field-label" htmlFor="cs-status">Expected HTTP</label>
+                        <HelpTip copyKey="customize.g1.expectedStatus" />
+                      </div>
                       <input
                         id="cs-status"
                         type="number"
@@ -728,7 +765,10 @@ export function CustomizeDrawer({
                     </div>
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-hdr-name">Required Header (Optional)</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-hdr-name">Required Header (Optional)</label>
+                      <HelpTip copyKey="customize.g1.requiredHeader" />
+                    </div>
                     <input
                       id="cs-hdr-name"
                       className="field-input mono"
@@ -738,7 +778,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-hdr-contains">Header Contains</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-hdr-contains">Header Contains</label>
+                      <HelpTip copyKey="customize.g1.headerContains" />
+                    </div>
                     <input
                       id="cs-hdr-contains"
                       className="field-input mono"
@@ -748,7 +791,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-json-path">Required JSON Field (Optional)</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-json-path">Required JSON Field (Optional)</label>
+                      <HelpTip copyKey="customize.g1.jsonPath" />
+                    </div>
                     <input
                       id="cs-json-path"
                       className="field-input mono"
@@ -758,7 +804,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-json-eq">Equals Value</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-json-eq">Equals Value</label>
+                      <HelpTip copyKey="customize.g1.jsonEquals" />
+                    </div>
                     <input
                       id="cs-json-eq"
                       className="field-input mono"
@@ -771,7 +820,10 @@ export function CustomizeDrawer({
 
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-owner">Accountable Engineer</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-owner">Accountable Engineer</label>
+                      <HelpTip copyKey="customize.g1.owner" />
+                    </div>
                     <input
                       id="cs-owner"
                       className="field-input mono"
@@ -780,7 +832,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cs-promise">Sold Contract Promise</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cs-promise">Sold Contract Promise</label>
+                      <HelpTip copyKey="customize.g1.soldPromise" />
+                    </div>
                     <input
                       id="cs-promise"
                       className="field-input"
@@ -803,6 +858,7 @@ export function CustomizeDrawer({
                     <div style={{ fontWeight: 800, fontSize: "0.86rem", display: "flex", alignItems: "center", gap: 6 }}>
                       <ShieldLockIcon size={15} />
                       <span>Enforce as Non-Waivable Hard Stop</span>
+                      <HelpTip asSpan copyKey="customize.g1.hardStop" />
                     </div>
                     <div style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}>
                       Blocks Risk Waivers identically to AUTH / SSO and RESIDENCY
@@ -834,7 +890,10 @@ export function CustomizeDrawer({
           {activeTab === "gate2" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div className="customize-section">
-                <div className="eyebrow">1-CLICK CHAOS VECTOR TEMPLATE</div>
+                <div className="help-inline">
+                  <div className="eyebrow">1-CLICK CHAOS VECTOR TEMPLATE</div>
+                  <HelpTip copyKey="customize.g2.templates" />
+                </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
                   <button
                     type="button"
@@ -848,7 +907,10 @@ export function CustomizeDrawer({
               </div>
 
               <div className="customize-section">
-                <div className="eyebrow">BUILT-IN ADVERSARIAL VECTORS (ENABLE / DISABLE)</div>
+                <div className="help-inline">
+                  <div className="eyebrow">BUILT-IN ADVERSARIAL VECTORS (ENABLE / DISABLE)</div>
+                  <HelpTip copyKey="customize.g2.builtinToggle" />
+                </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
                   {GATE2_SUB_STAGES.map((v) => {
                     const enabled = !customizations.disabledVectors.includes(v.vectorId);
@@ -914,7 +976,10 @@ export function CustomizeDrawer({
                 <div className="eyebrow">ADD CUSTOM GATE 2 CHAOS VECTOR</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cv-id">Vector ID (snake_case)</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cv-id">Vector ID (snake_case)</label>
+                      <HelpTip copyKey="customize.g2.id" />
+                    </div>
                     <input
                       id="cv-id"
                       className="field-input mono"
@@ -924,7 +989,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cv-label">Vector Label</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cv-label">Vector Label</label>
+                      <HelpTip copyKey="customize.g2.label" />
+                    </div>
                     <input
                       id="cv-label"
                       className="field-input"
@@ -934,7 +1002,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cv-endpoint">Endpoint Override</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cv-endpoint">Endpoint Override</label>
+                      <HelpTip copyKey="customize.g2.endpoint" />
+                    </div>
                     <input
                       id="cv-endpoint"
                       className="field-input mono"
@@ -944,7 +1015,10 @@ export function CustomizeDrawer({
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     <div className="field-group">
-                      <label className="field-label" htmlFor="cv-method">Method</label>
+                      <div className="help-label-row">
+                        <label className="field-label" htmlFor="cv-method">Method</label>
+                        <HelpTip copyKey="customize.g2.method" />
+                      </div>
                       <select
                         id="cv-method"
                         className="field-input mono"
@@ -960,7 +1034,10 @@ export function CustomizeDrawer({
                       </select>
                     </div>
                     <div className="field-group">
-                      <label className="field-label" htmlFor="cv-status">Expected HTTP</label>
+                      <div className="help-label-row">
+                        <label className="field-label" htmlFor="cv-status">Expected HTTP</label>
+                        <HelpTip copyKey="customize.g2.expectedStatus" />
+                      </div>
                       <input
                         id="cv-status"
                         type="number"
@@ -972,7 +1049,10 @@ export function CustomizeDrawer({
                   </div>
                 </div>
                 <div className="field-group" style={{ marginTop: 10 }}>
-                  <label className="field-label" htmlFor="cv-desc">Failure Assertion Description</label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="cv-desc">Failure Assertion Description</label>
+                    <HelpTip copyKey="customize.g2.description" />
+                  </div>
                   <input
                     id="cv-desc"
                     className="field-input"
@@ -983,7 +1063,10 @@ export function CustomizeDrawer({
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cv-patch-label">Switchboard Patch Label</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cv-patch-label">Switchboard Patch Label</label>
+                      <HelpTip copyKey="customize.g2.patchLabel" />
+                    </div>
                     <input
                       id="cv-patch-label"
                       className="field-input"
@@ -993,7 +1076,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="cv-owner">Accountable Engineer</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="cv-owner">Accountable Engineer</label>
+                      <HelpTip copyKey="customize.g2.owner" />
+                    </div>
                     <input
                       id="cv-owner"
                       className="field-input mono"
@@ -1003,7 +1089,10 @@ export function CustomizeDrawer({
                   </div>
                 </div>
                 <div className="field-group" style={{ marginTop: 10 }}>
-                  <label className="field-label" htmlFor="cv-diff">Handler Patch Diff Lines</label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="cv-diff">Handler Patch Diff Lines</label>
+                    <HelpTip copyKey="customize.g2.patchDiff" />
+                  </div>
                   <textarea
                     id="cv-diff"
                     className="field-input mono"
@@ -1030,7 +1119,10 @@ export function CustomizeDrawer({
           {activeTab === "gate3" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 16 }}>
               <div className="customize-section">
-                <div className="eyebrow">1-CLICK DAY-30 ALARM TEMPLATE</div>
+                <div className="help-inline">
+                  <div className="eyebrow">1-CLICK DAY-30 ALARM TEMPLATE</div>
+                  <HelpTip copyKey="customize.g3.templates" />
+                </div>
                 <div style={{ display: "flex", gap: 8, flexWrap: "wrap", marginTop: 8 }}>
                   <button
                     type="button"
@@ -1044,7 +1136,10 @@ export function CustomizeDrawer({
               </div>
 
               <div className="customize-section">
-                <div className="eyebrow">BUILT-IN DAY-30 ALARMS (ENABLE / DISABLE)</div>
+                <div className="help-inline">
+                  <div className="eyebrow">BUILT-IN DAY-30 ALARMS (ENABLE / DISABLE)</div>
+                  <HelpTip copyKey="customize.g3.builtinToggle" />
+                </div>
                 <div style={{ display: "flex", flexDirection: "column", gap: 8, marginTop: 10 }}>
                   {GATE3_SUB_STAGES.map((a) => {
                     const enabled = !customizations.disabledAlarms.includes(a.alarmId);
@@ -1110,7 +1205,10 @@ export function CustomizeDrawer({
                 <div className="eyebrow">ADD CUSTOM DAY-30 CREW DRILL ALARM</div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="ca-id">Alarm ID (snake_case)</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="ca-id">Alarm ID (snake_case)</label>
+                      <HelpTip copyKey="customize.g3.id" />
+                    </div>
                     <input
                       id="ca-id"
                       className="field-input mono"
@@ -1120,7 +1218,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="ca-title">Alarm Title</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="ca-title">Alarm Title</label>
+                      <HelpTip copyKey="customize.g3.title" />
+                    </div>
                     <input
                       id="ca-title"
                       className="field-input"
@@ -1130,7 +1231,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="ca-metric">Metric Label</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="ca-metric">Metric Label</label>
+                      <HelpTip copyKey="customize.g3.metric" />
+                    </div>
                     <input
                       id="ca-metric"
                       className="field-input"
@@ -1140,7 +1244,10 @@ export function CustomizeDrawer({
                   </div>
                   <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 8 }}>
                     <div className="field-group">
-                      <label className="field-label" htmlFor="ca-timer">Timer (sec)</label>
+                      <div className="help-label-row">
+                        <label className="field-label" htmlFor="ca-timer">Timer (sec)</label>
+                        <HelpTip copyKey="customize.g3.timer" />
+                      </div>
                       <input
                         id="ca-timer"
                         type="number"
@@ -1150,7 +1257,10 @@ export function CustomizeDrawer({
                       />
                     </div>
                     <div className="field-group">
-                      <label className="field-label" htmlFor="ca-owner">Owner</label>
+                      <div className="help-label-row">
+                        <label className="field-label" htmlFor="ca-owner">Owner</label>
+                        <HelpTip copyKey="customize.g3.owner" />
+                      </div>
                       <input
                         id="ca-owner"
                         className="field-input mono"
@@ -1161,7 +1271,10 @@ export function CustomizeDrawer({
                   </div>
                 </div>
                 <div className="field-group" style={{ marginTop: 10 }}>
-                  <label className="field-label" htmlFor="ca-symptom">Trigger Symptom</label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="ca-symptom">Trigger Symptom</label>
+                    <HelpTip copyKey="customize.g3.symptom" />
+                  </div>
                   <input
                     id="ca-symptom"
                     className="field-input"
@@ -1171,7 +1284,10 @@ export function CustomizeDrawer({
                   />
                 </div>
                 <div className="field-group" style={{ marginTop: 10 }}>
-                  <label className="field-label" htmlFor="ca-logs">Log Lines (1 per line)</label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="ca-logs">Log Lines (1 per line)</label>
+                    <HelpTip copyKey="customize.g3.logLines" />
+                  </div>
                   <textarea
                     id="ca-logs"
                     className="field-input mono"
@@ -1183,7 +1299,10 @@ export function CustomizeDrawer({
                 </div>
                 <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 10, marginTop: 10 }}>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="ca-rem-label">Remediation Action Label</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="ca-rem-label">Remediation Action Label</label>
+                      <HelpTip copyKey="customize.g3.remLabel" />
+                    </div>
                     <input
                       id="ca-rem-label"
                       className="field-input"
@@ -1193,7 +1312,10 @@ export function CustomizeDrawer({
                     />
                   </div>
                   <div className="field-group">
-                    <label className="field-label" htmlFor="ca-proof">Verification Proof</label>
+                    <div className="help-label-row">
+                      <label className="field-label" htmlFor="ca-proof">Verification Proof</label>
+                      <HelpTip copyKey="customize.g3.proof" />
+                    </div>
                     <input
                       id="ca-proof"
                       className="field-input"
@@ -1204,7 +1326,10 @@ export function CustomizeDrawer({
                   </div>
                 </div>
                 <div className="field-group" style={{ marginTop: 10 }}>
-                  <label className="field-label" htmlFor="ca-rem-detail">Remediation Detail</label>
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="ca-rem-detail">Remediation Detail</label>
+                    <HelpTip copyKey="customize.g3.remDetail" />
+                  </div>
                   <input
                     id="ca-rem-detail"
                     className="field-input"
@@ -1230,39 +1355,51 @@ export function CustomizeDrawer({
           {/* TAB 4: LIVE 2-WAY SYNCED YAML EDITOR */}
           {activeTab === "yaml" && (
             <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-              <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
-                <button
-                  type="button"
-                  className="btn btn-primary"
-                  onClick={handleApplyYamlClick}
-                  data-testid="apply-yaml-btn"
-                >
-                  Apply YAML
-                </button>
-                <button
-                  type="button"
-                  className="btn btn-nominal"
-                  onClick={handleLoadPaymentsExample}
-                  data-testid="load-payments-example-btn"
-                >
-                  Load Custom Payments Example
-                </button>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={handleDownloadYaml}
-                  data-testid="download-yaml-btn"
-                >
-                  Download nominalx.yaml
-                </button>
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={handleResetAll}
-                  data-testid="reset-customizations-btn"
-                >
-                  Reset Customizations
-                </button>
+              <div style={{ display: "flex", gap: 10, flexWrap: "wrap", alignItems: "center" }}>
+                <div className="help-control-wrap">
+                  <button
+                    type="button"
+                    className="btn btn-primary"
+                    onClick={handleApplyYamlClick}
+                    data-testid="apply-yaml-btn"
+                  >
+                    Apply YAML
+                  </button>
+                  <HelpTip copyKey="customize.yaml.apply" />
+                </div>
+                <div className="help-control-wrap">
+                  <button
+                    type="button"
+                    className="btn btn-nominal"
+                    onClick={handleLoadPaymentsExample}
+                    data-testid="load-payments-example-btn"
+                  >
+                    Load Custom Payments Example
+                  </button>
+                  <HelpTip copyKey="customize.yaml.loadExample" />
+                </div>
+                <div className="help-control-wrap">
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={handleDownloadYaml}
+                    data-testid="download-yaml-btn"
+                  >
+                    Download nominalx.yaml
+                  </button>
+                  <HelpTip copyKey="customize.yaml.download" />
+                </div>
+                <div className="help-control-wrap">
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={handleResetAll}
+                    data-testid="reset-customizations-btn"
+                  >
+                    Reset Customizations
+                  </button>
+                  <HelpTip copyKey="customize.yaml.reset" />
+                </div>
               </div>
 
               {yamlNotice && yamlErrors.length === 0 && (
@@ -1302,9 +1439,12 @@ export function CustomizeDrawer({
               )}
 
               <div className="field-group">
-                <label className="field-label" htmlFor="nominalx-yaml-editor">
-                  LIVE 2-WAY SYNCED CONTRACT (nominalx.yaml)
-                </label>
+                <div className="help-label-row">
+                  <label className="field-label" htmlFor="nominalx-yaml-editor">
+                    LIVE 2-WAY SYNCED CONTRACT (nominalx.yaml)
+                  </label>
+                  <HelpTip copyKey="customize.yaml.editor" />
+                </div>
                 <textarea
                   id="nominalx-yaml-editor"
                   className="yaml-editor-textarea mono"

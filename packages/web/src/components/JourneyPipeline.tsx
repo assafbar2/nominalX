@@ -3,7 +3,9 @@ import {
   type JourneyState,
   type StageNumber,
 } from "@nominalx/core";
+import { getStageHelp } from "../data/helpCopy";
 import type { CockpitView } from "../state/missionState";
+import { HelpTip } from "./HelpTip";
 
 interface JourneyPipelineProps {
   journey: JourneyState;
@@ -46,35 +48,48 @@ export function JourneyPipeline({
     <section className="panel journey-panel" aria-label="Customer Lifecycle Stages 1 to 6">
       <div className="journey-header">
         <div className="journey-title-wrap">
-          <span className="eyebrow">CUSTOMER LIFECYCLE PIPELINE · STAGES 1 → 6</span>
-          <span className="gap-chip">THE UNVERIFIED GAP: STAGES 2 → 4</span>
+          <span className="help-inline">
+            <span className="eyebrow">CUSTOMER LIFECYCLE PIPELINE · STAGES 1 → 6</span>
+            <HelpTip copyKey="pipeline.header" />
+          </span>
+          <span className="help-inline">
+            <span className="gap-chip">THE UNVERIFIED GAP: STAGES 2 → 4</span>
+            <HelpTip copyKey="pipeline.unverifiedGap" />
+          </span>
         </div>
 
         <div className="journey-controls">
-          <div className="owner-badge" title="Current Single Accountable Engineering Owner">
+          <div className="owner-badge">
             <span className="eyebrow" style={{ color: "var(--text-dim)" }}>
               BATON OWNER
             </span>
             <span className="mono" style={{ color: "var(--active-text)" }}>
               {journey.accountableOwner}
             </span>
+            <HelpTip copyKey="pipeline.batonOwner" />
           </div>
 
-          <span
-            className={`status-pill lg ${verdictPillClass(journey.masterVerdict)}`}
-            data-testid="master-launch-pill"
-          >
-            MASTER: {verdictLabel(journey.masterVerdict)}
+          <span className="help-inline">
+            <span
+              className={`status-pill lg ${verdictPillClass(journey.masterVerdict)}`}
+              data-testid="master-launch-pill"
+            >
+              MASTER: {verdictLabel(journey.masterVerdict)}
+            </span>
+            <HelpTip copyKey="pipeline.masterVerdict" />
           </span>
 
-          <button
-            type="button"
-            className={`btn ${activeView === "reports" ? "btn-primary" : ""}`}
-            onClick={() => onSelectView("reports")}
-            data-testid="nav-reports-dossier"
-          >
-            <span>Reports &amp; Handover Dossier</span>
-          </button>
+          <div className="help-control-wrap">
+            <button
+              type="button"
+              className={`btn ${activeView === "reports" ? "btn-primary" : ""}`}
+              onClick={() => onSelectView("reports")}
+              data-testid="nav-reports-dossier"
+            >
+              <span>Reports &amp; Handover Dossier</span>
+            </button>
+            <HelpTip copyKey="pipeline.reportsHub" />
+          </div>
         </div>
       </div>
 
@@ -167,7 +182,14 @@ export function JourneyPipeline({
               <div>
                 <div className="stage-node-top">
                   <span className="stage-num">0{stage.stageNumber}</span>
-                  <span className="stage-gate-tag">{gateChip}</span>
+                  <div className="help-inline" style={{ gap: 5 }}>
+                    <span className="stage-gate-tag">{gateChip}</span>
+                    <HelpTip
+                      asSpan
+                      entry={getStageHelp(stage.stageNumber)}
+                      testId={`help-tip-pipeline.stage.${stage.stageNumber}`}
+                    />
+                  </div>
                 </div>
                 <div className="stage-name" style={{ marginTop: 6 }}>
                   Stage {stage.stageNumber}: {stage.stageName}

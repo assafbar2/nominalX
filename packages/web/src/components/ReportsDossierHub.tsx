@@ -16,6 +16,7 @@ import {
   getEffectiveConfigForMission,
   type AccountMissionState,
 } from "../state/missionState";
+import { HelpTip } from "./HelpTip";
 import { ShieldLockIcon } from "./Icons";
 
 type HubTab = "dossier" | "exec" | "ops" | "waivers";
@@ -158,8 +159,11 @@ export function ReportsDossierHub({
       {/* Hub Header + 1-Click Export Controls */}
       <div className="panel gate-action-header">
         <div>
-          <div className="eyebrow">
-            REPORTING &amp; HANDOVER HUB · POWERED BY @NOMINALX/CORE DETERMINISTIC ENGINE
+          <div className="help-inline">
+            <div className="eyebrow">
+              REPORTING &amp; HANDOVER HUB · POWERED BY @NOMINALX/CORE DETERMINISTIC ENGINE
+            </div>
+            <HelpTip copyKey="reports.header" />
           </div>
           <h2 className="gate-title-xl">
             Executive Reports, Operational Digests &amp; Signed NOMINAL Dossier
@@ -204,6 +208,7 @@ export function ReportsDossierHub({
           >
             {previewFormat ? "Hide Raw Output" : "Inspect Raw Export"}
           </button>
+          <HelpTip copyKey="reports.exports" />
         </div>
       </div>
 
@@ -215,7 +220,10 @@ export function ReportsDossierHub({
           onClick={() => setActiveTab("dossier")}
           data-testid="report-tab-dossier"
         >
-          <span className="eyebrow">HANDOVER SPRINT · STAGE 4 → 5</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+            <span className="eyebrow">HANDOVER SPRINT · STAGE 4 → 5</span>
+            <HelpTip asSpan copyKey="reports.tab.dossier" />
+          </div>
           <strong style={{ fontSize: "1.02rem" }}>Signed NOMINAL Dossier &amp; Day-1 Runbook</strong>
           <span className="mono" style={{ fontSize: "0.72rem", color: "var(--active-text)" }}>
             VERDICT: {dossier.verdict.replace(/_/g, " ")}
@@ -228,7 +236,10 @@ export function ReportsDossierHub({
           onClick={() => setActiveTab("exec")}
           data-testid="report-tab-exec"
         >
-          <span className="eyebrow">VP ENG / LEADERSHIP</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+            <span className="eyebrow">VP ENG / LEADERSHIP</span>
+            <HelpTip asSpan copyKey="reports.tab.exec" />
+          </div>
           <strong style={{ fontSize: "1.02rem" }}>Executive Readiness Report</strong>
           <span className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
             nominalx report --type exec
@@ -241,7 +252,10 @@ export function ReportsDossierHub({
           onClick={() => setActiveTab("ops")}
           data-testid="report-tab-ops"
         >
-          <span className="eyebrow">FDE / CSE / SRE DAILY STANDUP</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+            <span className="eyebrow">FDE / CSE / SRE DAILY STANDUP</span>
+            <HelpTip asSpan copyKey="reports.tab.ops" />
+          </div>
           <strong style={{ fontSize: "1.02rem" }}>Operational Sprint &amp; Integrations Digest</strong>
           <span className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
             nominalx report --type ops
@@ -254,7 +268,10 @@ export function ReportsDossierHub({
           onClick={() => setActiveTab("waivers")}
           data-testid="report-tab-waivers"
         >
-          <span className="eyebrow">SECURITY &amp; GOVERNANCE AUDIT</span>
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+            <span className="eyebrow">SECURITY &amp; GOVERNANCE AUDIT</span>
+            <HelpTip asSpan copyKey="reports.tab.waivers" />
+          </div>
           <strong style={{ fontSize: "1.02rem" }}>Waiver Aging &amp; Governance Register</strong>
           <span className="mono" style={{ fontSize: "0.72rem", color: "var(--waived-text)" }}>
             CAP: {waiversReport.policyAttestation.activeUtilization} ACTIVE
@@ -297,8 +314,11 @@ export function ReportsDossierHub({
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14 }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
-                  <span className={`status-pill lg ${statusPillForString(dossier.verdict)}`}>
-                    FLIGHT READINESS SEAL: {dossier.verdict.replace(/_/g, " ")}
+                  <span className="help-inline">
+                    <span className={`status-pill lg ${statusPillForString(dossier.verdict)}`}>
+                      FLIGHT READINESS SEAL: {dossier.verdict.replace(/_/g, " ")}
+                    </span>
+                    <HelpTip copyKey="reports.dossier.seal" />
                   </span>
                   {mission.dossierSigned && (
                     <span className="status-pill lg status-nominal">
@@ -369,7 +389,10 @@ export function ReportsDossierHub({
                   flexWrap: "wrap",
                 }}
               >
-                <span className="eyebrow">DETERMINISTIC SHA-256 VERIFICATION DIGEST</span>
+                <span className="help-inline">
+                  <span className="eyebrow">DETERMINISTIC SHA-256 VERIFICATION DIGEST</span>
+                  <HelpTip copyKey="reports.dossier.sha256" />
+                </span>
                 <code
                   className="mono"
                   style={{ fontSize: "0.74rem", color: "var(--active-text)", wordBreak: "break-all" }}
@@ -383,7 +406,10 @@ export function ReportsDossierHub({
             {/* Right: Interactive Engineer Sign-Off Block */}
             <div className="panel panel-pad" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 12 }}>
               <div style={{ display: "flex", flexDirection: "column", gap: 10 }}>
-                <span className="eyebrow">HANDOVER SPRINT SIGN-OFF BLOCK</span>
+                <span className="help-inline">
+                  <span className="eyebrow">HANDOVER SPRINT SIGN-OFF BLOCK</span>
+                  <HelpTip copyKey="reports.dossier.signoff" />
+                </span>
                 <div className="field-group">
                   <label className="field-label" htmlFor="signer-fde">
                     Single Accountable Owner (Lead FDE)
@@ -447,7 +473,10 @@ export function ReportsDossierHub({
           <section className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
               <div>
-                <span className="eyebrow">AUTO-GENERATED STAGE 5 HANDOVER ARTIFACT</span>
+                <span className="help-inline">
+                  <span className="eyebrow">AUTO-GENERATED STAGE 5 HANDOVER ARTIFACT</span>
+                  <HelpTip copyKey="reports.dossier.runbook" />
+                </span>
                 <h3 style={{ margin: "3px 0 0", fontSize: "1.3rem", fontWeight: 800 }}>
                   Stack-Tailored Day-1 Customer Runbook ({dossier.account.name})
                 </h3>
@@ -514,7 +543,10 @@ export function ReportsDossierHub({
             }}
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-              <span className="eyebrow">EXECUTIVE LAUNCH DECISION</span>
+              <span className="help-inline">
+                <span className="eyebrow">EXECUTIVE LAUNCH DECISION</span>
+                <HelpTip copyKey="reports.exec.decision" />
+              </span>
               <span className={`status-pill lg ${statusPillForString(execReport.masterVerdict)}`}>
                 {execReport.masterVerdict.replace("_", " ")}
               </span>
@@ -526,7 +558,10 @@ export function ReportsDossierHub({
 
           <div className="kpi-4-grid">
             <div className="panel kpi-box">
-              <span className="eyebrow">HARD STOP COMPLIANCE ({execReport.hardStopCompliance.allHardStops.length})</span>
+              <span className="help-inline">
+                <span className="eyebrow">HARD STOP COMPLIANCE ({execReport.hardStopCompliance.allHardStops.length})</span>
+                <HelpTip copyKey="reports.exec.hardStops" />
+              </span>
               {execReport.hardStopCompliance.allHardStops.map((hs) => (
                 <div key={hs.stationCode} className="mono" style={{ fontSize: "0.95rem", fontWeight: 800, marginTop: 2 }}>
                   {hs.stationLabel}:{" "}
@@ -558,7 +593,10 @@ export function ReportsDossierHub({
             </div>
 
             <div className="panel kpi-box">
-              <span className="eyebrow">WAIVER EXPOSURE</span>
+              <span className="help-inline">
+                <span className="eyebrow">WAIVER EXPOSURE</span>
+                <HelpTip copyKey="reports.exec.waiverExposure" />
+              </span>
               <div className="mono" style={{ fontSize: "1.8rem", fontWeight: 800 }}>
                 {execReport.waiverExposure.activeCount} / {execReport.waiverExposure.maxAllowed}
               </div>
@@ -572,7 +610,10 @@ export function ReportsDossierHub({
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div className="panel panel-pad">
-              <span className="eyebrow" style={{ color: "var(--nominal-text)" }}>IN-SCOPE VERIFIED BOUNDARY</span>
+              <span className="help-inline">
+                <span className="eyebrow" style={{ color: "var(--nominal-text)" }}>IN-SCOPE VERIFIED BOUNDARY</span>
+                <HelpTip copyKey="reports.exec.scopeBoundaries" />
+              </span>
               <ul style={{ margin: "10px 0 0", paddingLeft: 18, display: "grid", gap: 7, fontSize: "0.88rem" }}>
                 {execReport.scopeGovernance.inScopeHighlights.map((item) => (
                   <li key={item}>{item}</li>
@@ -580,7 +621,10 @@ export function ReportsDossierHub({
               </ul>
             </div>
             <div className="panel panel-pad">
-              <span className="eyebrow" style={{ color: "var(--waived-text)" }}>EXPLICIT OUT-OF-SCOPE GUARDRAILS</span>
+              <span className="help-inline">
+                <span className="eyebrow" style={{ color: "var(--waived-text)" }}>EXPLICIT OUT-OF-SCOPE GUARDRAILS</span>
+                <HelpTip copyKey="reports.exec.scopeBoundaries" />
+              </span>
               <ul style={{ margin: "10px 0 0", paddingLeft: 18, display: "grid", gap: 7, fontSize: "0.88rem" }}>
                 {execReport.scopeGovernance.outOfScopeBoundaries.map((item) => (
                   <li key={item}>{item}</li>
@@ -597,7 +641,10 @@ export function ReportsDossierHub({
           <section className="panel panel-pad">
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", marginBottom: 14, flexWrap: "wrap", gap: 10 }}>
               <div>
-                <span className="eyebrow">LIVE TELEMETRY STATUS ACROSS CONNECTED INTEGRATIONS</span>
+                <span className="help-inline">
+                  <span className="eyebrow">LIVE TELEMETRY STATUS ACROSS CONNECTED INTEGRATIONS</span>
+                  <HelpTip copyKey="reports.ops.integrationMatrix" />
+                </span>
                 <h3 style={{ margin: "3px 0 0", fontSize: "1.2rem", fontWeight: 800 }}>
                   Integration Health Matrix · {opsReport.activeStageLabel}
                 </h3>
@@ -630,7 +677,10 @@ export function ReportsDossierHub({
 
           <div style={{ display: "grid", gridTemplateColumns: "1fr 1fr", gap: 14 }}>
             <div className="panel panel-pad">
-              <span className="eyebrow">GATE 1 NON-NOMINAL STATIONS ({opsReport.stationBlockers.length})</span>
+              <span className="help-inline">
+                <span className="eyebrow">GATE 1 NON-NOMINAL STATIONS ({opsReport.stationBlockers.length})</span>
+                <HelpTip copyKey="reports.ops.blockers" />
+              </span>
               {opsReport.stationBlockers.length === 0 ? (
                 <div style={{ marginTop: 10, color: "var(--nominal-text)", fontWeight: 800 }}>
                   All {mission.flightCheck.counts.total} Flight Check stations are NOMINAL.
@@ -665,7 +715,10 @@ export function ReportsDossierHub({
             </div>
 
             <div className="panel panel-pad">
-              <span className="eyebrow">NEXT DETERMINISTIC CLI COMMANDS</span>
+              <span className="help-inline">
+                <span className="eyebrow">NEXT DETERMINISTIC CLI COMMANDS</span>
+                <HelpTip copyKey="reports.ops.cliCommands" />
+              </span>
               <div className="wire-terminal" style={{ marginTop: 10 }}>
                 {opsReport.nextCommands.map((cmd) => (
                   <div key={cmd} style={{ color: "#7dd3fc", marginBottom: 6 }}>
@@ -694,6 +747,7 @@ export function ReportsDossierHub({
                 <span className="eyebrow" style={{ color: "var(--nogo-text)" }}>
                   HARD STOP POLICY ATTESTATION
                 </span>
+                <HelpTip copyKey="reports.waivers.policyAttestation" />
               </div>
               <div style={{ fontSize: "1.15rem", fontWeight: 800, marginTop: 8 }}>
                 {waiversReport.policyAttestation.hardStopStations.join(" & ")} are Non-Waivable Hard Stops.
@@ -704,7 +758,10 @@ export function ReportsDossierHub({
             </div>
 
             <div className="panel panel-pad" style={{ display: "flex", flexDirection: "column", justifyContent: "center", gap: 8 }}>
-              <span className="eyebrow">OPERATIONAL WAIVER CAP UTILIZATION</span>
+              <span className="help-inline">
+                <span className="eyebrow">OPERATIONAL WAIVER CAP UTILIZATION</span>
+                <HelpTip copyKey="reports.waivers.capUtilization" />
+              </span>
               <div className="kpi-xl" style={{ color: "var(--waived-text)" }}>
                 {waiversReport.policyAttestation.activeUtilization}
               </div>
@@ -721,7 +778,10 @@ export function ReportsDossierHub({
           </div>
 
           <section className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 12 }}>
-            <span className="eyebrow">ACTIVE OPERATIONAL WAIVERS (AS OF {waiversReport.referenceDate})</span>
+            <span className="help-inline">
+              <span className="eyebrow">ACTIVE OPERATIONAL WAIVERS (AS OF {waiversReport.referenceDate})</span>
+              <HelpTip copyKey="reports.waivers.agingRegister" />
+            </span>
             {waiversReport.activeWaivers.length === 0 ? (
               <div style={{ color: "var(--nominal-text)", fontWeight: 800, fontSize: "1rem" }}>
                 Zero active Operational Waivers — full telemetry compliance.

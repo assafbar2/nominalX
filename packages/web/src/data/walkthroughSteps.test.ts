@@ -4,6 +4,7 @@ import {
   hasSeenWalkthrough,
   markWalkthroughSeen,
   WALKTHROUGH_CHAPTER_PREVIEWS,
+  WALKTHROUGH_CHAPTERS,
   WALKTHROUGH_STEPS,
   WALKTHROUGH_STORAGE_KEY,
   WALKTHROUGH_WELCOME_META,
@@ -34,8 +35,8 @@ function createMemoryStorage(): Storage {
 }
 
 describe("WALKTHROUGH_STEPS catalog", () => {
-  it("contains a deep 12-step guided walkthrough with unique IDs and structured highlights", () => {
-    expect(WALKTHROUGH_STEPS.length).toBe(12);
+  it("contains focused single-concept steps with unique IDs, takeaways, and clean chapter index", () => {
+    expect(WALKTHROUGH_STEPS.length).toBe(21);
 
     const seenIds = new Set<string>();
     for (const step of WALKTHROUGH_STEPS) {
@@ -46,13 +47,17 @@ describe("WALKTHROUGH_STEPS catalog", () => {
       expect(step.chapter.trim().length).toBeGreaterThan(2);
       expect(step.title.trim().length).toBeGreaterThan(6);
       expect(step.summary.trim().length).toBeGreaterThan(40);
-      expect(step.highlights.length).toBeGreaterThanOrEqual(2);
-      expect(step.highlights.length).toBeLessThanOrEqual(3);
-
-      for (const h of step.highlights) {
-        expect(h.label.trim().length).toBeGreaterThan(2);
-        expect(h.detail.trim().length).toBeGreaterThan(20);
+      if (step.takeaway) {
+        expect(step.takeaway.label.trim().length).toBeGreaterThan(2);
+        expect(step.takeaway.detail.trim().length).toBeGreaterThan(15);
       }
+    }
+
+    expect(WALKTHROUGH_CHAPTERS.length).toBeGreaterThanOrEqual(8);
+    for (const ch of WALKTHROUGH_CHAPTERS) {
+      expect(ch.firstStepIndex).toBeGreaterThanOrEqual(0);
+      expect(ch.firstStepIndex).toBeLessThan(WALKTHROUGH_STEPS.length);
+      expect(WALKTHROUGH_STEPS[ch.firstStepIndex]!.chapterId).toBe(ch.id);
     }
   });
 
@@ -65,17 +70,39 @@ describe("WALKTHROUGH_STEPS catalog", () => {
     expect(WALKTHROUGH_WELCOME_META.headline).toContain("Unverified Gap");
     expect(WALKTHROUGH_WELCOME_META.headline).toContain("Live Customer Readiness");
     expect(WALKTHROUGH_WELCOME_META.quote).toContain("Sales says the account is green");
-    expect(WALKTHROUGH_WELCOME_META.quote).toContain("Nothing is nominal until telemetry proves it");
+    expect(WALKTHROUGH_WELCOME_META.quote).toContain(
+      "Nothing is nominal until telemetry proves it",
+    );
     expect(WALKTHROUGH_WELCOME_META.positioningTitle).toContain("Jira");
     expect(WALKTHROUGH_WELCOME_META.positioningTitle).toContain("Linear");
     expect(WALKTHROUGH_WELCOME_META.positioningTitle).toContain("Monday");
     expect(WALKTHROUGH_WELCOME_META.positioningBody).toContain("Live Customer Readiness");
 
-    expect(WALKTHROUGH_CHAPTER_PREVIEWS.length).toBeGreaterThanOrEqual(4);
+    expect(WALKTHROUGH_CHAPTER_PREVIEWS.length).toBe(5);
     for (const preview of WALKTHROUGH_CHAPTER_PREVIEWS) {
       expect(preview.stepIndex).toBeGreaterThan(0);
       expect(preview.stepIndex).toBeLessThan(WALKTHROUGH_STEPS.length);
     }
+  });
+
+  it("splits Lifecycle Pipeline (3a/3b/3c) and Hero Readiness (4a/4b/4c) into targeted steps", () => {
+    const ids = WALKTHROUGH_STEPS.map((s) => s.id);
+    expect(ids).toContain("pipeline-stages-owners");
+    expect(ids).toContain("pipeline-telemetry-verdict");
+    expect(ids).toContain("pipeline-unverified-gap");
+    expect(ids).toContain("hero-readiness-scorecards");
+    expect(ids).toContain("hero-hard-stop-lock");
+    expect(ids).toContain("hero-account-context");
+
+    const allCopy = WALKTHROUGH_STEPS.map(
+      (s) => `${s.chapter} ${s.title} ${s.summary} ${s.takeaway?.detail ?? ""}`,
+    ).join(" ");
+    expect(allCopy).toContain("Setup Check");
+    expect(allCopy).toContain("Fault Injection");
+    expect(allCopy).toContain("Live Incident Drill");
+    expect(allCopy).toContain("Proving staging matches what Sales sold.");
+    expect(allCopy).toContain("Controlled fault injection to prove zero corruption.");
+    expect(allCopy).toContain("Timed P1 alert rehearsal for Support and Customer SREs.");
   });
 
   it("drives all cockpit views (gate1, gate2, gate3, reports) and opens/closes the Customize drawer cleanly", () => {
@@ -85,15 +112,13 @@ describe("WALKTHROUGH_STEPS catalog", () => {
     expect(views.has("gate3")).toBe(true);
     expect(views.has("reports")).toBe(true);
 
-    // Steps 2..12 all define data-tour target selectors
     for (const step of WALKTHROUGH_STEPS.slice(1)) {
       expect(step.targetSelector, `${step.id} targetSelector`).toMatch(
         /^\[data-tour="[^"]+"\]$/,
       );
     }
 
-    // Step 11 opens the Customize drawer; Step 12 closes it and returns to Gate 1
-    const customizeStep = WALKTHROUGH_STEPS.find((s) => s.id === "customize-yaml");
+    const customizeStep = WALKTHROUGH_STEPS.find((s) => s.id === "customize-yaml-cli");
     expect(customizeStep?.openDrawer).toBe("customize");
 
     const finalStep = WALKTHROUGH_STEPS[WALKTHROUGH_STEPS.length - 1]!;
@@ -117,7 +142,6 @@ describe("walkthrough first-run persistence helpers", () => {
     clearWalkthroughSeen(storage);
     expect(hasSeenWalkthrough(storage)).toBe(false);
 
-    // Null / unavailable storage never throws
     expect(hasSeenWalkthrough(null)).toBe(false);
     expect(() => markWalkthroughSeen(null)).not.toThrow();
     expect(() => clearWalkthroughSeen(null)).not.toThrow();

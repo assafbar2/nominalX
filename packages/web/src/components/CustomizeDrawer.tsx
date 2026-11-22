@@ -536,7 +536,7 @@ export function CustomizeDrawer({
             data-testid="customize-tab-gate1"
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-              <span className="eyebrow">GATE 1</span>
+              <span className="eyebrow">GATE 1 · SETUP CHECK</span>
               <HelpTip asSpan copyKey="customize.tab.gate1" />
             </div>
             <strong>Stations ({mission.flightCheck.counts.total})</strong>
@@ -552,7 +552,7 @@ export function CustomizeDrawer({
             data-testid="customize-tab-gate2"
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-              <span className="eyebrow">GATE 2</span>
+              <span className="eyebrow">GATE 2 · FAULT INJECTION</span>
               <HelpTip asSpan copyKey="customize.tab.gate2" />
             </div>
             <strong>Vectors ({mission.staticFire.totals.totalVectors})</strong>
@@ -568,7 +568,7 @@ export function CustomizeDrawer({
             data-testid="customize-tab-gate3"
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%" }}>
-              <span className="eyebrow">GATE 3</span>
+              <span className="eyebrow">GATE 3 · INCIDENT DRILL</span>
               <HelpTip asSpan copyKey="customize.tab.gate3" />
             </div>
             <strong>Alarms ({mission.crewSummary.totalAlarms})</strong>

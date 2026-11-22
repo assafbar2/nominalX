@@ -188,13 +188,16 @@ export function Gate2StaticFire({
         <div>
           <div className="help-inline">
             <div className="eyebrow">
-              STAGE 3: INTEGRATION &amp; CUTOVER · GATE 2 (2 OF 3): STATIC FIRE · SPRINT 2
+              STAGE 3: INTEGRATION &amp; CUTOVER · GATE 2 (2 OF 3): STATIC FIRE (FAULT INJECTION) · SPRINT 2
             </div>
             <HelpTip copyKey="gate2.header" />
           </div>
           <h2 className="gate-title-xl">
-            Staging Failure Test Stand ({staticFire.totals.totalVectors} Real-World Scenarios · Target 0.0% Data Loss, Grade A)
+            Static Fire · Fault Injection ({staticFire.totals.totalVectors} Failure Scenarios · Target 0.0% / Grade A)
           </h2>
+          <div style={{ fontSize: "0.84rem", color: "var(--text-muted)", marginTop: 3 }}>
+            Controlled fault injection to prove zero corruption before production cutover.
+          </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -235,7 +238,7 @@ export function Gate2StaticFire({
               onClick={onProceedToGate3}
               data-testid="proceed-to-gate3-btn"
             >
-              Proceed to Gate 3: Crew Drill →
+              Proceed to Gate 3: Crew Drill (Live Incident Drill) →
             </button>
           )}
         </div>
@@ -408,7 +411,11 @@ export function Gate2StaticFire({
       </section>
 
       {/* Live Handler Patch Panel */}
-      <section className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+      <section
+        className="panel panel-pad"
+        style={{ display: "flex", flexDirection: "column", gap: 14 }}
+        data-tour="gate2-patch-switchboard"
+      >
         <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
           <div>
             <span className="help-inline">

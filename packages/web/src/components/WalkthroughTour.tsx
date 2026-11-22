@@ -9,6 +9,7 @@ import {
 import { createPortal } from "react-dom";
 import {
   WALKTHROUGH_CHAPTER_PREVIEWS,
+  WALKTHROUGH_CHAPTERS,
   WALKTHROUGH_STEPS,
   WALKTHROUGH_WELCOME_META,
   type WalkthroughPlacement,
@@ -28,6 +29,7 @@ interface Rect {
 interface CardPosition {
   top: number;
   left: number;
+  width: number;
   placement: Exclude<WalkthroughPlacement, "center">;
   arrowOffset: number;
   showArrow: boolean;
@@ -41,9 +43,11 @@ export interface WalkthroughTourProps {
   onSkip: () => void;
 }
 
-const VIEWPORT_MARGIN = 16;
-const CARD_GAP = 16;
-const STICKY_HEADER_CLEARANCE = 64;
+const VIEWPORT_MARGIN = 14;
+const CARD_GAP = 14;
+const STICKY_HEADER_CLEARANCE = 62;
+const DEFAULT_HORIZONTAL_CARD_WIDTH = 626;
+const MIN_SIDE_CARD_WIDTH = 360;
 
 function clamp(val: number, min: number, max: number): number {
   if (max < min) return min;
@@ -65,76 +69,88 @@ function rectsDisjoint(
 
 function computeAnchoredCardPosition(
   target: Rect,
-  cardW: number,
-  cardH: number,
+  measuredCardH: number,
   vw: number,
   vh: number,
   preferred: WalkthroughPlacement,
 ): CardPosition {
   const targetCenterX = target.left + target.width / 2;
   const targetCenterY = target.top + target.height / 2;
+  const baseWidth = Math.min(DEFAULT_HORIZONTAL_CARD_WIDTH, vw - VIEWPORT_MARGIN * 2);
 
   const order: Exclude<WalkthroughPlacement, "center">[] = [];
   if (preferred !== "center") order.push(preferred);
-  for (const dir of ["bottom", "top", "left", "right"] as const) {
+  for (const dir of ["bottom", "top", "right", "left"] as const) {
     if (!order.includes(dir)) order.push(dir);
   }
 
   for (const dir of order) {
+    let width = baseWidth;
     let left = 0;
     let top = 0;
 
-    if (dir === "bottom") {
-      top = target.bottom + CARD_GAP;
-      left = clamp(
-        targetCenterX - cardW / 2,
-        VIEWPORT_MARGIN,
-        vw - cardW - VIEWPORT_MARGIN,
-      );
-    } else if (dir === "top") {
-      top = target.top - cardH - CARD_GAP;
-      left = clamp(
-        targetCenterX - cardW / 2,
-        VIEWPORT_MARGIN,
-        vw - cardW - VIEWPORT_MARGIN,
-      );
-    } else if (dir === "left") {
-      left = target.left - cardW - CARD_GAP;
+    if (dir === "left") {
+      const availLeft = target.left - CARD_GAP - VIEWPORT_MARGIN;
+      if (availLeft < MIN_SIDE_CARD_WIDTH) continue;
+      width = Math.min(540, availLeft);
+      left = target.left - width - CARD_GAP;
       top = clamp(
-        targetCenterY - cardH / 2,
+        targetCenterY - measuredCardH / 2,
         VIEWPORT_MARGIN,
-        vh - cardH - VIEWPORT_MARGIN,
+        vh - measuredCardH - VIEWPORT_MARGIN,
       );
-    } else {
+    } else if (dir === "right") {
+      const availRight = vw - target.right - CARD_GAP - VIEWPORT_MARGIN;
+      if (availRight < MIN_SIDE_CARD_WIDTH) continue;
+      width = Math.min(540, availRight);
       left = target.right + CARD_GAP;
       top = clamp(
-        targetCenterY - cardH / 2,
+        targetCenterY - measuredCardH / 2,
         VIEWPORT_MARGIN,
-        vh - cardH - VIEWPORT_MARGIN,
+        vh - measuredCardH - VIEWPORT_MARGIN,
+      );
+    } else if (dir === "bottom") {
+      const availBelow = vh - target.bottom - CARD_GAP - VIEWPORT_MARGIN;
+      if (availBelow < measuredCardH) continue;
+      top = target.bottom + CARD_GAP;
+      left = clamp(
+        targetCenterX - width / 2,
+        VIEWPORT_MARGIN,
+        vw - width - VIEWPORT_MARGIN,
+      );
+    } else {
+      const availAbove = target.top - CARD_GAP - VIEWPORT_MARGIN;
+      if (availAbove < measuredCardH) continue;
+      top = target.top - measuredCardH - CARD_GAP;
+      left = clamp(
+        targetCenterX - width / 2,
+        VIEWPORT_MARGIN,
+        vw - width - VIEWPORT_MARGIN,
       );
     }
 
     const box = {
       left,
       top,
-      right: left + cardW,
-      bottom: top + cardH,
+      right: left + width,
+      bottom: top + measuredCardH,
     };
 
     const fitsViewport =
-      box.left >= VIEWPORT_MARGIN &&
-      box.top >= VIEWPORT_MARGIN &&
-      box.right <= vw - VIEWPORT_MARGIN &&
-      box.bottom <= vh - VIEWPORT_MARGIN;
+      box.left >= VIEWPORT_MARGIN - 1 &&
+      box.top >= VIEWPORT_MARGIN - 1 &&
+      box.right <= vw - VIEWPORT_MARGIN + 1 &&
+      box.bottom <= vh - VIEWPORT_MARGIN + 1;
 
     if (fitsViewport && rectsDisjoint(box, target, 4)) {
       const arrowOffset =
         dir === "top" || dir === "bottom"
-          ? clamp(targetCenterX - left, 24, cardW - 24)
-          : clamp(targetCenterY - top, 24, cardH - 24);
+          ? clamp(targetCenterX - left, 24, width - 24)
+          : clamp(targetCenterY - top, 24, measuredCardH - 24);
       return {
         top: Math.round(top),
         left: Math.round(left),
+        width: Math.round(width),
         placement: dir,
         arrowOffset: Math.round(arrowOffset),
         showArrow: true,
@@ -142,59 +158,47 @@ function computeAnchoredCardPosition(
     }
   }
 
-  // Fallback for tight viewports: pick side with most free space and clamp strictly inside viewport
+  // Emergency fallback for extremely small viewports: pick the largest non-overlapping side
   const spaces: {
     dir: Exclude<WalkthroughPlacement, "center">;
     space: number;
   }[] = [
     { dir: "bottom", space: vh - target.bottom - VIEWPORT_MARGIN },
     { dir: "top", space: target.top - VIEWPORT_MARGIN },
-    { dir: "left", space: target.left - VIEWPORT_MARGIN },
     { dir: "right", space: vw - target.right - VIEWPORT_MARGIN },
+    { dir: "left", space: target.left - VIEWPORT_MARGIN },
   ];
   spaces.sort((a, b) => b.space - a.space);
   const best = spaces[0]!.dir;
 
+  let width = baseWidth;
   let left = clamp(
-    targetCenterX - cardW / 2,
+    targetCenterX - width / 2,
     VIEWPORT_MARGIN,
-    vw - cardW - VIEWPORT_MARGIN,
+    vw - width - VIEWPORT_MARGIN,
   );
   let top = clamp(
-    targetCenterY - cardH / 2,
+    targetCenterY - measuredCardH / 2,
     VIEWPORT_MARGIN,
-    vh - cardH - VIEWPORT_MARGIN,
+    vh - measuredCardH - VIEWPORT_MARGIN,
   );
 
   if (best === "bottom") {
-    top = clamp(
-      target.bottom + CARD_GAP,
-      VIEWPORT_MARGIN,
-      vh - cardH - VIEWPORT_MARGIN,
-    );
+    top = Math.min(target.bottom + CARD_GAP, vh - measuredCardH - VIEWPORT_MARGIN);
   } else if (best === "top") {
-    top = clamp(
-      target.top - cardH - CARD_GAP,
-      VIEWPORT_MARGIN,
-      vh - cardH - VIEWPORT_MARGIN,
-    );
+    top = Math.max(VIEWPORT_MARGIN, target.top - measuredCardH - CARD_GAP);
   } else if (best === "left") {
-    left = clamp(
-      target.left - cardW - CARD_GAP,
-      VIEWPORT_MARGIN,
-      vw - cardW - VIEWPORT_MARGIN,
-    );
+    width = Math.max(300, Math.min(500, target.left - CARD_GAP - VIEWPORT_MARGIN));
+    left = Math.max(VIEWPORT_MARGIN, target.left - width - CARD_GAP);
   } else {
-    left = clamp(
-      target.right + CARD_GAP,
-      VIEWPORT_MARGIN,
-      vw - cardW - VIEWPORT_MARGIN,
-    );
+    width = Math.max(300, Math.min(500, vw - target.right - CARD_GAP - VIEWPORT_MARGIN));
+    left = Math.min(target.right + CARD_GAP, vw - width - VIEWPORT_MARGIN);
   }
 
   return {
-    top: Math.round(top),
-    left: Math.round(left),
+    top: Math.round(clamp(top, VIEWPORT_MARGIN, vh - measuredCardH - VIEWPORT_MARGIN)),
+    left: Math.round(clamp(left, VIEWPORT_MARGIN, vw - width - VIEWPORT_MARGIN)),
+    width: Math.round(width),
     placement: best,
     arrowOffset: 32,
     showArrow: false,
@@ -212,7 +216,7 @@ function measureSpotlightRect(step: WalkthroughStep): Rect | null {
   const vw = window.innerWidth;
   const vh = window.innerHeight;
   const isDrawerTarget = step.openDrawer === "customize";
-  const pad = isDrawerTarget ? 0 : 8;
+  const pad = isDrawerTarget ? 0 : 7;
   const edgeClamp = isDrawerTarget ? 0 : 4;
 
   const left = Math.max(edgeClamp, Math.round(raw.left - pad));
@@ -273,15 +277,14 @@ export function WalkthroughTour({
     }
 
     const cardEl = cardRef.current;
-    const cardW = cardEl ? cardEl.getBoundingClientRect().width || 440 : 440;
-    const cardH = cardEl ? cardEl.getBoundingClientRect().height || 340 : 340;
+    const cardH = cardEl ? cardEl.getBoundingClientRect().height || 210 : 210;
 
     setCardPos(
-      computeAnchoredCardPosition(rect, cardW, cardH, vw, vh, step.placement),
+      computeAnchoredCardPosition(rect, cardH, vw, vh, step.placement),
     );
   }, [open, isCentered, step]);
 
-  // Smoothly scroll the active target into an ideal viewport position when step changes
+  // Actively scroll the viewport so every spotlight target leaves strict non-overlapping clearance
   useEffect(() => {
     if (!open || typeof window === "undefined") return;
 
@@ -318,22 +321,28 @@ export function WalkthroughTour({
 
       const raw = el.getBoundingClientRect();
       const vh = window.innerHeight;
-      const cardH = cardRef.current?.getBoundingClientRect().height || 355;
+      const cardH = cardRef.current?.getBoundingClientRect().height || 215;
 
       let targetScrollY = window.scrollY;
 
       if (step.placement === "bottom") {
-        const desiredTop = STICKY_HEADER_CLEARANCE + 12;
+        const neededBelow = cardH + CARD_GAP + VIEWPORT_MARGIN + 10;
+        const maxTopForClearance = vh - raw.height - neededBelow;
+        const desiredTop = Math.max(
+          10,
+          Math.min(STICKY_HEADER_CLEARANCE + 10, maxTopForClearance),
+        );
         targetScrollY = Math.max(0, window.scrollY + raw.top - desiredTop);
       } else if (step.placement === "top") {
-        const topZone = cardH + CARD_GAP + VIEWPORT_MARGIN + 8;
-        const maxBottomFit = vh - Math.min(raw.height, vh - topZone - VIEWPORT_MARGIN) - VIEWPORT_MARGIN;
-        const desiredTop = Math.max(topZone, Math.min(maxBottomFit, topZone + 14));
+        const minTopForClearance = cardH + CARD_GAP + VIEWPORT_MARGIN + 10;
+        const bottomFitTop = vh - raw.height - VIEWPORT_MARGIN - 8;
+        const desiredTop = Math.max(minTopForClearance, bottomFitTop);
         targetScrollY = Math.max(0, window.scrollY + raw.top - desiredTop);
       } else {
+        // Side placement ("left" or "right"): center vertically while staying below sticky header
         const desiredTop = Math.max(
-          STICKY_HEADER_CLEARANCE + 12,
-          (vh - raw.height) / 2,
+          STICKY_HEADER_CLEARANCE + 10,
+          Math.round((vh - raw.height) / 2),
         );
         targetScrollY = Math.max(0, window.scrollY + raw.top - desiredTop);
       }
@@ -344,7 +353,6 @@ export function WalkthroughTour({
       recomputeLayout();
     };
 
-    // Wait 2 animation frames so view switches and drawers have committed to the DOM
     const raf1 = window.requestAnimationFrame(() => {
       const raf2 = window.requestAnimationFrame(() => {
         scrollTargetIntoView();
@@ -353,8 +361,7 @@ export function WalkthroughTour({
     });
     timers.push(raf1);
 
-    // Re-measure after smooth scroll and layout transitions settle
-    const settleTimeouts = [90, 220, 420, 650].map((ms) =>
+    const settleTimeouts = [90, 220, 420, 620].map((ms) =>
       window.setTimeout(() => {
         if (!cancelled) recomputeLayout();
       }, ms),
@@ -372,7 +379,6 @@ export function WalkthroughTour({
     recomputeLayout();
   }, [open, safeIndex, recomputeLayout]);
 
-  // Keep spotlight and callout locked to element on scroll, resize, or card resize
   useEffect(() => {
     if (!open) return;
 
@@ -393,7 +399,6 @@ export function WalkthroughTour({
     };
   }, [open, recomputeLayout]);
 
-  // Keyboard navigation: ArrowRight, ArrowLeft, Escape
   useEffect(() => {
     if (!open) return;
 
@@ -434,6 +439,7 @@ export function WalkthroughTour({
   if (!open || typeof document === "undefined") return null;
 
   const isDrawerSpotlight = step.openDrawer === "customize";
+  const progressPct = ((safeIndex + 1) / WALKTHROUGH_STEPS.length) * 100;
 
   return createPortal(
     <div
@@ -504,12 +510,10 @@ export function WalkthroughTour({
           >
             <div className="tour-card-header">
               <div style={{ display: "flex", alignItems: "center", gap: 10 }}>
-                <NominalXLogo size={34} />
-                <div>
-                  <span className="tour-chapter-badge mono">
-                    {WALKTHROUGH_WELCOME_META.badge}
-                  </span>
-                </div>
+                <NominalXLogo size={32} />
+                <span className="tour-chapter-badge mono">
+                  {WALKTHROUGH_WELCOME_META.badge}
+                </span>
               </div>
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <span className="tour-step-counter mono" data-testid="tour-step-counter">
@@ -564,13 +568,13 @@ export function WalkthroughTour({
                   display: "flex",
                   alignItems: "center",
                   justifyContent: "space-between",
-                  marginBottom: 8,
+                  marginBottom: 6,
                 }}
               >
                 <span className="eyebrow">
-                  WHAT WE&apos;LL WALK THROUGH LIVE ({WALKTHROUGH_STEPS.length} STEPS)
+                  WHAT WE&apos;LL WALK THROUGH LIVE ({WALKTHROUGH_STEPS.length} FOCUSED STEPS)
                 </span>
-                <span className="mono" style={{ fontSize: "0.68rem", color: "var(--text-dim)" }}>
+                <span className="mono" style={{ fontSize: "0.66rem", color: "var(--text-dim)" }}>
                   CLICK ANY CHAPTER TO JUMP
                 </span>
               </div>
@@ -590,19 +594,11 @@ export function WalkthroughTour({
               </div>
             </div>
 
-            {/* Progress Bar */}
-            <div className="tour-progress-bar" role="navigation" aria-label="Tour step progress">
-              {WALKTHROUGH_STEPS.map((s, idx) => (
-                <button
-                  key={s.id}
-                  type="button"
-                  className={`tour-progress-seg ${idx === safeIndex ? "active" : idx < safeIndex ? "done" : ""}`}
-                  onClick={() => onChangeStep(idx)}
-                  aria-label={`Go to Step ${idx + 1}: ${s.title}`}
-                  title={`Step ${idx + 1}: ${s.title}`}
-                  data-testid={`tour-progress-step-${idx + 1}`}
-                />
-              ))}
+            <div className="tour-progress-track" aria-hidden="true">
+              <div
+                className="tour-progress-fill"
+                style={{ width: `${progressPct}%` }}
+              />
             </div>
 
             <div className="tour-card-footer">
@@ -632,7 +628,7 @@ export function WalkthroughTour({
           </div>
         </div>
       ) : (
-        /* Steps 2–12: Smart Anchored Floating Callout Card */
+        /* Steps 2–21: Compact Wide Single-Concept Callout Card (Strict Zero Overlap) */
         <div
           ref={cardRef}
           className={`tour-callout-card ${cardPos ? `placement-${cardPos.placement}` : ""}`}
@@ -641,10 +637,12 @@ export function WalkthroughTour({
               ? {
                   top: cardPos.top,
                   left: cardPos.left,
+                  width: cardPos.width,
                 }
               : {
-                  top: Math.max(VIEWPORT_MARGIN, Math.round(viewport.h / 2 - 170)),
-                  left: Math.max(VIEWPORT_MARGIN, Math.round(viewport.w / 2 - 220)),
+                  top: Math.max(VIEWPORT_MARGIN, Math.round(viewport.h / 2 - 105)),
+                  left: Math.max(VIEWPORT_MARGIN, Math.round(viewport.w / 2 - 300)),
+                  width: Math.min(DEFAULT_HORIZONTAL_CARD_WIDTH, viewport.w - VIEWPORT_MARGIN * 2),
                 }
           }
           data-testid="tour-callout-card"
@@ -683,48 +681,60 @@ export function WalkthroughTour({
             <h3 className="tour-callout-title">{step.title}</h3>
             <p className="tour-callout-summary">{step.summary}</p>
 
-            <ul className="tour-highlights-list">
-              {step.highlights.map((item) => (
-                <li key={item.label} className="tour-highlight-item">
-                  <span className="tour-highlight-dot" aria-hidden="true" />
-                  <div>
-                    <strong className="tour-highlight-label">{item.label}:</strong>{" "}
-                    <span className="tour-highlight-detail">{item.detail}</span>
-                  </div>
-                </li>
-              ))}
-            </ul>
-
-            {/* Clickable Step Progress Bar */}
-            <div className="tour-progress-wrap">
-              <div className="tour-progress-bar" role="navigation" aria-label="Tour step progress">
-                {WALKTHROUGH_STEPS.map((s, idx) => (
-                  <button
-                    key={s.id}
-                    type="button"
-                    className={`tour-progress-seg ${idx === safeIndex ? "active" : idx < safeIndex ? "done" : ""}`}
-                    onClick={() => onChangeStep(idx)}
-                    aria-label={`Go to Step ${idx + 1}: ${s.title}`}
-                    title={`Step ${idx + 1} · ${s.chapter}: ${s.title}`}
-                    data-testid={`tour-progress-step-${idx + 1}`}
-                  />
-                ))}
+            {step.takeaway && (
+              <div className="tour-takeaway-pill">
+                <span className="tour-highlight-dot" aria-hidden="true" />
+                <span>
+                  <strong className="tour-highlight-label">{step.takeaway.label}:</strong>{" "}
+                  <span className="tour-highlight-detail">{step.takeaway.detail}</span>
+                </span>
               </div>
-              <div className="tour-progress-caption mono">
-                <span>{step.chapter.toUpperCase()}</span>
-                <span>← / → · ESC</span>
+            )}
+
+            {/* Clean Chapter Jump Pills + Smooth Step Progress Bar */}
+            <div className="tour-progress-wrap">
+              <div
+                className="tour-chapter-pills"
+                role="navigation"
+                aria-label="Jump to tour chapter"
+              >
+                {WALKTHROUGH_CHAPTERS.map((ch) => {
+                  const isCurrent = ch.id === step.chapterId;
+                  const isPassed = ch.firstStepIndex < safeIndex && !isCurrent;
+                  return (
+                    <button
+                      key={ch.id}
+                      type="button"
+                      className={`tour-chapter-pill mono ${isCurrent ? "active" : isPassed ? "done" : ""}`}
+                      onClick={() => onChangeStep(ch.firstStepIndex)}
+                      title={`Jump to ${ch.shortLabel} (Step ${ch.firstStepIndex + 1})`}
+                      data-testid={`tour-chapter-${ch.id}`}
+                    >
+                      {ch.shortLabel}
+                    </button>
+                  );
+                })}
+              </div>
+              <div className="tour-progress-track" aria-hidden="true">
+                <div
+                  className="tour-progress-fill"
+                  style={{ width: `${progressPct}%` }}
+                />
               </div>
             </div>
 
             <div className="tour-card-footer">
-              <button
-                type="button"
-                className="btn tour-btn-sm"
-                onClick={onSkip}
-                data-testid="tour-skip-btn"
-              >
-                Skip
-              </button>
+              <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
+                <button
+                  type="button"
+                  className="btn tour-btn-sm"
+                  onClick={onSkip}
+                  data-testid="tour-skip-btn"
+                >
+                  Skip
+                </button>
+                <span className="tour-kbd-hint mono">← / → · Esc</span>
+              </div>
 
               <div style={{ display: "flex", alignItems: "center", gap: 8 }}>
                 <button

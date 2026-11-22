@@ -46,7 +46,7 @@ export const HELP_COPY = {
   "header.tour": {
     tag: "GUIDED WALKTHROUGH",
     title: "Replay Interactive Cockpit Tour",
-    body: "Restarts the 12-step guided walkthrough from Step 1, spotlighting Live Customer Readiness, Stages 1–6, Gates 1–3, the Reporting Hub, and the live nominalx.yaml Customizer.",
+    body: "Restarts the guided walkthrough from Step 1, spotlighting Live Customer Readiness, Stages 1–6, Gate 1 (Setup Check), Gate 2 (Fault Injection), Gate 3 (Live Incident Drill), the Reporting Hub, and the live nominalx.yaml Customizer.",
   },
 
   // ── Customer Journey Pipeline (Stages 1–6) ─────────────────────────────────
@@ -81,19 +81,19 @@ export const HELP_COPY = {
     body: "Owned by the Lead Solutions Engineer (SE / SA). Captures every technical commitment Sales made—SSO, data residency, webhook signing, RPS quotas, alerting, and rollback RTO—into a validated nominalx.yaml contract seed before engineering starts.",
   },
   "pipeline.stage.2": {
-    tag: "STAGE 2 · GATE 1",
-    title: "Stage 2: Sales-to-FDE Handoff (Flight Check)",
-    body: "Owned by the Lead FDE and enforced here as Gate 1. Runs parallel live telemetry probes against customer staging to diff what Sales promised against what actually exists, locking launch on security/compliance Hard Stops.",
+    tag: "STAGE 2 · GATE 1 · SETUP CHECK",
+    title: "Stage 2: Sales-to-FDE Handoff (Flight Check · Setup Check)",
+    body: "Proving staging matches what Sales sold. Owned by the Lead FDE and enforced here as Gate 1, running parallel live telemetry probes against customer staging and locking launch on security/compliance Hard Stops.",
   },
   "pipeline.stage.3": {
-    tag: "STAGE 3 · GATE 2",
-    title: "Stage 3: Integration & Cutover (Static Fire)",
-    body: "Owned by the Lead FDE and enforced here as Gate 2. Fires realistic failure scenarios (duplicates, out-of-order events, 429 bursts, timeouts, secret rotations, schema additions, clock skew) at staging until data loss hits 0.0% (Grade A).",
+    tag: "STAGE 3 · GATE 2 · FAULT INJECTION",
+    title: "Stage 3: Integration & Cutover (Static Fire · Fault Injection)",
+    body: "Controlled fault injection to prove zero corruption. Owned by the Lead FDE and enforced here as Gate 2, firing duplicates, out-of-order events, 429 bursts, timeouts, secret rotations, schema additions, and clock skew until data loss hits 0.0% (Grade A).",
   },
   "pipeline.stage.4": {
-    tag: "STAGE 4 · GATE 3",
-    title: "Stage 4: Day-30 Enablement & Handover (Crew Drill)",
-    body: "Owned by the Lead CSE and enforced here as Gate 3. Proves Support Engineers and Customer On-Call SREs can stabilize live P1 alarms under a 90-second clock, then seals the SHA-256 NOMINAL Dossier and Day-1 Runbook.",
+    tag: "STAGE 4 · GATE 3 · LIVE INCIDENT DRILL",
+    title: "Stage 4: Day-30 Enablement & Handover (Crew Drill · Live Incident Drill)",
+    body: "Timed P1 alert rehearsal for Support and Customer SREs. Owned by the Lead CSE and enforced here as Gate 3, proving engineers can stabilize live P1 alarms under a 90-second clock before sealing the SHA-256 NOMINAL Dossier.",
   },
   "pipeline.stage.5": {
     tag: "STAGE 5 · POST-GAP",
@@ -123,19 +123,19 @@ export const HELP_COPY = {
     body: "Displays the customer's cloud provider, identity provider (IdP), webhook handler runtime, and P1 alerting platform. NominalX tailors probe assertions, code fix diffs, and Day-1 Runbook commands to this exact stack.",
   },
   "hero.gate1Card": {
-    tag: "GATE 1 SUMMARY",
-    title: "Flight Check Station Score",
-    body: "Shows how many Gate 1 stations are cleared (NOMINAL or validly WAIVED) out of the total active stations. Click this card at any time to open the Flight Check board and inspect station diffs.",
+    tag: "GATE 1 · SETUP CHECK",
+    title: "Flight Check (Setup Check) Station Score",
+    body: "Proving staging matches what Sales sold. Shows how many Gate 1 stations are cleared (NOMINAL or validly WAIVED) out of the total active stations—click to open the Setup Check board.",
   },
   "hero.gate2Card": {
-    tag: "GATE 2 SUMMARY",
-    title: "Static Fire Corruption & Grade",
-    body: "Shows the measured percentage of corrupted or lost packets across all Gate 2 failure scenarios, plus the resilience grade (A–F). Gate 2 requires 0.0% corruption (Grade A) before launch sign-off.",
+    tag: "GATE 2 · FAULT INJECTION",
+    title: "Static Fire (Fault Injection) Corruption & Grade",
+    body: "Controlled fault injection to prove zero corruption. Shows measured packet corruption across all Gate 2 failure scenarios plus resilience grade (A–F); Gate 2 requires 0.0% corruption (Grade A).",
   },
   "hero.gate3Card": {
-    tag: "GATE 3 SUMMARY",
-    title: "Crew Drill Stabilized Alarms",
-    body: "Tracks how many live Day-30 P1 alarms have been stabilized with real config fixes and verified green SLA ticks under the 90-second game-day clock. Click to jump to the Crew Drill console.",
+    tag: "GATE 3 · LIVE INCIDENT DRILL",
+    title: "Crew Drill (Live Incident Drill) Stabilized Alarms",
+    body: "Timed P1 alert rehearsal for Support and Customer SREs. Tracks how many Day-30 P1 alarms have been stabilized with real config fixes and 3/3 green SLA ticks under the 90-second clock.",
   },
   "hero.readinessIndex": {
     tag: "OVERALL SCORE",
@@ -230,11 +230,11 @@ export const HELP_COPY = {
     body: "Objective exit checklist verified by deterministic telemetry. Every item must be satisfied before advancing to the next stage.",
   },
 
-  // ── Gate 1: Flight Check ───────────────────────────────────────────────────
+  // ── Gate 1: Flight Check (Setup Check) ─────────────────────────────────────
   "gate1.header": {
-    tag: "GATE 1 · FLIGHT CHECK",
-    title: "Sold Contract vs. Live Staging Telemetry",
-    body: "Probes every contracted technical requirement in parallel against customer staging. Click any station tile below to inspect the exact contract-vs-observed diff, raw HTTP trace, and one-click fix or waiver controls.",
+    tag: "GATE 1 · SETUP CHECK",
+    title: "Flight Check (Setup Check): Sold Contract vs. Live Staging",
+    body: "Proving staging matches what Sales sold. Probes every contracted technical requirement in parallel against customer staging—click any station tile below to inspect exact contract-vs-observed diffs, raw HTTP traces, and one-click fix or waiver controls.",
   },
   "gate1.counters": {
     tag: "STATION STATUS",
@@ -362,11 +362,11 @@ export const HELP_COPY = {
     body: "Specifies the exact manual fallback or kill-switch procedure on-call engineers will execute if this waived check degrades in production before the permanent fix lands.",
   },
 
-  // ── Gate 2: Static Fire ────────────────────────────────────────────────────
+  // ── Gate 2: Static Fire (Fault Injection) ──────────────────────────────────
   "gate2.header": {
-    tag: "GATE 2 · STATIC FIRE",
-    title: "Staging Failure Test Stand",
-    body: "Injects real-world integration failures (duplicates, out-of-order delivery, rate-limit bursts, timeouts, secret rotation, schema additions, and clock drift) against staging. Stage handler fixes below and re-fire until corruption reaches 0.0% (Grade A).",
+    tag: "GATE 2 · FAULT INJECTION",
+    title: "Static Fire (Fault Injection): Staging Failure Test Stand",
+    body: "Controlled fault injection to prove zero corruption. Injects real-world integration failures (duplicates, out-of-order delivery, rate-limit bursts, timeouts, secret rotation, schema additions, and clock drift) against staging until corruption reaches 0.0% (Grade A).",
   },
   "gate2.attemptHistory": {
     tag: "DELTA TRAIL",
@@ -444,11 +444,11 @@ export const HELP_COPY = {
     body: "Tests valid signed timestamps skewed by ±5 minutes plus a stale 15-minute replay attack. Proves minor host clock drift won't drop legitimate traffic while old replayed payloads are still blocked.",
   },
 
-  // ── Gate 3: Crew Drill ─────────────────────────────────────────────────────
+  // ── Gate 3: Crew Drill (Live Incident Drill) ───────────────────────────────
   "gate3.header": {
-    tag: "GATE 3 · CREW DRILL",
-    title: "Live 90-Second Ops Game-Day Console",
-    body: "Owned by the Lead CSE to hand off production safely to Support Engineers and Customer On-Call SREs. Instead of slide decks or multiple-choice quizzes, engineers stabilize real Day-30 alarms by applying actual config fixes under a live clock.",
+    tag: "GATE 3 · LIVE INCIDENT DRILL",
+    title: "Crew Drill (Live Incident Drill): 90-Second Ops Game-Day",
+    body: "Timed P1 alert rehearsal for Support and Customer SREs. Owned by the Lead CSE to hand off production safely—engineers stabilize real Day-30 alarms by applying actual config fixes under a live clock instead of taking quizzes.",
   },
   "gate3.stabilizedPill": {
     tag: "DRILL PROGRESS",
@@ -657,19 +657,19 @@ export const HELP_COPY = {
     body: "Adapt NominalX to any customer's unique security, API, or operational requirements right in the browser. Edits save locally per account, update all three gates immediately, and stay 2-way synced with nominalx.yaml.",
   },
   "customize.tab.gate1": {
-    tag: "GATE 1 CONFIG",
-    title: "Customize Flight Check Stations",
-    body: "Inspect the 6 built-in stations and add custom HTTP/JSON/header probes—including custom non-waivable Hard Stops like PCI or HSM checks.",
+    tag: "GATE 1 · SETUP CHECK",
+    title: "Customize Flight Check (Setup Check) Stations",
+    body: "Inspect the 6 built-in Setup Check stations and add custom HTTP/JSON/header probes—including custom non-waivable Hard Stops like PCI or HSM checks.",
   },
   "customize.tab.gate2": {
-    tag: "GATE 2 CONFIG",
-    title: "Customize Static Fire Chaos Vectors",
-    body: "Enable or disable built-in failure scenarios (at least 1 must stay active) or define custom adversarial webhook/API payloads and handler patch diffs.",
+    tag: "GATE 2 · FAULT INJECTION",
+    title: "Customize Static Fire (Fault Injection) Chaos Vectors",
+    body: "Enable or disable built-in Fault Injection scenarios (at least 1 must stay active) or define custom adversarial webhook/API payloads and handler patch diffs.",
   },
   "customize.tab.gate3": {
-    tag: "GATE 3 CONFIG",
-    title: "Customize Crew Drill Alarms",
-    body: "Enable or disable built-in Day-30 alarms or create custom timed P1 incident drills with tailored symptoms, log lines, and remediation proof.",
+    tag: "GATE 3 · LIVE INCIDENT DRILL",
+    title: "Customize Crew Drill (Live Incident Drill) Alarms",
+    body: "Enable or disable built-in Day-30 Live Incident Drills or create custom timed P1 alarms with tailored symptoms, log lines, and remediation proof.",
   },
   "customize.tab.yaml": {
     tag: "CONTRACT AS CODE",

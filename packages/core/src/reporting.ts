@@ -177,10 +177,10 @@ function buildExecutiveReport(
     dossierSigned,
   });
 
-  const authStation = gate1.stations.find((s) => s.stationCode === "AUTH_SSO")!;
+  const authStation = gate1.stations.find((s) => s.stationCode === "AUTH_SSO");
   const residencyStation = gate1.stations.find(
     (s) => s.stationCode === "RESIDENCY",
-  )!;
+  );
   const allHardStops = gate1.stations
     .filter((s) => s.isHardStop)
     .map((s) => ({
@@ -189,7 +189,10 @@ function buildExecutiveReport(
       status: s.status,
       isCustom: Boolean(s.isCustom),
     }));
-  const hardStopNamesText = allHardStops.map((h) => h.stationLabel).join(", ");
+  const hardStopNamesText =
+    allHardStops.length > 0
+      ? allHardStops.map((h) => h.stationLabel).join(", ")
+      : "None configured";
 
   const blockers = gate1.stations
     .filter((s) => s.status === "NO_GO")
@@ -237,8 +240,8 @@ function buildExecutiveReport(
     journey,
     singleAccountableOwner: journey.accountableOwner,
     hardStopCompliance: {
-      authSso: authStation.status,
-      residency: residencyStation.status,
+      authSso: authStation?.status ?? "N/A",
+      residency: residencyStation?.status ?? "N/A",
       hardStopViolations: gate1.waiverAudit.hardStopViolations.length,
       allHardStops,
     },
@@ -355,37 +358,64 @@ function buildOperationalDigest(
     proof: a.verificationProof,
   }));
 
+  const stationStatusByCode = new Map(
+    gate1.stations.map((s) => [s.stationCode, s.status]),
+  );
   const integrationMatrix = [
-    {
-      integration: `IdP SSO (${config.account.stack.idp})`,
-      endpointOrTarget: config.environment.endpoints.auth_metadata,
-      status: gate1.stations[0]!.status,
-    },
-    {
-      integration: `Cloud Residency (${config.account.stack.cloud})`,
-      endpointOrTarget: config.environment.endpoints.residency_probe,
-      status: gate1.stations[1]!.status,
-    },
-    {
-      integration: `Webhook Gateway (${config.account.stack.webhook_runtime})`,
-      endpointOrTarget: config.environment.endpoints.webhook_ingress,
-      status: gate1.stations[2]!.status,
-    },
-    {
-      integration: "API Quota / Rate Limiter",
-      endpointOrTarget: config.environment.endpoints.quota_status,
-      status: gate1.stations[3]!.status,
-    },
-    {
-      integration: `P1 Alerting (${config.account.stack.alerting})`,
-      endpointOrTarget: `${config.environment.endpoints.alert_sink} -> ${config.sold_contract.alerting.p1_channel}`,
-      status: gate1.stations[4]!.status,
-    },
-    {
-      integration: `Rollback Automation (${config.account.stack.deployment_tool ?? "terraform/argocd"})`,
-      endpointOrTarget: config.environment.endpoints.rollback_check,
-      status: gate1.stations[5]!.status,
-    },
+    ...(stationStatusByCode.has("AUTH_SSO")
+      ? [
+          {
+            integration: `IdP SSO (${config.account.stack.idp})`,
+            endpointOrTarget: config.environment.endpoints.auth_metadata,
+            status: stationStatusByCode.get("AUTH_SSO")!,
+          },
+        ]
+      : []),
+    ...(stationStatusByCode.has("RESIDENCY")
+      ? [
+          {
+            integration: `Cloud Residency (${config.account.stack.cloud})`,
+            endpointOrTarget: config.environment.endpoints.residency_probe,
+            status: stationStatusByCode.get("RESIDENCY")!,
+          },
+        ]
+      : []),
+    ...(stationStatusByCode.has("WEBHOOKS")
+      ? [
+          {
+            integration: `Webhook Gateway (${config.account.stack.webhook_runtime})`,
+            endpointOrTarget: config.environment.endpoints.webhook_ingress,
+            status: stationStatusByCode.get("WEBHOOKS")!,
+          },
+        ]
+      : []),
+    ...(stationStatusByCode.has("QUOTA_RATE")
+      ? [
+          {
+            integration: "API Quota / Rate Limiter",
+            endpointOrTarget: config.environment.endpoints.quota_status,
+            status: stationStatusByCode.get("QUOTA_RATE")!,
+          },
+        ]
+      : []),
+    ...(stationStatusByCode.has("ALERTING")
+      ? [
+          {
+            integration: `P1 Alerting (${config.account.stack.alerting})`,
+            endpointOrTarget: `${config.environment.endpoints.alert_sink} -> ${config.sold_contract.alerting.p1_channel}`,
+            status: stationStatusByCode.get("ALERTING")!,
+          },
+        ]
+      : []),
+    ...(stationStatusByCode.has("ROLLBACK")
+      ? [
+          {
+            integration: `Rollback Automation (${config.account.stack.deployment_tool ?? "terraform/argocd"})`,
+            endpointOrTarget: config.environment.endpoints.rollback_check,
+            status: stationStatusByCode.get("ROLLBACK")!,
+          },
+        ]
+      : []),
     ...gate1.stations
       .filter((s) => s.isCustom)
       .map((s) => ({

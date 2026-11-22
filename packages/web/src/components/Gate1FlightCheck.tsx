@@ -3,8 +3,11 @@ import {
   evaluateWaivers,
   GATE1_SUB_STAGES,
   type AccountPreset,
+  type CustomerBlueprint,
   type CustomStationConfig,
   type FlightCheckResult,
+  type ManualGate1Status,
+  type ManualGateState,
   type StationCode,
   type StationResult,
   type WaiverInput,
@@ -20,6 +23,16 @@ interface Gate1FlightCheckProps {
   selectedStation: StationCode;
   sweepingIndex: number | null;
   focusDiffNonce?: number;
+  isManualCustomer?: boolean;
+  blueprint?: CustomerBlueprint | null;
+  manualState?: ManualGateState | null;
+  onManualSetStatus?: (
+    code: StationCode,
+    status: ManualGate1Status,
+    waiver?: WaiverInput,
+  ) => { ok: boolean; error?: string };
+  onManualSetEvidence?: (code: StationCode, note: string) => void;
+  onOpenExportYaml?: () => void;
   onSelectStation: (code: StationCode) => void;
   onRunFlightCheck: () => void;
   onApplyStationFix: (code: StationCode) => void;
@@ -129,6 +142,12 @@ export function Gate1FlightCheck({
   selectedStation,
   sweepingIndex,
   focusDiffNonce = 0,
+  isManualCustomer = false,
+  blueprint = null,
+  manualState = null,
+  onManualSetStatus,
+  onManualSetEvidence,
+  onOpenExportYaml,
   onSelectStation,
   onRunFlightCheck,
   onApplyStationFix,
@@ -143,10 +162,17 @@ export function Gate1FlightCheck({
     preset.config.account.customer_eng_lead,
   );
   const [waiverReason, setWaiverReason] = useState("");
-  const [waiverExpiresAt, setWaiverExpiresAt] = useState("2026-12-12");
+  const [waiverExpiresAt, setWaiverExpiresAt] = useState(() => {
+    const base = new Date(`${preset.referenceDate}T00:00:00.000Z`);
+    return new Date(base.getTime() + 14 * 24 * 60 * 60 * 1000)
+      .toISOString()
+      .slice(0, 10);
+  });
   const [waiverRollback, setWaiverRollback] = useState("");
   const [waiverTicket, setWaiverTicket] = useState("OPS-2041");
   const [waiverError, setWaiverError] = useState<string | null>(null);
+  const [manualActionNotice, setManualActionNotice] = useState<string | null>(null);
+  const [cliCopied, setCliCopied] = useState(false);
 
   useEffect(() => {
     if (focusDiffNonce === 0) return;
@@ -175,13 +201,23 @@ export function Gate1FlightCheck({
   );
 
   const openWaiverModal = (station: StationResult) => {
-    if (station.isHardStop) return;
+    if (station.isHardStop) {
+      setManualActionNotice(
+        `HARD STOP · NON-WAIVABLE: "${station.stationLabel}" cannot be waived. Verify Pass with live evidence to unlock launch.`,
+      );
+      return;
+    }
+    setManualActionNotice(null);
     setWaiverModalStation(station);
     setWaiverOwner(preset.config.account.customer_eng_lead);
     setWaiverReason(
       `Bounded staging remediation scheduled for ${station.stationLabel}; verified manual safeguard active.`,
     );
-    setWaiverExpiresAt("2026-12-12");
+    const refMs = Date.parse(`${preset.referenceDate}T00:00:00.000Z`);
+    const expIso = Number.isNaN(refMs)
+      ? "2026-12-12"
+      : new Date(refMs + 14 * 24 * 60 * 60 * 1000).toISOString().slice(0, 10);
+    setWaiverExpiresAt(expIso);
     setWaiverRollback(
       `Execute verified manual ${station.stationLabel.toLowerCase()} fallback runbook if staging drift occurs.`,
     );
@@ -200,6 +236,23 @@ export function Gate1FlightCheck({
       ticket_id: waiverTicket.trim() || undefined,
       issued_at: preset.referenceDate,
     };
+
+    if (isManualCustomer && onManualSetStatus) {
+      const res = onManualSetStatus(
+        waiverModalStation.stationCode,
+        "WAIVED",
+        candidate,
+      );
+      if (!res.ok) {
+        setWaiverError(
+          res.error ?? "Waiver violates NominalX governance policy.",
+        );
+        return;
+      }
+      setWaiverModalStation(null);
+      setWaiverError(null);
+      return;
+    }
 
     // Validate live through @nominalx/core's evaluateWaivers() against existing active waivers
     const existingActive: WaiverInput[] = flightCheck.waiverAudit.activeWaivers
@@ -309,23 +362,62 @@ export function Gate1FlightCheck({
 
         {/* Oversized Primary Telemetry Metric + Fill Bar */}
         <div>
-          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-            <span className="station-metric-big" style={{ color }}>
-              {metric.value}
-            </span>
-            <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)" }}>
-              {metric.unit}
-            </span>
-          </div>
-          <div className="health-bar-track" style={{ marginTop: 8 }}>
-            <div
-              className="health-bar-fill"
-              style={{
-                width: `${metric.fillPct}%`,
-                background: color,
-              }}
-            />
-          </div>
+          {isManualCustomer ? (
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <span className="station-metric-big" style={{ color, fontSize: "1.55rem" }}>
+                  {station.status === "NOMINAL"
+                    ? "PASS"
+                    : station.status === "HOLD_WAIVED"
+                      ? "WAIVED"
+                      : station.status === "NO_GO"
+                        ? "FAIL"
+                        : "PENDING"}
+                </span>
+                <span className="mono" style={{ fontSize: "0.68rem", fontWeight: 700, color: "var(--text-muted)" }}>
+                  {manualState?.gate1[station.stationCode]?.evidenceNote.trim()
+                    ? "EVIDENCE LOGGED ✓"
+                    : "CLICK TO VERIFY"}
+                </span>
+              </div>
+              <div className="health-bar-track" style={{ marginTop: 8 }}>
+                <div
+                  className="health-bar-fill"
+                  style={{
+                    width:
+                      station.status === "NOMINAL"
+                        ? "100%"
+                        : station.status === "HOLD_WAIVED"
+                          ? "68%"
+                          : station.status === "NO_GO"
+                            ? "22%"
+                            : "8%",
+                    background: color,
+                  }}
+                />
+              </div>
+            </>
+          ) : (
+            <>
+              <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+                <span className="station-metric-big" style={{ color }}>
+                  {metric.value}
+                </span>
+                <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)" }}>
+                  {metric.unit}
+                </span>
+              </div>
+              <div className="health-bar-track" style={{ marginTop: 8 }}>
+                <div
+                  className="health-bar-fill"
+                  style={{
+                    width: `${metric.fillPct}%`,
+                    background: color,
+                  }}
+                />
+              </div>
+            </>
+          )}
         </div>
 
         {/* Compact Sold -> Observed & Owner Footer */}
@@ -377,18 +469,20 @@ export function Gate1FlightCheck({
             <HelpTip copyKey="gate1.counters" />
           </div>
 
-          <div className="help-control-wrap">
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={onRunFlightCheck}
-              disabled={sweepingIndex !== null}
-              data-testid="run-flight-check-btn"
-            >
-              {sweepingIndex !== null ? "POLLING STATIONS..." : "RUN FLIGHT CHECK"}
-            </button>
-            <HelpTip copyKey="gate1.runFlightCheck" />
-          </div>
+          {!isManualCustomer && (
+            <div className="help-control-wrap">
+              <button
+                type="button"
+                className="btn btn-primary btn-lg"
+                onClick={onRunFlightCheck}
+                disabled={sweepingIndex !== null}
+                data-testid="run-flight-check-btn"
+              >
+                {sweepingIndex !== null ? "POLLING STATIONS..." : "RUN FLIGHT CHECK"}
+              </button>
+              <HelpTip copyKey="gate1.runFlightCheck" />
+            </div>
+          )}
 
           {flightCheck.passed && (
             <button
@@ -545,64 +639,174 @@ export function Gate1FlightCheck({
             </div>
           )}
 
-          {/* Action Bar: Patch & Re-Poll + Waiver (Operational Only) or Locked Hard Stop */}
-          <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
-            {!activeStation.telemetryPassed && (
-              <div className="help-control-wrap">
+          {/* Action Bar: Interactive Manual Controls (My Customers) OR Sample Simulation Controls */}
+          {isManualCustomer && onManualSetStatus && onManualSetEvidence ? (
+            <div
+              className="manual-control-card"
+              data-testid="gate1-manual-controls"
+            >
+              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, flexWrap: "wrap" }}>
+                <span className="help-inline">
+                  <span className="eyebrow" style={{ color: "var(--active-text)" }}>
+                    INTERACTIVE GATE 1 VERIFICATION · {activeStation.stationLabel}
+                  </span>
+                  <HelpTip copyKey="manual.statusControl" />
+                </span>
+                {blueprint?.gate1Items.find((i) => i.id === activeStation.stationCode)?.whyAdded && (
+                  <span className="mono" style={{ fontSize: "0.7rem", color: "var(--text-muted)" }}>
+                    {blueprint.gate1Items.find((i) => i.id === activeStation.stationCode)?.whyAdded}
+                  </span>
+                )}
+              </div>
+
+              <div className="manual-status-btn-row">
+                {(["PENDING", "PASS", "FAIL"] as const).map((st) => {
+                  const cur = manualState?.gate1[activeStation.stationCode]?.status ?? "PENDING";
+                  const isActive = cur === st;
+                  const cls =
+                    st === "PASS"
+                      ? isActive
+                        ? "btn btn-nominal"
+                        : "btn"
+                      : st === "FAIL"
+                        ? isActive
+                          ? "btn btn-nogo"
+                          : "btn"
+                        : isActive
+                          ? "btn btn-primary"
+                          : "btn";
+                  return (
+                    <button
+                      key={st}
+                      type="button"
+                      className={cls}
+                      onClick={() => {
+                        setManualActionNotice(null);
+                        const res = onManualSetStatus(activeStation.stationCode, st);
+                        if (!res.ok && res.error) setManualActionNotice(res.error);
+                      }}
+                      data-testid={`manual-g1-status-${st.toLowerCase()}`}
+                    >
+                      {st === "PASS" ? "Pass (Nominal)" : st === "FAIL" ? "Fail (No-Go)" : "Pending"}
+                    </button>
+                  );
+                })}
+
                 <button
                   type="button"
-                  className="btn btn-nominal btn-lg"
-                  onClick={() => onApplyStationFix(activeStation.stationCode)}
-                  data-testid="apply-station-fix-btn"
+                  className={`btn ${
+                    manualState?.gate1[activeStation.stationCode]?.status === "WAIVED"
+                      ? "btn-waived"
+                      : ""
+                  }`}
+                  style={
+                    activeStation.isHardStop
+                      ? { opacity: 0.55, borderColor: "var(--nogo-border)" }
+                      : undefined
+                  }
+                  onClick={() => openWaiverModal(activeStation)}
+                  data-testid="manual-g1-status-waived"
                 >
-                  Apply Staging Fix &amp; Re-Poll
+                  {activeStation.isHardStop ? "Waived (Hard Stop Locked)" : "Waived (Risk Waiver)"}
                 </button>
-                <HelpTip copyKey="gate1.applyFix" />
               </div>
-            )}
 
-            {activeStation.isHardStop ? (
-              <div className="help-control-wrap">
+              {activeStation.isHardStop && (
                 <div
                   className="hard-stop-shield"
-                  style={{ padding: "11px 15px", fontSize: "0.78rem" }}
+                  style={{ padding: "8px 12px", fontSize: "0.73rem", alignSelf: "flex-start" }}
                   data-testid="hard-stop-locked-indicator"
                 >
-                  <ShieldLockIcon size={16} />
-                  <span>LOCKED · NON-WAIVABLE HARD STOP (LIVE TELEMETRY REQUIRED)</span>
+                  <ShieldLockIcon size={14} />
+                  <span>HARD STOP · NON-WAIVABLE: Security, residency &amp; compliance Hard Stops can never be waived.</span>
                 </div>
-                <HelpTip copyKey="gate1.hardStopBadge" />
+              )}
+
+              {manualActionNotice && (
+                <div className="validation-alert" role="alert" data-testid="manual-g1-error">
+                  {manualActionNotice}
+                </div>
+              )}
+
+              <div className="field-group" style={{ marginTop: 4 }}>
+                <div className="help-label-row">
+                  <label className="field-label" htmlFor="manual-g1-evidence">
+                    Evidence Note (PR Link, Staging Run Timestamp, Screenshot URL)
+                  </label>
+                  <HelpTip copyKey="manual.evidenceNote" />
+                </div>
+                <textarea
+                  id="manual-g1-evidence"
+                  className="field-input"
+                  rows={2}
+                  placeholder="e.g. Verified Okta SAML2 metadata on staging 2026-11-22 14:10 UTC — PR #412"
+                  value={manualState?.gate1[activeStation.stationCode]?.evidenceNote ?? ""}
+                  onChange={(e) =>
+                    onManualSetEvidence(activeStation.stationCode, e.target.value)
+                  }
+                  data-testid="manual-g1-evidence-input"
+                />
               </div>
-            ) : !activeStation.telemetryPassed && !activeStation.activeWaiver ? (
-              <div className="help-control-wrap">
-                <button
-                  type="button"
-                  className="btn btn-waived btn-lg"
-                  onClick={() => openWaiverModal(activeStation)}
-                  data-testid="issue-risk-waiver-btn"
-                >
-                  Issue Risk Waiver
-                </button>
-                <HelpTip copyKey="gate1.waiverAction" />
-              </div>
-            ) : activeStation.activeWaiver ? (
-              <div className="help-control-wrap">
-                <button
-                  type="button"
-                  className="btn"
-                  onClick={() => onRevokeWaiver(activeStation.stationCode)}
-                  data-testid="revoke-waiver-btn"
-                >
-                  Revoke Waiver
-                </button>
-                <HelpTip copyKey="gate1.waiverAction" />
-              </div>
-            ) : (
-              <span className="status-pill lg status-nominal">
-                VERIFIED NOMINAL BY LIVE TELEMETRY
-              </span>
-            )}
-          </div>
+            </div>
+          ) : (
+            <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap", paddingTop: 4 }}>
+              {!activeStation.telemetryPassed && (
+                <div className="help-control-wrap">
+                  <button
+                    type="button"
+                    className="btn btn-nominal btn-lg"
+                    onClick={() => onApplyStationFix(activeStation.stationCode)}
+                    data-testid="apply-station-fix-btn"
+                  >
+                    Apply Staging Fix &amp; Re-Poll
+                  </button>
+                  <HelpTip copyKey="gate1.applyFix" />
+                </div>
+              )}
+
+              {activeStation.isHardStop ? (
+                <div className="help-control-wrap">
+                  <div
+                    className="hard-stop-shield"
+                    style={{ padding: "11px 15px", fontSize: "0.78rem" }}
+                    data-testid="hard-stop-locked-indicator"
+                  >
+                    <ShieldLockIcon size={16} />
+                    <span>LOCKED · NON-WAIVABLE HARD STOP (LIVE TELEMETRY REQUIRED)</span>
+                  </div>
+                  <HelpTip copyKey="gate1.hardStopBadge" />
+                </div>
+              ) : !activeStation.telemetryPassed && !activeStation.activeWaiver ? (
+                <div className="help-control-wrap">
+                  <button
+                    type="button"
+                    className="btn btn-waived btn-lg"
+                    onClick={() => openWaiverModal(activeStation)}
+                    data-testid="issue-risk-waiver-btn"
+                  >
+                    Issue Risk Waiver
+                  </button>
+                  <HelpTip copyKey="gate1.waiverAction" />
+                </div>
+              ) : activeStation.activeWaiver ? (
+                <div className="help-control-wrap">
+                  <button
+                    type="button"
+                    className="btn"
+                    onClick={() => onRevokeWaiver(activeStation.stationCode)}
+                    data-testid="revoke-waiver-btn"
+                  >
+                    Revoke Waiver
+                  </button>
+                  <HelpTip copyKey="gate1.waiverAction" />
+                </div>
+              ) : (
+                <span className="status-pill lg status-nominal">
+                  VERIFIED NOMINAL BY LIVE TELEMETRY
+                </span>
+              )}
+            </div>
+          )}
         </div>
 
         {/* Right: Raw Wire Trace + Staging Patch Diff + Sub-Stage Owner */}
@@ -698,6 +902,47 @@ export function Gate1FlightCheck({
           </div>
         </div>
       </section>
+
+      {/* Non-Intrusive CLI Automation Hook for Manual Customers */}
+      {isManualCustomer && (
+        <div className="panel cli-hook-strip" data-testid="gate1-cli-hook">
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div className="help-inline">
+              <span className="eyebrow" style={{ color: "var(--active-text)" }}>
+                AUTOMATE WITH CLI · GRADUATE TO LIVE STAGING TELEMETRY
+              </span>
+              <HelpTip copyKey="manual.cliHook" />
+            </div>
+            <code className="mono" style={{ fontSize: "0.84rem", color: "var(--text-primary)", fontWeight: 700 }}>
+              nominalx check --config {flightCheck.accountId}.nominalx.yaml
+            </code>
+          </div>
+          <div style={{ display: "flex", gap: 8, flexWrap: "wrap" }}>
+            <button
+              type="button"
+              className="btn"
+              onClick={() => {
+                void navigator.clipboard
+                  ?.writeText(`nominalx check --config ${flightCheck.accountId}.nominalx.yaml`)
+                  .catch(() => {});
+                setCliCopied(true);
+                window.setTimeout(() => setCliCopied(false), 2000);
+              }}
+            >
+              {cliCopied ? "Copied Command ✓" : "Copy CLI Command"}
+            </button>
+            {onOpenExportYaml && (
+              <button
+                type="button"
+                className="btn btn-primary"
+                onClick={onOpenExportYaml}
+              >
+                Export {flightCheck.accountId}.nominalx.yaml
+              </button>
+            )}
+          </div>
+        </div>
+      )}
 
       {/* Operational Risk Waiver Modal (Validated by @nominalx/core) */}
       {waiverModalStation && (

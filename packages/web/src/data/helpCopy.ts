@@ -48,6 +48,186 @@ export const HELP_COPY = {
     title: "Replay Interactive Cockpit Tour",
     body: "Restarts the guided walkthrough from Step 1, spotlighting Live Customer Readiness, Stages 1–6, Gate 1 (Setup Check), Gate 2 (Fault Injection), Gate 3 (Live Incident Drill), the Reporting Hub, and the live nominalx.yaml Customizer.",
   },
+  "header.launchpad": {
+    tag: "START HERE",
+    title: "Open First-Run Launchpad",
+    body: "Returns to the NominalX Launchpad overview showing the three readiness gates, Hard Stop vs. Risk Waiver governance rules, and quick actions to set up a new customer, import nominalx.yaml, or explore sample accounts.",
+  },
+  "header.newCustomer": {
+    tag: "60s SETUP WIZARD",
+    title: "Add a Real Customer Launch",
+    body: "Opens the free, deterministic 5-step Guided Setup Wizard for any B2B technical product (Multi-tenant SaaS, Dedicated VPC, or Self-Hosted). Saves your customer in browser localStorage under My Customers.",
+  },
+  "header.exportImport": {
+    tag: "PORTABLE FILES",
+    title: "Export & Import nominalx.yaml or Workspace JSON",
+    body: "Download any customer as a CLI-ready nominalx.yaml file, back up your entire My Customers workspace as JSON, or import existing YAML/JSON files via upload or paste-in text.",
+  },
+  "header.workspaceSwitcher": {
+    tag: "WORKSPACES",
+    title: "Switch Between My Customers and Sample Accounts",
+    body: "My Customers holds your own saved launches in browser localStorage with interactive manual checking, duplicate, edit, and delete controls. Sample Accounts lets you explore four pre-built enterprise scenarios safely without affecting your real customers.",
+  },
+
+  // ── First-Run Launchpad & Empty State ──────────────────────────────────────
+  "launchpad.overview": {
+    tag: "NOMINALX IN 20s",
+    title: "Zero-LLM Deterministic Launch Readiness",
+    body: "NominalX turns Sales commitments into concrete Gate 1 setup checks, Gate 2 fault-injection tests, and Gate 3 live incident drills—with zero AI hallucinations, zero backend setup required, and CLI parity via nominalx.yaml.",
+  },
+  "launchpad.gate1": {
+    tag: "GATE 1 · SETUP CHECK",
+    title: "Flight Check · Setup Check (Stage 2)",
+    body: "Owned by the Lead FDE. Proves customer staging actually matches what Sales sold across security, residency, integrations, quotas, alerting, and rollback before integration testing starts.",
+  },
+  "launchpad.gate2": {
+    tag: "GATE 2 · FAULT INJECTION",
+    title: "Static Fire · Fault Injection (Stage 3)",
+    body: "Owned by the Lead FDE. Safely injects duplicates, bursts, timeouts, schema additions, and credential rotations on staging to prove zero data corruption (0.0% / Grade A) before production cutover.",
+  },
+  "launchpad.gate3": {
+    tag: "GATE 3 · LIVE INCIDENT DRILL",
+    title: "Crew Drill · Live Incident Drill (Stage 4)",
+    body: "Owned by the Lead CSE and Support Engineers. Rehearses a real 2 AM outage under a live clock so Support and Customer SREs prove they can stabilize production before FDE roll-off.",
+  },
+  "launchpad.governanceRule": {
+    tag: "CORE GOVERNANCE",
+    title: "Hard Stops, Time-Boxed Waivers & Baton Transfer",
+    body: "Security, residency, and data integrity Hard Stops can never be waived—they must pass to unlock launch. Operational gaps can ship temporarily with a time-boxed <=30d Risk Waiver, named owner, and rollback plan (max 2 active). Ownership shifts cleanly from Lead FDE (Gates 1–2) to Lead CSE and Support Engineers (Gate 3).",
+  },
+  "launchpad.action.setup": {
+    tag: "FREE · 60 SECONDS",
+    title: "Launch Guided Customer Setup Wizard",
+    body: "Answer 4 short plain-language steps about deployment, compliance, data flows, and on-call SLAs. NominalX deterministically generates a tailored launch blueprint with a clear 'Why we added this' explanation on every item.",
+  },
+  "launchpad.action.samples": {
+    tag: "EXPLORE DEMOS",
+    title: "Explore 4 Pre-Built Sample Customers",
+    body: "Opens Meridian FinTech (alongside Kestrel Health, Vanguard Retail, and Helios Logistics) with live simulated probes, code-fix switchboards, and the interactive 21-step Walkthrough Tour.",
+  },
+  "launchpad.action.import": {
+    tag: "BRING YOUR YAML",
+    title: "Import an Existing nominalx.yaml or Backup",
+    body: "Upload or paste a nominalx.yaml contract file or full workspace JSON backup to immediately inspect, track, and generate live launch deliverables in the browser.",
+  },
+  "workspace.emptyState": {
+    tag: "MY CUSTOMERS",
+    title: "Your Customer Launch Workspace",
+    body: "Customers you create or import live privately in your browser's localStorage under My Customers. Resetting a Sample Account never touches your saved customers, and you can export backups anytime.",
+  },
+
+  // ── Universal B2B Customer Setup Wizard ────────────────────────────────────
+  "wizard.header": {
+    tag: "DETERMINISTIC WIZARD",
+    title: "Universal B2B Technical Customer Setup Wizard",
+    body: "Works for any B2B technical product—Multi-tenant SaaS, Dedicated VPC, Self-Hosted/On-Prem, APIs, Data Platforms, Infrastructure, or SDKs. Every check is generated deterministically from your selections with zero LLM guesswork.",
+  },
+  "wizard.step1": {
+    tag: "STEP 1 OF 5",
+    title: "Customer & Deployment Context",
+    body: "Captures the customer name, target go-live date, deployment topology, deal scope summary, and accountable Lead FDE and Lead CSE owners. Dedicated VPC and Self-Hosted selections automatically add matching infrastructure preflight checks.",
+  },
+  "wizard.step2": {
+    tag: "STEP 2 OF 5",
+    title: "Security & Compliance (Builds Gate 1 Hard Stops)",
+    body: "Every security or compliance requirement selected here automatically creates a non-waivable Gate 1 Hard Stop. Hard Stops block launch until verified Pass and can never carry a Risk Waiver.",
+  },
+  "wizard.step3": {
+    tag: "STEP 3 OF 5",
+    title: "How Data & Traffic Move (Gate 1 + Gate 2)",
+    body: "Select every integration path used by this customer. Each choice deterministically generates matching Gate 1 staging setup checks and Gate 2 fault-injection tests tailored to that exact transport.",
+  },
+  "wizard.step4": {
+    tag: "STEP 4 OF 5",
+    title: "Scale & On-Call Model (Load Baseline + Gate 3)",
+    body: "Sets your contracted RPS and rollback RTO baselines plus shapes your Gate 3 Live Incident Drills around whether the customer has their own on-call engineers and your target P1 response time.",
+  },
+  "wizard.step5": {
+    tag: "STEP 5 OF 5",
+    title: "Review & Customize Your Launch Blueprint",
+    body: "Inspect every generated Hard Stop, operational check, fault test, and incident drill along with its one-line 'Why we added this' explanation. Toggle items on/off, lock operational checks as Hard Stops, or add custom items before saving.",
+  },
+  "wizard.blankTemplate": {
+    tag: "START CLEAN",
+    title: "Start from a Blank Blueprint Template",
+    body: "Replaces the generated blueprint with a minimal starter template (one core check per gate) so experienced engineers can assemble a custom checklist from scratch.",
+  },
+  "wizard.hardStopToggle": {
+    tag: "HARD STOP LOCK",
+    title: "Lock Operational Check as a Non-Waivable Hard Stop",
+    body: "Upgrades an operational check into a non-waivable Hard Stop for this customer. Once locked, engineers cannot issue a Risk Waiver on this check and must verify Pass before launch.",
+  },
+
+  // ── Interactive Manual Gate Checking & Evidence Notes ──────────────────────
+  "manual.statusControl": {
+    tag: "INTERACTIVE TRACKING",
+    title: "Manual Gate Status Control (Pending / Pass / Fail / Waived)",
+    body: "Update any check's live status directly in the cockpit as your engineering team verifies staging. Hard Stops strictly block Waived status; operational waivers enforce named owner, <=30d expiry, rollback plan, and max 2 active.",
+  },
+  "manual.evidenceNote": {
+    tag: "AUDIT EVIDENCE",
+    title: "Per-Check Evidence Note (Saved Locally)",
+    body: "Record a PR link, staging run timestamp, screenshot URL, or verification note right on the check. Evidence notes auto-save in browser localStorage and flow directly into all 4 Live Launch Deliverables.",
+  },
+  "manual.cliHook": {
+    tag: "CLI AUTOMATION",
+    title: "Graduate From Manual Tracking to Live CLI Telemetry",
+    body: "Export this customer's nominalx.yaml and run the exact CLI command shown here in terminal or CI/CD to replace manual check-offs with automated live HTTP staging probes and fault injection.",
+  },
+
+  // ── Portable Export / Import Modal ─────────────────────────────────────────
+  "exportImport.modal": {
+    tag: "PORTABLE ARTIFACTS",
+    title: "Export & Import nominalx.yaml and Workspace Backups",
+    body: "Move customer blueprints seamlessly between your browser, Git repositories, teammates, and the nominalx CLI. Every imported file is strictly validated against the @nominalx/core schema.",
+  },
+  "exportImport.yamlExport": {
+    tag: "CLI COMPATIBLE",
+    title: "Export Customer as nominalx.yaml",
+    body: "Generates a clean, schema-valid nominalx.yaml file compatible with @nominalx/core and `nominalx check`. Commit it to your customer repo or run automated probes in CI.",
+  },
+  "exportImport.jsonExport": {
+    tag: "FULL BACKUP",
+    title: "Export Full My Customers Workspace (.json)",
+    body: "Saves every customer in My Customers—including blueprints, manual Pass/Fail/Waived statuses, waivers, and Evidence Notes—into one portable JSON backup file.",
+  },
+  "exportImport.import": {
+    tag: "UPLOAD OR PASTE",
+    title: "Import nominalx.yaml or Workspace JSON",
+    body: "Upload a file or paste raw text below. NominalX validates schema structure, unique slugs, and Hard Stop waiver bans before adding the customer(s) to My Customers.",
+  },
+
+  // ── Live Launch Deliverables (Redesigned Reports & Handover) ───────────────
+  "deliverables.header": {
+    tag: "AUTO-GENERATED DOCS",
+    title: "Live Launch Deliverables (Auto-Generated from Your Gates)",
+    body: "Every deliverable updates in real time from your Gate 1–3 statuses, active waivers, and Evidence Notes so Lead FDEs, Lead CSEs, and Support Engineers never write manual launch status updates or handover wikis.",
+  },
+  "deliverables.metaCard": {
+    tag: "AUDIENCE & TIMING",
+    title: "Who Reads It, When to Send It & Live Status",
+    body: "Shows the intended readers, recommended send cadence, and a dynamically computed readiness badge (Blocked by Hard Stop · Draft, Waivers Open · Draft, or Ready to Send) plus 1-click Copy and Download .md actions.",
+  },
+  "deliverables.tab.exec": {
+    tag: "LEADERSHIP",
+    title: "Executive Brief",
+    body: "Concise Go / No-Go summary for VP Engineering and customer executives covering Hard Stop compliance, Gate 1–3 progress, active waiver exposure, and launch recommendation.",
+  },
+  "deliverables.tab.digest": {
+    tag: "ENGINEERING SYNC",
+    title: "Weekly Sprint Digest",
+    body: "Operational standup brief for Lead FDE, Lead CSE, Solutions Engineers, and Customer Engineers listing remaining blockers, integration health, evidence notes, and next CLI commands.",
+  },
+  "deliverables.tab.dossier": {
+    tag: "STAGE 4 -> 5 SEAL",
+    title: "Handover Dossier",
+    body: "Tamper-evident SHA-256 signed launch readiness certificate recording every verified check, waiver, fault-injection grade, drill split, and multi-party engineering sign-off.",
+  },
+  "deliverables.tab.runbook": {
+    tag: "DAY-1 ON-CALL",
+    title: "Customer On-Call Runbook",
+    body: "Stack-tailored Day-1 operational runbook for Support Engineers and Customer On-Call SREs with exact verification baselines, copy-paste CLI drift commands, and waiver closure playbooks.",
+  },
 
   // ── Customer Journey Pipeline (Stages 1–6) ─────────────────────────────────
   "pipeline.header": {

@@ -4,6 +4,9 @@ import type {
   CrewAlarmState,
   CrewDrillMachineState,
   CrewDrillResult,
+  CustomerBlueprint,
+  ManualGate3Status,
+  ManualGateState,
 } from "@nominalx/core";
 import { getAlarmHelp } from "../data/helpCopy";
 import { HelpTip } from "./HelpTip";
@@ -11,6 +14,15 @@ import { HelpTip } from "./HelpTip";
 interface Gate3CrewDrillProps {
   crewDrill: CrewDrillMachineState;
   crewSummary: CrewDrillResult;
+  isManualCustomer?: boolean;
+  blueprint?: CustomerBlueprint | null;
+  manualState?: ManualGateState | null;
+  onManualSetDrillStatus?: (
+    alarmId: string,
+    status: ManualGate3Status,
+    splitSeconds?: number,
+  ) => void;
+  onManualSetDrillEvidence?: (alarmId: string, note: string) => void;
   onStartAlarm: (alarmId: CrewAlarmId) => void;
   onTickAlarm: (alarmId: CrewAlarmId, elapsedSeconds: number) => void;
   onApplyRemediation: (
@@ -139,6 +151,11 @@ function AlarmTelemetryChart({ alarm }: { alarm: CrewAlarmState }) {
 export function Gate3CrewDrill({
   crewDrill,
   crewSummary,
+  isManualCustomer = false,
+  blueprint = null,
+  manualState = null,
+  onManualSetDrillStatus,
+  onManualSetDrillEvidence,
   onStartAlarm,
   onTickAlarm,
   onApplyRemediation,
@@ -767,6 +784,79 @@ export function Gate3CrewDrill({
                     {line}
                   </span>
                 ))}
+              </div>
+            )}
+
+            {isManualCustomer && onManualSetDrillStatus && onManualSetDrillEvidence && (
+              <div className="manual-control-card" data-testid="gate3-manual-controls">
+                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 6, flexWrap: "wrap" }}>
+                  <span className="help-inline">
+                    <span className="eyebrow" style={{ color: "var(--active-text)" }}>
+                      MANUAL DRILL SIGN-OFF &amp; EVIDENCE
+                    </span>
+                    <HelpTip copyKey="manual.statusControl" />
+                  </span>
+                </div>
+                {blueprint?.gate3Items.find((i) => i.id === activeAlarm.alarmId)?.whyAdded && (
+                  <div style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}>
+                    {blueprint.gate3Items.find((i) => i.id === activeAlarm.alarmId)?.whyAdded}
+                  </div>
+                )}
+                <div style={{ display: "flex", gap: 6 }}>
+                  {(["PENDING", "PASS", "FAIL"] as const).map((st) => {
+                    const cur = manualState?.gate3[activeAlarm.alarmId]?.status ?? "PENDING";
+                    const active = cur === st;
+                    const cls =
+                      st === "PASS"
+                        ? active
+                          ? "btn btn-nominal"
+                          : "btn"
+                        : st === "FAIL"
+                          ? active
+                            ? "btn btn-nogo"
+                            : "btn"
+                          : active
+                            ? "btn btn-primary"
+                            : "btn";
+                    return (
+                      <button
+                        key={st}
+                        type="button"
+                        className={cls}
+                        style={{ padding: "5px 10px", fontSize: "0.74rem", flex: 1 }}
+                        onClick={() =>
+                          onManualSetDrillStatus(
+                            activeAlarm.alarmId,
+                            st,
+                            st === "PASS" ? 36.4 : undefined,
+                          )
+                        }
+                        data-testid={`manual-g3-${activeAlarm.alarmId}-${st.toLowerCase()}`}
+                      >
+                        {st === "PASS" ? "Pass (Stabilized)" : st === "FAIL" ? "Fail" : "Pending"}
+                      </button>
+                    );
+                  })}
+                </div>
+                <div className="field-group">
+                  <div className="help-label-row">
+                    <label className="field-label" htmlFor="manual-g3-evidence">
+                      Drill Evidence Note (Incident Link, Participants, MTTR)
+                    </label>
+                    <HelpTip copyKey="manual.evidenceNote" />
+                  </div>
+                  <textarea
+                    id="manual-g3-evidence"
+                    className="field-input"
+                    rows={2}
+                    placeholder="e.g. Joint rehearsal with Support + Customer SRE on 2026-11-22 — stabilized in 36s"
+                    value={manualState?.gate3[activeAlarm.alarmId]?.evidenceNote ?? ""}
+                    onChange={(e) =>
+                      onManualSetDrillEvidence(activeAlarm.alarmId, e.target.value)
+                    }
+                    data-testid="manual-g3-evidence-input"
+                  />
+                </div>
               </div>
             )}
           </div>

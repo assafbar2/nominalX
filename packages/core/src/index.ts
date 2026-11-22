@@ -8,3 +8,5 @@ export * from "./gate3.js";
 export * from "./dossier.js";
 export * from "./reporting.js";
 export * from "./presets.js";
+export * from "./blueprint.js";
+export * from "./manual.js";

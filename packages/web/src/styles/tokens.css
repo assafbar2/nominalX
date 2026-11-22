@@ -2111,3 +2111,588 @@ textarea {
   }
 }
 
+/* ── Workspace Switcher (My Customers vs Sample Accounts) ────────────────── */
+.brand-home-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  background: transparent;
+  border: none;
+  padding: 0;
+  color: inherit;
+  cursor: pointer;
+}
+
+.workspace-switcher-wrap {
+  position: relative;
+}
+
+.workspace-trigger-btn {
+  display: inline-flex;
+  align-items: center;
+  gap: 8px;
+  padding: 5px 11px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--bg-inset);
+  color: var(--text-primary);
+  cursor: pointer;
+  font-weight: 800;
+  font-size: 0.8rem;
+  transition: border-color 0.14s ease, box-shadow 0.14s ease;
+}
+
+.workspace-trigger-btn:hover,
+.workspace-trigger-btn.open {
+  border-color: var(--active);
+  box-shadow: var(--shadow-glow-active);
+}
+
+.workspace-trigger-name {
+  max-width: 190px;
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+}
+
+.workspace-kind-badge {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 6px;
+  border-radius: 6px;
+}
+
+.workspace-kind-badge.kind-customer {
+  background: var(--nominal-bg);
+  color: var(--nominal-text);
+  border: 1px solid var(--nominal-border);
+}
+
+.workspace-kind-badge.kind-sample {
+  background: var(--waived-bg);
+  color: var(--waived-text);
+  border: 1px solid var(--waived-border);
+}
+
+.workspace-kind-badge.kind-launchpad {
+  background: var(--active-bg);
+  color: var(--active-text);
+  border: 1px solid var(--active-border);
+}
+
+.workspace-popover {
+  position: absolute;
+  top: calc(100% + 8px);
+  left: 0;
+  width: min(390px, calc(100vw - 24px));
+  max-height: 76vh;
+  overflow-y: auto;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--active-border);
+  border-radius: 16px;
+  box-shadow: 0 22px 54px rgba(2, 6, 23, 0.55);
+  padding: 12px;
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  z-index: 70;
+}
+
+.workspace-section {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+}
+
+.workspace-section-header {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+}
+
+.workspace-empty-mini {
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: var(--bg-surface-2);
+  border: 1px dashed var(--border-strong);
+}
+
+.workspace-list {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.workspace-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 6px;
+  padding: 6px 8px;
+  border-radius: 11px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+}
+
+.workspace-item-row.active {
+  border-color: var(--active);
+  background: var(--active-bg);
+}
+
+.workspace-item-main {
+  flex: 1;
+  min-width: 0;
+  border: none;
+  background: transparent;
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 2px 4px;
+}
+
+.workspace-item-actions {
+  display: flex;
+  align-items: center;
+  gap: 4px;
+  flex-shrink: 0;
+}
+
+.workspace-mini-btn {
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border-radius: 7px;
+  padding: 3px 6px;
+  font-size: 0.66rem;
+  font-weight: 700;
+  cursor: pointer;
+}
+
+.workspace-mini-btn:hover {
+  border-color: var(--active-border);
+  color: var(--text-primary);
+}
+
+.workspace-mini-btn.danger:hover {
+  border-color: var(--nogo-border);
+  color: var(--nogo-text);
+  background: var(--nogo-bg);
+}
+
+.workspace-sample-btn {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  width: 100%;
+  padding: 8px 10px;
+  border-radius: 11px;
+  border: 1px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+  cursor: pointer;
+  text-align: left;
+}
+
+.workspace-sample-btn:hover {
+  border-color: var(--active-border);
+}
+
+.workspace-sample-btn.active {
+  border-color: var(--active);
+  background: var(--active-bg);
+}
+
+.workspace-sample-tag {
+  font-size: 0.58rem;
+  font-weight: 800;
+  padding: 1px 6px;
+  border-radius: 5px;
+  background: var(--waived-bg);
+  color: var(--waived-text);
+  border: 1px solid var(--waived-border);
+}
+
+/* ── First-Run Launchpad (Option C Big Bold Blocks) ──────────────────────── */
+.launchpad-shell {
+  display: flex;
+  flex-direction: column;
+  gap: 18px;
+  padding-top: 6px;
+}
+
+.launchpad-hero {
+  padding: 28px 32px;
+  display: flex;
+  flex-direction: column;
+  gap: 22px;
+  background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-gap-band) 100%);
+  border: 1.5px solid var(--active-border);
+}
+
+.launchpad-hero-top {
+  display: flex;
+  flex-direction: column;
+  gap: 14px;
+}
+
+.launchpad-headline {
+  margin: 8px 0 0;
+  font-size: clamp(1.75rem, 2.8vw, 2.55rem);
+  font-weight: 800;
+  letter-spacing: -0.03em;
+  line-height: 1.08;
+}
+
+.launchpad-quote-pill {
+  padding: 11px 16px;
+  border-radius: 12px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+  font-size: 0.92rem;
+  font-weight: 600;
+  color: var(--text-secondary);
+}
+
+.launchpad-actions-row {
+  display: flex;
+  align-items: center;
+  gap: 14px;
+  flex-wrap: wrap;
+}
+
+.launchpad-cta-primary {
+  padding: 14px 24px;
+  font-size: 1rem;
+}
+
+.launchpad-cta-sub {
+  font-size: 0.66rem;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: rgba(4, 17, 29, 0.22);
+}
+
+.launchpad-cta-sub-muted {
+  font-size: 0.66rem;
+  padding: 2px 7px;
+  border-radius: 6px;
+  background: var(--bg-inset);
+  color: var(--active-text);
+  border: 1px solid var(--border-subtle);
+}
+
+.launchpad-gates-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 16px;
+}
+
+.launchpad-gate-card {
+  padding: 22px 24px;
+  display: flex;
+  flex-direction: column;
+  justify-content: space-between;
+  gap: 12px;
+  border-top-width: 4px;
+}
+
+.launchpad-gate-card.gate-accent-1 {
+  border-top-color: var(--active);
+}
+
+.launchpad-gate-card.gate-accent-2 {
+  border-top-color: var(--waived);
+}
+
+.launchpad-gate-card.gate-accent-3 {
+  border-top-color: var(--nominal);
+}
+
+.launchpad-gate-chip {
+  font-size: 0.72rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-muted);
+}
+
+.launchpad-gate-title {
+  margin: 0;
+  font-size: 1.38rem;
+  font-weight: 800;
+  letter-spacing: -0.02em;
+  line-height: 1.15;
+}
+
+.launchpad-gate-promise {
+  margin: 0;
+  font-size: 1rem;
+  font-weight: 700;
+  color: var(--text-secondary);
+  line-height: 1.38;
+}
+
+.launchpad-gate-footer {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  gap: 8px;
+  padding-top: 10px;
+  border-top: 1px solid var(--border-subtle);
+  flex-wrap: wrap;
+}
+
+.launchpad-governance-strip {
+  padding: 16px 22px;
+  display: flex;
+  align-items: center;
+  gap: 16px;
+  border: 1.5px solid var(--border-strong);
+  background: var(--bg-surface-2);
+}
+
+.launchpad-governance-icon {
+  width: 42px;
+  height: 42px;
+  border-radius: 12px;
+  background: var(--nogo-bg);
+  border: 1.5px solid var(--nogo-border);
+  color: var(--nogo-text);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  flex-shrink: 0;
+}
+
+.launchpad-governance-text {
+  font-size: 0.92rem;
+  line-height: 1.48;
+  color: var(--text-secondary);
+}
+
+.launchpad-customer-grid {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 12px;
+}
+
+.launchpad-customer-tile {
+  padding: 14px 16px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: border-color 0.14s ease, transform 0.12s ease;
+}
+
+.launchpad-customer-tile:hover {
+  border-color: var(--active);
+  transform: translateY(-2px);
+}
+
+.empty-customers-card {
+  padding: 46px 32px;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  text-align: center;
+  gap: 14px;
+  margin-top: 16px;
+}
+
+/* ── Customer Setup Wizard & Export/Import Modal ─────────────────────────── */
+.modal-card-wide {
+  width: min(760px, 96vw);
+}
+
+.wizard-modal-card {
+  width: min(920px, 96vw);
+  max-height: 92vh;
+}
+
+.wizard-stepper {
+  display: flex;
+  align-items: center;
+  gap: 6px;
+  flex-wrap: wrap;
+}
+
+.wizard-step-pill {
+  flex: 1;
+  min-width: 110px;
+  padding: 7px 10px;
+  border-radius: 10px;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+  color: var(--text-muted);
+  font-size: 0.74rem;
+  font-weight: 800;
+  cursor: pointer;
+  text-align: center;
+  transition: all 0.14s ease;
+}
+
+.wizard-step-pill.active {
+  border-color: var(--active);
+  background: var(--active-bg);
+  color: var(--active-text);
+}
+
+.wizard-step-pill.done {
+  border-color: var(--nominal-border);
+  background: var(--nominal-bg);
+  color: var(--nominal-text);
+}
+
+.wizard-body {
+  max-height: 58vh;
+  overflow-y: auto;
+  padding-right: 4px;
+}
+
+.wizard-option-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: 10px;
+}
+
+.wizard-option-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+}
+
+.wizard-choice-card {
+  padding: 13px 14px;
+  border-radius: 13px;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+  color: var(--text-primary);
+  text-align: left;
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+  transition: all 0.14s ease;
+}
+
+.wizard-choice-card:hover {
+  border-color: var(--active-border);
+}
+
+.wizard-choice-card.selected {
+  border-color: var(--active);
+  background: var(--active-bg);
+  box-shadow: var(--shadow-glow-active);
+}
+
+.wizard-choice-card.selected-hardstop {
+  border-color: var(--nogo);
+  background: var(--nogo-bg);
+}
+
+.wizard-toggle-block {
+  padding: 13px 15px;
+  border-radius: 14px;
+  border: 1.5px solid var(--border-subtle);
+  background: var(--bg-surface-2);
+  display: flex;
+  flex-direction: column;
+}
+
+.wizard-toggle-block.active-hardstop {
+  border-color: var(--nogo-border);
+  background: linear-gradient(135deg, var(--bg-surface-2) 0%, var(--nogo-bg) 100%);
+}
+
+.blueprint-item-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 10px;
+  padding: 10px 12px;
+  border-radius: 11px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-subtle);
+}
+
+.blueprint-why-line {
+  font-size: 0.76rem;
+  color: var(--text-secondary);
+  margin-top: 3px;
+  line-height: 1.38;
+}
+
+/* ── Interactive Manual Controls & CLI Hook ──────────────────────────────── */
+.manual-control-card {
+  padding: 14px 16px;
+  border-radius: 14px;
+  background: var(--bg-surface-2);
+  border: 1.5px solid var(--active-border);
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.manual-status-btn-row {
+  display: flex;
+  gap: 8px;
+  flex-wrap: wrap;
+}
+
+.cli-hook-strip {
+  padding: 14px 20px;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 14px;
+  flex-wrap: wrap;
+  border-style: dashed;
+  border-color: var(--active-border);
+  background: var(--bg-gap-band);
+}
+
+/* ── Live Launch Deliverables Meta Header Card ───────────────────────────── */
+.deliverable-meta-card {
+  padding: 16px 22px;
+  border: 1.5px solid var(--active-border);
+  background: linear-gradient(135deg, var(--bg-surface) 0%, var(--bg-surface-2) 100%);
+}
+
+.deliverable-meta-grid {
+  display: grid;
+  grid-template-columns: 1.35fr 1.25fr 0.9fr auto;
+  gap: 16px;
+  align-items: center;
+}
+
+.deliverable-meta-actions {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  flex-wrap: wrap;
+  justify-content: flex-end;
+}
+
+@media (max-width: 1100px) {
+  .launchpad-gates-grid,
+  .launchpad-customer-grid,
+  .wizard-option-grid-3,
+  .deliverable-meta-grid {
+    grid-template-columns: 1fr;
+  }
+  .wizard-option-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+

@@ -234,20 +234,133 @@ export function Gate1FlightCheck({
     setWaiverError(null);
   };
 
+  const renderStationTile = (station: StationResult, idx: number) => {
+    const metric = stationPrimaryReadout(station, preset);
+    const color = statusColor(station.status);
+    const isSelected = station.stationCode === activeStation.stationCode;
+    const isSweeping = sweepingIndex === idx;
+
+    return (
+      <button
+        key={station.stationCode}
+        type="button"
+        className={`station-tile tile-${station.status} ${isSelected ? "tile-selected" : ""} ${isSweeping ? "tile-sweeping" : ""}`}
+        onClick={() => onSelectStation(station.stationCode)}
+        data-testid={`station-tile-${station.stationCode}`}
+      >
+        {/* Top Row: Icon + Title + Status Pill */}
+        <div className="station-tile-head">
+          <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
+            <div className="station-icon-box" style={{ borderColor: color }}>
+              <StationGlyph code={station.stationCode} color={color} />
+            </div>
+            <div>
+              <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
+                <span className="mono" style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--active-text)" }}>
+                  {station.subStage}
+                </span>
+                {station.isCustom && (
+                  <span className="mono" style={{ fontSize: "0.62rem", fontWeight: 800, padding: "1px 5px", borderRadius: 5, background: "var(--active-bg)", color: "var(--active-text)", border: "1px solid var(--active-border)" }}>
+                    CUSTOM
+                  </span>
+                )}
+              </div>
+              <div className="help-inline" style={{ gap: 6 }}>
+                <div className="station-name-lg">{station.stationLabel}</div>
+                <HelpTip
+                  asSpan
+                  entry={getStationHelp(station)}
+                  testId={`help-tip-station-${station.stationCode}`}
+                />
+              </div>
+            </div>
+          </div>
+
+          <span className="help-inline" style={{ gap: 5 }}>
+            <span className={`status-pill ${statusPillClass(station.status)}`}>
+              {isSweeping ? "POLLING" : statusDisplay(station.status)}
+            </span>
+            <HelpTip asSpan copyKey="gate1.stationStatus" />
+          </span>
+        </div>
+
+        {/* Policy Shield Row */}
+        <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
+          {station.isHardStop ? (
+            <span className="help-inline" style={{ gap: 5 }}>
+              <span className="hard-stop-shield">
+                <ShieldLockIcon size={13} />
+                <span>HARD STOP · NON-WAIVABLE</span>
+              </span>
+              <HelpTip asSpan copyKey="gate1.hardStopBadge" />
+            </span>
+          ) : (
+            <span className="help-inline" style={{ gap: 5 }}>
+              <span className="op-waiver-badge">
+                OPERATIONAL · WAIVER ELIGIBLE
+              </span>
+              <HelpTip asSpan copyKey="gate1.waivableBadge" />
+            </span>
+          )}
+          <span className="mono" style={{ fontSize: "0.76rem", color: "var(--text-muted)", fontWeight: 700 }}>
+            {station.latencyMs}ms
+          </span>
+        </div>
+
+        {/* Oversized Primary Telemetry Metric + Fill Bar */}
+        <div>
+          <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
+            <span className="station-metric-big" style={{ color }}>
+              {metric.value}
+            </span>
+            <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)" }}>
+              {metric.unit}
+            </span>
+          </div>
+          <div className="health-bar-track" style={{ marginTop: 8 }}>
+            <div
+              className="health-bar-fill"
+              style={{
+                width: `${metric.fillPct}%`,
+                background: color,
+              }}
+            />
+          </div>
+        </div>
+
+        {/* Compact Sold -> Observed & Owner Footer */}
+        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, paddingTop: 4, borderTop: "1px solid var(--border-subtle)" }}>
+          <span className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
+            OWNER: {station.accountableOwner}
+          </span>
+          <span className="mono" style={{ fontSize: "0.7rem", color: "var(--active-text)", fontWeight: 700 }}>
+            {isSelected ? "INSPECTING ●" : "INSPECT →"}
+          </span>
+        </div>
+      </button>
+    );
+  };
+
+  const primaryRowStations = flightCheck.stations.slice(0, 3);
+  const secondaryStations = flightCheck.stations.slice(3);
+
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
       {/* Gate 1 Action Header */}
-      <div className="panel gate-action-header">
+      <div className="panel gate-action-header" data-tour="gate1-header">
         <div>
           <div className="help-inline">
             <div className="eyebrow">
-              STAGE 2: SALES-TO-FDE HANDOFF · GATE 1 (1 OF 3): FLIGHT CHECK · SPRINT 1
+              STAGE 2: SALES-TO-FDE HANDOFF · GATE 1 (1 OF 3): FLIGHT CHECK (SETUP CHECK) · SPRINT 1
             </div>
             <HelpTip copyKey="gate1.header" />
           </div>
           <h2 className="gate-title-xl">
-            Sold Contract vs. Live Staging Telemetry ({flightCheck.counts.total} Parallel Stations)
+            Flight Check · Setup Check ({flightCheck.counts.total} Parallel Stations)
           </h2>
+          <div style={{ fontSize: "0.84rem", color: "var(--text-muted)", marginTop: 3 }}>
+            Proving staging matches what Sales sold — live telemetry vs. contracted requirements.
+          </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -284,123 +397,22 @@ export function Gate1FlightCheck({
               onClick={onProceedToGate2}
               data-testid="proceed-to-gate2-btn"
             >
-              Proceed to Gate 2: Static Fire →
+              Proceed to Gate 2: Static Fire (Fault Injection) →
             </button>
           )}
         </div>
       </div>
 
       {/* 6 HUGE Graphic Station Tiles (3x2) */}
-      <div className="station-grid" data-tour="gate1-stations">
-        {flightCheck.stations.map((station, idx) => {
-          const metric = stationPrimaryReadout(station, preset);
-          const color = statusColor(station.status);
-          const isSelected = station.stationCode === activeStation.stationCode;
-          const isSweeping = sweepingIndex === idx;
-
-          return (
-            <button
-              key={station.stationCode}
-              type="button"
-              className={`station-tile tile-${station.status} ${isSelected ? "tile-selected" : ""} ${isSweeping ? "tile-sweeping" : ""}`}
-              onClick={() => onSelectStation(station.stationCode)}
-              data-testid={`station-tile-${station.stationCode}`}
-            >
-              {/* Top Row: Icon + Title + Status Pill */}
-              <div className="station-tile-head">
-                <div style={{ display: "flex", alignItems: "center", gap: 12 }}>
-                  <div
-                    className="station-icon-box"
-                    style={{ borderColor: color }}
-                  >
-                    <StationGlyph code={station.stationCode} color={color} />
-                  </div>
-                  <div>
-                    <div style={{ display: "flex", alignItems: "center", gap: 6 }}>
-                      <span className="mono" style={{ fontSize: "0.72rem", fontWeight: 800, color: "var(--active-text)" }}>
-                        {station.subStage}
-                      </span>
-                      {station.isCustom && (
-                        <span className="mono" style={{ fontSize: "0.62rem", fontWeight: 800, padding: "1px 5px", borderRadius: 5, background: "var(--active-bg)", color: "var(--active-text)", border: "1px solid var(--active-border)" }}>
-                          CUSTOM
-                        </span>
-                      )}
-                    </div>
-                    <div className="help-inline" style={{ gap: 6 }}>
-                      <div className="station-name-lg">{station.stationLabel}</div>
-                      <HelpTip
-                        asSpan
-                        entry={getStationHelp(station)}
-                        testId={`help-tip-station-${station.stationCode}`}
-                      />
-                    </div>
-                  </div>
-                </div>
-
-                <span className="help-inline" style={{ gap: 5 }}>
-                  <span className={`status-pill ${statusPillClass(station.status)}`}>
-                    {isSweeping ? "POLLING" : statusDisplay(station.status)}
-                  </span>
-                  <HelpTip asSpan copyKey="gate1.stationStatus" />
-                </span>
-              </div>
-
-              {/* Policy Shield Row */}
-              <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
-                {station.isHardStop ? (
-                  <span className="help-inline" style={{ gap: 5 }}>
-                    <span className="hard-stop-shield">
-                      <ShieldLockIcon size={13} />
-                      <span>HARD STOP · NON-WAIVABLE</span>
-                    </span>
-                    <HelpTip asSpan copyKey="gate1.hardStopBadge" />
-                  </span>
-                ) : (
-                  <span className="help-inline" style={{ gap: 5 }}>
-                    <span className="op-waiver-badge">
-                      OPERATIONAL · WAIVER ELIGIBLE
-                    </span>
-                    <HelpTip asSpan copyKey="gate1.waivableBadge" />
-                  </span>
-                )}
-                <span className="mono" style={{ fontSize: "0.76rem", color: "var(--text-muted)", fontWeight: 700 }}>
-                  {station.latencyMs}ms
-                </span>
-              </div>
-
-              {/* Oversized Primary Telemetry Metric + Fill Bar */}
-              <div>
-                <div style={{ display: "flex", alignItems: "baseline", justifyContent: "space-between", gap: 8 }}>
-                  <span className="station-metric-big" style={{ color }}>
-                    {metric.value}
-                  </span>
-                  <span className="mono" style={{ fontSize: "0.7rem", fontWeight: 700, color: "var(--text-muted)" }}>
-                    {metric.unit}
-                  </span>
-                </div>
-                <div className="health-bar-track" style={{ marginTop: 8 }}>
-                  <div
-                    className="health-bar-fill"
-                    style={{
-                      width: `${metric.fillPct}%`,
-                      background: color,
-                    }}
-                  />
-                </div>
-              </div>
-
-              {/* Compact Sold -> Observed & Owner Footer */}
-              <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8, paddingTop: 4, borderTop: "1px solid var(--border-subtle)" }}>
-                <span className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)", overflow: "hidden", textOverflow: "ellipsis", whiteSpace: "nowrap" }}>
-                  OWNER: {station.accountableOwner}
-                </span>
-                <span className="mono" style={{ fontSize: "0.7rem", color: "var(--active-text)", fontWeight: 700 }}>
-                  {isSelected ? "INSPECTING ●" : "INSPECT →"}
-                </span>
-              </div>
-            </button>
-          );
-        })}
+      <div style={{ display: "flex", flexDirection: "column", gap: 16 }} data-tour="gate1-stations">
+        <div className="station-grid" data-tour="gate1-stations-row1">
+          {primaryRowStations.map((station, idx) => renderStationTile(station, idx))}
+        </div>
+        {secondaryStations.length > 0 && (
+          <div className="station-grid">
+            {secondaryStations.map((station, idx) => renderStationTile(station, idx + 3))}
+          </div>
+        )}
       </div>
 
       {/* Selected Station Visual Contract Diff Inspector */}
@@ -413,7 +425,10 @@ export function Gate1FlightCheck({
         data-tour="gate1-diff-inspector"
       >
         {/* Left: Contract Promised vs Live Telemetry Diff */}
-        <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div
+          style={{ display: "flex", flexDirection: "column", gap: 14 }}
+          data-tour="gate1-diff-left"
+        >
           <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 12, flexWrap: "wrap" }}>
             <div>
               <div className="help-inline">

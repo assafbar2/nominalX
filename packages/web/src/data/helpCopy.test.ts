@@ -48,6 +48,24 @@ describe("HELP_COPY catalog and dynamic helpers", () => {
     expect(reset.toLowerCase()).toContain("saved customizations");
   });
 
+  it("pairs aerospace gate names with plain-language Setup Check, Fault Injection, and Live Incident Drill labels", () => {
+    expect(HELP_COPY["pipeline.stage.2"].title).toContain("Setup Check");
+    expect(HELP_COPY["pipeline.stage.2"].body).toContain(
+      "Proving staging matches what Sales sold.",
+    );
+    expect(HELP_COPY["pipeline.stage.3"].title).toContain("Fault Injection");
+    expect(HELP_COPY["pipeline.stage.3"].body).toContain(
+      "Controlled fault injection to prove zero corruption.",
+    );
+    expect(HELP_COPY["pipeline.stage.4"].title).toContain("Live Incident Drill");
+    expect(HELP_COPY["pipeline.stage.4"].body).toContain(
+      "Timed P1 alert rehearsal for Support and Customer SREs.",
+    );
+    expect(HELP_COPY["gate1.header"].title).toContain("Setup Check");
+    expect(HELP_COPY["gate2.header"].title).toContain("Fault Injection");
+    expect(HELP_COPY["gate3.header"].title).toContain("Live Incident Drill");
+  });
+
   it("covers all 6 lifecycle stages, 6 core stations, 7 core vectors, and 3 core alarms", () => {
     for (const stage of LIFECYCLE_STAGES) {
       const entry = getStageHelp(stage.stageNumber);

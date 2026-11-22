@@ -276,13 +276,16 @@ export function Gate3CrewDrill({
         <div>
           <div className="help-inline">
             <div className="eyebrow">
-              STAGE 4: DAY-30 ENABLEMENT &amp; HANDOVER · GATE 3 (3 OF 3): CREW DRILL · SPRINT 3
+              STAGE 4: DAY-30 ENABLEMENT &amp; HANDOVER · GATE 3 (3 OF 3): CREW DRILL (LIVE INCIDENT DRILL) · SPRINT 3
             </div>
             <HelpTip copyKey="gate3.header" />
           </div>
           <h2 className="gate-title-xl">
-            Live 90-Second Ops Game-Day Console (Zero Multiple-Choice Quizzes)
+            Crew Drill · Live Incident Drill (90-Second Ops Game-Day Console)
           </h2>
+          <div style={{ fontSize: "0.84rem", color: "var(--text-muted)", marginTop: 3 }}>
+            Timed P1 alert rehearsal for Support and Customer SREs — zero multiple-choice quizzes.
+          </div>
         </div>
 
         <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -402,7 +405,11 @@ export function Gate3CrewDrill({
         </div>
 
         {/* Center: 90s Countdown Clock + Live SVG Metric Chart + Error Log Stream */}
-        <div className="panel panel-pad" style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+        <div
+          className="panel panel-pad"
+          style={{ display: "flex", flexDirection: "column", gap: 14 }}
+          data-tour="gate3-live-monitor"
+        >
           <div className={`countdown-box ${clockUrgency}`} data-testid="drill-countdown-box">
             <div>
               <div className="help-inline">
@@ -495,7 +502,11 @@ export function Gate3CrewDrill({
         </div>
 
         {/* Right: Real Tactile Config Remediation Console */}
-        <div className="panel panel-pad" style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14 }}>
+        <div
+          className="panel panel-pad"
+          style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14 }}
+          data-tour="gate3-remediation-console"
+        >
           <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
             <div>
               <span className="help-inline">

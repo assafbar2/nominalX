@@ -315,7 +315,10 @@ export function ReportsDossierHub({
       {activeTab === "dossier" && (
         <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
           {/* Flight Readiness Certificate Hero */}
-          <section className={`panel certificate-hero verdict-${dossier.verdict}`}>
+          <section
+            className={`panel certificate-hero verdict-${dossier.verdict}`}
+            data-tour="reports-dossier-hero"
+          >
             <div style={{ display: "flex", flexDirection: "column", justifyContent: "space-between", gap: 14 }}>
               <div>
                 <div style={{ display: "flex", alignItems: "center", gap: 10, flexWrap: "wrap" }}>
@@ -343,7 +346,7 @@ export function ReportsDossierHub({
               {/* 4 Oversized Gate KPIs */}
               <div className="kpi-4-grid">
                 <div className="kpi-box">
-                  <span className="eyebrow">GATE 1 (1/3)</span>
+                  <span className="eyebrow">GATE 1 · SETUP CHECK</span>
                   <div className="mono" style={{ fontSize: "1.6rem", fontWeight: 800 }}>
                     {dossier.gate1.counts.nominal + dossier.gate1.counts.heldWaived}/{dossier.gate1.counts.total}
                   </div>
@@ -352,7 +355,7 @@ export function ReportsDossierHub({
                   </span>
                 </div>
                 <div className="kpi-box">
-                  <span className="eyebrow">GATE 2 (2/3)</span>
+                  <span className="eyebrow">GATE 2 · FAULT INJECTION</span>
                   <div className="mono" style={{ fontSize: "1.6rem", fontWeight: 800 }}>
                     {dossier.gate2.grade} · {dossier.gate2.corruptionPct.toFixed(1)}%
                   </div>
@@ -361,7 +364,7 @@ export function ReportsDossierHub({
                   </span>
                 </div>
                 <div className="kpi-box">
-                  <span className="eyebrow">GATE 3 (3/3)</span>
+                  <span className="eyebrow">GATE 3 · LIVE INCIDENT DRILL</span>
                   <div className="mono" style={{ fontSize: "1.6rem", fontWeight: 800 }}>
                     {dossier.gate3.stabilizedCount}/{dossier.gate3.totalAlarms}
                   </div>
@@ -578,7 +581,7 @@ export function ReportsDossierHub({
             </div>
 
             <div className="panel kpi-box">
-              <span className="eyebrow">GATE 1 · FLIGHT CHECK</span>
+              <span className="eyebrow">GATE 1 · FLIGHT CHECK (SETUP CHECK)</span>
               <div className="mono" style={{ fontSize: "1.8rem", fontWeight: 800 }}>
                 {execReport.gate1Summary.nominal}/{execReport.gate1Summary.totalStations} NOMINAL
               </div>
@@ -588,7 +591,7 @@ export function ReportsDossierHub({
             </div>
 
             <div className="panel kpi-box">
-              <span className="eyebrow">GATE 2 · STATIC FIRE</span>
+              <span className="eyebrow">GATE 2 · STATIC FIRE (FAULT INJECTION)</span>
               <div className="mono" style={{ fontSize: "1.8rem", fontWeight: 800 }}>
                 GRADE {execReport.gate2Summary.grade}
               </div>

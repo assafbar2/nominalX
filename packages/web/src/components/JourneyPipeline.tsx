@@ -62,7 +62,7 @@ export function JourneyPipeline({
           </span>
         </div>
 
-        <div className="journey-controls">
+        <div className="journey-controls" data-tour="journey-verdict-controls">
           <div className="owner-badge">
             <span className="eyebrow" style={{ color: "var(--text-dim)" }}>
               BATON OWNER
@@ -156,7 +156,7 @@ export function JourneyPipeline({
       </svg>
 
       {/* 6 Bold Interactive Stage Nodes */}
-      <div className="journey-grid">
+      <div className="journey-grid" data-tour="journey-stages-grid">
         {LIFECYCLE_STAGES.map((stage) => {
           const st = journey.stageStatus[stage.stageNumber];
           const isSelected =
@@ -174,6 +174,24 @@ export function JourneyPipeline({
                   : stage.stageNumber === 1
                     ? "SEED"
                     : "POST-GAP";
+
+          const gatePlainTitle =
+            stage.gateNumber === 1
+              ? `Flight Check · Setup Check (1–${st.pips.length}/${st.pips.length})`
+              : stage.gateNumber === 2
+                ? `Static Fire · Fault Injection (1–${st.pips.length}/${st.pips.length})`
+                : stage.gateNumber === 3
+                  ? `Crew Drill · Live Incident Drill (1–${Math.max(1, st.pips.length - 1)}/${Math.max(1, st.pips.length - 1)})`
+                  : null;
+
+          const gatePlainDesc =
+            stage.gateNumber === 1
+              ? "Proving staging matches what Sales sold."
+              : stage.gateNumber === 2
+                ? "Controlled fault injection to prove zero corruption."
+                : stage.gateNumber === 3
+                  ? "Timed P1 alert rehearsal for Support and Customer SREs."
+                  : null;
 
           return (
             <button
@@ -198,21 +216,30 @@ export function JourneyPipeline({
                 <div className="stage-name" style={{ marginTop: 6 }}>
                   Stage {stage.stageNumber}: {stage.stageName}
                 </div>
-                {stage.gateLabel && (
+                {gatePlainTitle && (
                   <div
                     className="mono"
                     style={{
-                      fontSize: "0.7rem",
+                      fontSize: "0.68rem",
                       color: "var(--active-text)",
                       fontWeight: 700,
                       marginTop: 3,
+                      lineHeight: 1.25,
                     }}
                   >
-                    {stage.gateNumber === 1
-                      ? `Flight Check (1–${st.pips.length}/${st.pips.length})`
-                      : stage.gateNumber === 2
-                        ? `Static Fire (1–${st.pips.length}/${st.pips.length})`
-                        : `Crew Drill (1–${Math.max(1, st.pips.length - 1)}/${Math.max(1, st.pips.length - 1)}) + Seal`}
+                    {gatePlainTitle}
+                  </div>
+                )}
+                {gatePlainDesc && (
+                  <div
+                    style={{
+                      fontSize: "0.68rem",
+                      color: "var(--text-muted)",
+                      marginTop: 2,
+                      lineHeight: 1.28,
+                    }}
+                  >
+                    {gatePlainDesc}
                   </div>
                 )}
               </div>
@@ -235,7 +262,7 @@ export function JourneyPipeline({
       </div>
 
       {/* Explicit Bracket Framing The Unverified Gap */}
-      <div className="gap-bracket-row">
+      <div className="gap-bracket-row" data-tour="journey-gap-bracket">
         <div
           className="mono"
           style={{ fontSize: "0.7rem", color: "var(--text-dim)", textAlign: "center" }}

@@ -167,6 +167,7 @@ export function HeroReadinessBand({
           className="hard-stop-banner"
           role="alert"
           data-testid="hard-stop-lock-banner"
+          data-tour="hero-hard-stop-banner"
         >
           <div className="hard-stop-banner-left">
             <div
@@ -214,9 +215,12 @@ export function HeroReadinessBand({
         </div>
       )}
 
-      {/* Main Hero Grid: Account + 3 Huge Gate Score Cards + SVG Radial Gauge */}
+      {/* Main Hero Grid: Account + (3 Huge Gate Score Cards + SVG Radial Gauge) */}
       <div className="hero-grid">
-        <div className="panel hero-account-card">
+        <div
+          className="panel hero-account-card"
+          data-tour="hero-account-card"
+        >
           <div>
             <div style={{ display: "flex", alignItems: "center", justifyContent: "space-between", gap: 8 }}>
               <span className="help-inline">
@@ -255,119 +259,142 @@ export function HeroReadinessBand({
           </div>
         </div>
 
-        {/* Gate 1 Score Card */}
-        <button
-          type="button"
-          className={`gate-score-card ${activeView === "gate1" ? "active-card" : ""}`}
-          onClick={() => onSelectView("gate1")}
-          data-testid="hero-gate1-card"
+        <div
+          className="hero-scorecards-cluster"
+          data-tour="hero-scorecards-and-dial"
         >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
-            <span className="help-inline">
-              <span className="eyebrow">STAGE 2 · GATE 1 (1/3)</span>
-              <HelpTip asSpan copyKey="hero.gate1Card" />
-            </span>
-            <span className={`status-pill ${g1Pill}`}>
-              {flightCheck.verdict.replace("_", " ")}
-            </span>
-          </div>
-          <div>
-            <div className="kpi-xl" style={{ color: flightCheck.passed ? "var(--nominal-text)" : "var(--nogo-text)" }}>
-              {g1Cleared}
-              <span style={{ fontSize: "1.25rem", color: "var(--text-dim)" }}>/{flightCheck.counts.total}</span>
+          {/* Gate 1 Score Card */}
+          <button
+            type="button"
+            className={`gate-score-card ${activeView === "gate1" ? "active-card" : ""}`}
+            onClick={() => onSelectView("gate1")}
+            data-testid="hero-gate1-card"
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+              <span className="help-inline">
+                <span className="eyebrow">STAGE 2 · GATE 1 (1/3)</span>
+                <HelpTip asSpan copyKey="hero.gate1Card" />
+              </span>
+              <span className={`status-pill ${g1Pill}`}>
+                {flightCheck.verdict.replace("_", " ")}
+              </span>
             </div>
-            <div style={{ fontSize: "0.86rem", fontWeight: 800, marginTop: 4 }}>
-              Flight Check
+            <div>
+              <div className="kpi-xl" style={{ color: flightCheck.passed ? "var(--nominal-text)" : "var(--nogo-text)" }}>
+                {g1Cleared}
+                <span style={{ fontSize: "1.25rem", color: "var(--text-dim)" }}>/{flightCheck.counts.total}</span>
+              </div>
+              <div style={{ fontSize: "0.85rem", fontWeight: 800, marginTop: 4 }}>
+                Flight Check{" "}
+                <span style={{ color: "var(--active-text)", fontWeight: 700 }}>
+                  · Setup Check
+                </span>
+              </div>
+              <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: 2 }}>
+                Proving staging matches what Sales sold.
+              </div>
             </div>
-          </div>
-          <div className="mono" style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}>
-            {flightCheck.counts.nominal} NOMINAL · {flightCheck.counts.heldWaived} WAIVED · {flightCheck.counts.noGo} NO-GO
-          </div>
-        </button>
+            <div className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+              {flightCheck.counts.nominal} NOMINAL · {flightCheck.counts.heldWaived} WAIVED · {flightCheck.counts.noGo} NO-GO
+            </div>
+          </button>
 
-        {/* Gate 2 Score Card */}
-        <button
-          type="button"
-          className={`gate-score-card ${activeView === "gate2" ? "active-card" : ""}`}
-          onClick={() => onSelectView("gate2")}
-          data-testid="hero-gate2-card"
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
-            <span className="help-inline">
-              <span className="eyebrow">STAGE 3 · GATE 2 (2/3)</span>
-              <HelpTip asSpan copyKey="hero.gate2Card" />
-            </span>
-            <span className={`status-pill ${g2Pill}`}>
-              GRADE {staticFire.grade}
-            </span>
-          </div>
-          <div>
-            <div
-              className="kpi-xl"
-              style={{ color: staticFire.passed ? "var(--nominal-text)" : "var(--nogo-text)" }}
-            >
-              {staticFire.corruptionPct.toFixed(1)}%
+          {/* Gate 2 Score Card */}
+          <button
+            type="button"
+            className={`gate-score-card ${activeView === "gate2" ? "active-card" : ""}`}
+            onClick={() => onSelectView("gate2")}
+            data-testid="hero-gate2-card"
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+              <span className="help-inline">
+                <span className="eyebrow">STAGE 3 · GATE 2 (2/3)</span>
+                <HelpTip asSpan copyKey="hero.gate2Card" />
+              </span>
+              <span className={`status-pill ${g2Pill}`}>
+                GRADE {staticFire.grade}
+              </span>
             </div>
-            <div style={{ fontSize: "0.86rem", fontWeight: 800, marginTop: 4 }}>
-              Static Fire Corruption
+            <div>
+              <div
+                className="kpi-xl"
+                style={{ color: staticFire.passed ? "var(--nominal-text)" : "var(--nogo-text)" }}
+              >
+                {staticFire.corruptionPct.toFixed(1)}%
+              </div>
+              <div style={{ fontSize: "0.85rem", fontWeight: 800, marginTop: 4 }}>
+                Static Fire{" "}
+                <span style={{ color: "var(--active-text)", fontWeight: 700 }}>
+                  · Fault Injection
+                </span>
+              </div>
+              <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: 2 }}>
+                Controlled fault injection to prove zero corruption.
+              </div>
             </div>
-          </div>
-          <div className="mono" style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}>
-            {staticFire.totals.passedVectors}/{staticFire.totals.totalVectors} VECTORS · ATTEMPT #{staticFire.attemptNumber}
-          </div>
-        </button>
+            <div className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+              {staticFire.totals.passedVectors}/{staticFire.totals.totalVectors} VECTORS · ATTEMPT #{staticFire.attemptNumber}
+            </div>
+          </button>
 
-        {/* Gate 3 Score Card */}
-        <button
-          type="button"
-          className={`gate-score-card ${activeView === "gate3" ? "active-card" : ""}`}
-          onClick={() => onSelectView("gate3")}
-          data-testid="hero-gate3-card"
-        >
-          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
-            <span className="help-inline">
-              <span className="eyebrow">STAGE 4 · GATE 3 (3/3)</span>
-              <HelpTip asSpan copyKey="hero.gate3Card" />
-            </span>
-            <span className={`status-pill ${g3Pill}`}>
-              {crewSummary.allStabilized ? "STABILIZED" : `${crewSummary.stabilizedCount}/${crewSummary.totalAlarms} LIVE`}
-            </span>
-          </div>
-          <div>
-            <div
-              className="kpi-xl"
-              style={{
-                color: crewSummary.allStabilized
-                  ? "var(--nominal-text)"
-                  : crewSummary.stabilizedCount > 0
-                    ? "var(--active-text)"
-                    : "var(--text-primary)",
-              }}
-            >
-              {crewSummary.stabilizedCount}
-              <span style={{ fontSize: "1.25rem", color: "var(--text-dim)" }}>/{crewSummary.totalAlarms}</span>
+          {/* Gate 3 Score Card */}
+          <button
+            type="button"
+            className={`gate-score-card ${activeView === "gate3" ? "active-card" : ""}`}
+            onClick={() => onSelectView("gate3")}
+            data-testid="hero-gate3-card"
+          >
+            <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
+              <span className="help-inline">
+                <span className="eyebrow">STAGE 4 · GATE 3 (3/3)</span>
+                <HelpTip asSpan copyKey="hero.gate3Card" />
+              </span>
+              <span className={`status-pill ${g3Pill}`}>
+                {crewSummary.allStabilized ? "STABILIZED" : `${crewSummary.stabilizedCount}/${crewSummary.totalAlarms} LIVE`}
+              </span>
             </div>
-            <div style={{ fontSize: "0.86rem", fontWeight: 800, marginTop: 4 }}>
-              Crew Drill Alarms
+            <div>
+              <div
+                className="kpi-xl"
+                style={{
+                  color: crewSummary.allStabilized
+                    ? "var(--nominal-text)"
+                    : crewSummary.stabilizedCount > 0
+                      ? "var(--active-text)"
+                      : "var(--text-primary)",
+                }}
+              >
+                {crewSummary.stabilizedCount}
+                <span style={{ fontSize: "1.25rem", color: "var(--text-dim)" }}>/{crewSummary.totalAlarms}</span>
+              </div>
+              <div style={{ fontSize: "0.85rem", fontWeight: 800, marginTop: 4 }}>
+                Crew Drill{" "}
+                <span style={{ color: "var(--active-text)", fontWeight: 700 }}>
+                  · Live Incident Drill
+                </span>
+              </div>
+              <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", marginTop: 2 }}>
+                Timed P1 alert rehearsal for Support and Customer SREs.
+              </div>
             </div>
-          </div>
-          <div className="mono" style={{ fontSize: "0.74rem", color: "var(--text-muted)" }}>
-            {crewSummary.totalSplitMs > 0
-              ? `TOTAL SPLIT ${(crewSummary.totalSplitMs / 1000).toFixed(1)}s`
-              : "90s LIVE GAME-DAY CLOCK"}
-          </div>
-        </button>
+            <div className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
+              {crewSummary.totalSplitMs > 0
+                ? `TOTAL SPLIT ${(crewSummary.totalSplitMs / 1000).toFixed(1)}s`
+                : "90s LIVE GAME-DAY CLOCK"}
+            </div>
+          </button>
 
-        {/* Radial Readiness Gauge */}
-        <div className="panel radial-card" style={{ position: "relative" }}>
-          <div style={{ position: "absolute", top: 10, right: 10 }}>
-            <HelpTip copyKey="hero.readinessIndex" />
+          {/* Radial Readiness Gauge */}
+          <div className="panel radial-card" style={{ position: "relative" }}>
+            <div style={{ position: "absolute", top: 10, right: 10 }}>
+              <HelpTip copyKey="hero.readinessIndex" />
+            </div>
+            <RadialReadinessGauge
+              score={score}
+              hardStopBlocked={hardStopBlocked}
+              verdict={overallLabel}
+            />
           </div>
-          <RadialReadinessGauge
-            score={score}
-            hardStopBlocked={hardStopBlocked}
-            verdict={overallLabel}
-          />
         </div>
       </div>
     </div>

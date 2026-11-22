@@ -44,54 +44,56 @@ export function SprintContractStrip({
       aria-label="Sprint Contract Summary"
       data-tour="sprint-contract"
     >
-      <div className="sprint-tile">
-        <span className="help-inline">
-          <span className="eyebrow">GOAL</span>
-          <HelpTip copyKey="sprint.goal" />
-        </span>
-        <div className="sprint-tile-value">{goal}</div>
-      </div>
-
-      <div className="sprint-tile">
-        <span className="help-inline">
-          <span className="eyebrow">SINGLE OWNER</span>
-          <HelpTip copyKey="sprint.owner" />
-        </span>
-        <div className="sprint-tile-value" style={{ color: "var(--active-text)" }}>
-          {owner}
+      <div className="sprint-tiles-group" data-tour="sprint-contract-tiles">
+        <div className="sprint-tile">
+          <span className="help-inline">
+            <span className="eyebrow">GOAL</span>
+            <HelpTip copyKey="sprint.goal" />
+          </span>
+          <div className="sprint-tile-value">{goal}</div>
         </div>
-        <div className="sprint-tile-sub mono">
-          {isReportsView ? HANDOVER_SPRINT_METADATA.timeBox : stage.timeBox}
-        </div>
-      </div>
 
-      <div className="sprint-tile">
-        <span className="help-inline">
-          <span className="eyebrow">TEAM &amp; INTEGRATIONS</span>
-          <HelpTip copyKey="sprint.team" />
-        </span>
-        <div className="sprint-tile-value">
-          {teamCount} Engineering Roles · {integrationsCount} Integrations
+        <div className="sprint-tile">
+          <span className="help-inline">
+            <span className="eyebrow">SINGLE OWNER</span>
+            <HelpTip copyKey="sprint.owner" />
+          </span>
+          <div className="sprint-tile-value" style={{ color: "var(--active-text)" }}>
+            {owner}
+          </div>
+          <div className="sprint-tile-sub mono">
+            {isReportsView ? HANDOVER_SPRINT_METADATA.timeBox : stage.timeBox}
+          </div>
         </div>
-        <div className="sprint-tile-sub">
-          Vendor + Customer Engineers paired
+
+        <div className="sprint-tile">
+          <span className="help-inline">
+            <span className="eyebrow">TEAM &amp; INTEGRATIONS</span>
+            <HelpTip copyKey="sprint.team" />
+          </span>
+          <div className="sprint-tile-value">
+            {teamCount} Engineering Roles · {integrationsCount} Integrations
+          </div>
+          <div className="sprint-tile-sub">
+            Vendor + Customer Engineers paired
+          </div>
         </div>
-      </div>
 
-      <div className="sprint-tile">
-        <span className="help-inline">
-          <span className="eyebrow">TRIGGER</span>
-          <HelpTip copyKey="sprint.trigger" />
-        </span>
-        <div className="sprint-tile-value">{trigger}</div>
-      </div>
+        <div className="sprint-tile">
+          <span className="help-inline">
+            <span className="eyebrow">TRIGGER</span>
+            <HelpTip copyKey="sprint.trigger" />
+          </span>
+          <div className="sprint-tile-value">{trigger}</div>
+        </div>
 
-      <div className="sprint-tile">
-        <span className="help-inline">
-          <span className="eyebrow">DONE WHEN</span>
-          <HelpTip copyKey="sprint.doneWhen" />
-        </span>
-        <div className="sprint-tile-value">{doneWhen}</div>
+        <div className="sprint-tile">
+          <span className="help-inline">
+            <span className="eyebrow">DONE WHEN</span>
+            <HelpTip copyKey="sprint.doneWhen" />
+          </span>
+          <div className="sprint-tile-value">{doneWhen}</div>
+        </div>
       </div>
 
       <button
@@ -107,6 +109,7 @@ export function SprintContractStrip({
         }}
         onClick={onOpenGovernanceDrawer}
         data-testid="open-scope-governance-btn"
+        data-tour="sprint-governance-btn"
       >
         <span style={{ position: "absolute", top: 6, right: 6 }}>
           <HelpTip asSpan copyKey="sprint.scopeGovernanceBtn" />

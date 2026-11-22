@@ -28,6 +28,12 @@ import {
   SprintContractStrip,
 } from "./components/SprintContractStrip";
 import { TopMissionBar } from "./components/TopMissionBar";
+import { WalkthroughTour } from "./components/WalkthroughTour";
+import {
+  hasSeenWalkthrough,
+  markWalkthroughSeen,
+  WALKTHROUGH_STEPS,
+} from "./data/walkthroughSteps";
 import {
   applyCustomizationsToMission,
   applyYamlToMission,
@@ -78,6 +84,8 @@ export function App() {
   const [sweepingIndex, setSweepingIndex] = useState<number | null>(null);
   const [isFiring, setIsFiring] = useState(false);
   const [focusDiffNonce, setFocusDiffNonce] = useState(0);
+  const [tourOpen, setTourOpen] = useState<boolean>(() => !hasSeenWalkthrough());
+  const [tourStepIndex, setTourStepIndex] = useState<number>(0);
 
   useEffect(() => {
     document.documentElement.setAttribute("data-theme", theme);
@@ -87,6 +95,23 @@ export function App() {
       // Ignore storage unavailability
     }
   }, [theme]);
+
+  // Drive live cockpit view and drawers as the user steps through the walkthrough
+  useEffect(() => {
+    if (!tourOpen) return;
+    const step = WALKTHROUGH_STEPS[tourStepIndex];
+    if (!step) return;
+
+    setFocusDiffNonce(0);
+    setWireLogOpen(false);
+    setActiveView(step.view);
+
+    const drawer = step.openDrawer ?? "none";
+    setCustomizeOpen(drawer === "customize");
+    setGovernanceDrawerStage(
+      drawer === "governance" ? viewToStageNumber(step.view) : null,
+    );
+  }, [tourOpen, tourStepIndex]);
 
   const preset = ACCOUNT_PRESETS[activePresetId];
   const mission = missions[activePresetId];
@@ -107,6 +132,28 @@ export function App() {
   const handleToggleTheme = () => {
     setTheme((prev) => (prev === "dark" ? "light" : "dark"));
   };
+
+  const handleOpenTour = () => {
+    setFocusDiffNonce(0);
+    setWireLogOpen(false);
+    setCustomizeOpen(false);
+    setGovernanceDrawerStage(null);
+    setActiveView("gate1");
+    setTourStepIndex(0);
+    setTourOpen(true);
+    window.scrollTo({ top: 0, behavior: "instant" });
+  };
+
+  const handleCloseTour = useCallback(() => {
+    markWalkthroughSeen();
+    setTourOpen(false);
+    setCustomizeOpen(false);
+    setGovernanceDrawerStage(null);
+    setWireLogOpen(false);
+    setFocusDiffNonce(0);
+    setActiveView("gate1");
+    window.scrollTo({ top: 0, behavior: "instant" });
+  }, []);
 
   const handleSelectView = (view: CockpitView) => {
     setFocusDiffNonce(0);
@@ -497,6 +544,7 @@ export function App() {
         customCount={customCount}
         onOpenWireLog={() => setWireLogOpen(true)}
         wireLogCount={mission.wireLog.length}
+        onOpenTour={handleOpenTour}
         theme={theme}
         onToggleTheme={handleToggleTheme}
       />
@@ -605,6 +653,14 @@ export function App() {
         onUpdateCustomizations={handleUpdateCustomizations}
         onApplyYaml={handleApplyYaml}
         onResetCustomizations={handleResetCustomizations}
+      />
+
+      <WalkthroughTour
+        open={tourOpen}
+        stepIndex={tourStepIndex}
+        onChangeStep={setTourStepIndex}
+        onComplete={handleCloseTour}
+        onSkip={handleCloseTour}
       />
     </div>
   );

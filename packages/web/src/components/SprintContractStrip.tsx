@@ -39,7 +39,11 @@ export function SprintContractStrip({
     : stage.definitionOfDone[0] ?? "";
 
   return (
-    <section className="sprint-strip" aria-label="Sprint Contract Summary">
+    <section
+      className="sprint-strip"
+      aria-label="Sprint Contract Summary"
+      data-tour="sprint-contract"
+    >
       <div className="sprint-tile">
         <span className="help-inline">
           <span className="eyebrow">GOAL</span>

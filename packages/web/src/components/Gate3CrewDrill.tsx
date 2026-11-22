@@ -323,7 +323,7 @@ export function Gate3CrewDrill({
       </div>
 
       {/* 3-Column Game-Day Cockpit */}
-      <div className="drill-layout">
+      <div className="drill-layout" data-tour="gate3-cockpit">
         {/* Left: Dynamic Drill Cards (1 of N -> N of N) */}
         <div style={{ display: "flex", flexDirection: "column", gap: 12 }}>
           {crewDrill.alarmOrder.map((id) => {

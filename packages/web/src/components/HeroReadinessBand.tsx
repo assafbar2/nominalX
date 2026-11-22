@@ -157,7 +157,10 @@ export function HeroReadinessBand({
       : "IN PROGRESS";
 
   return (
-    <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>
+    <div
+      style={{ display: "flex", flexDirection: "column", gap: 14 }}
+      data-tour="hero-readiness"
+    >
       {/* Hard Stop Lock Banner when AUTH/SSO or RESIDENCY is red */}
       {hardStopBlocked && (
         <div

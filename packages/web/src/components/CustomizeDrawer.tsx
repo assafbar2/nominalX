@@ -492,6 +492,7 @@ export function CustomizeDrawer({
       <div
         className="drawer-sheet drawer-sheet-wide"
         onClick={(e) => e.stopPropagation()}
+        data-tour="customize-drawer-sheet"
       >
         {/* Header */}
         <div className="drawer-header">

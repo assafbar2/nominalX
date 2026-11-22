@@ -156,8 +156,12 @@ export function ReportsDossierHub({
 
   return (
     <div style={{ display: "flex", flexDirection: "column", gap: 18 }}>
-      {/* Hub Header + 1-Click Export Controls */}
-      <div className="panel gate-action-header">
+      <div
+        style={{ display: "flex", flexDirection: "column", gap: 18 }}
+        data-tour="reports-hub-top"
+      >
+        {/* Hub Header + 1-Click Export Controls */}
+        <div className="panel gate-action-header">
         <div>
           <div className="help-inline">
             <div className="eyebrow">
@@ -277,6 +281,7 @@ export function ReportsDossierHub({
             CAP: {waiversReport.policyAttestation.activeUtilization} ACTIVE
           </span>
         </button>
+      </div>
       </div>
 
       {/* Optional Raw Output Preview (Slack / MD / JSON) */}

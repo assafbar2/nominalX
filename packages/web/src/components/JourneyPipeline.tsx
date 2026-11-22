@@ -45,7 +45,11 @@ export function JourneyPipeline({
   };
 
   return (
-    <section className="panel journey-panel" aria-label="Customer Lifecycle Stages 1 to 6">
+    <section
+      className="panel journey-panel"
+      aria-label="Customer Lifecycle Stages 1 to 6"
+      data-tour="journey-pipeline"
+    >
       <div className="journey-header">
         <div className="journey-title-wrap">
           <span className="help-inline">

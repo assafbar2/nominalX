@@ -43,6 +43,11 @@ export const HELP_COPY = {
     title: "Dark / Light Cockpit Theme",
     body: "Switches the entire cockpit between Dark mode (default) and high-contrast Light mode. Your preference is saved locally in your browser so it persists across reloads.",
   },
+  "header.tour": {
+    tag: "GUIDED WALKTHROUGH",
+    title: "Replay Interactive Cockpit Tour",
+    body: "Restarts the 12-step guided walkthrough from Step 1, spotlighting Live Customer Readiness, Stages 1–6, Gates 1–3, the Reporting Hub, and the live nominalx.yaml Customizer.",
+  },
 
   // ── Customer Journey Pipeline (Stages 1–6) ─────────────────────────────────
   "pipeline.header": {

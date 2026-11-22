@@ -1,6 +1,13 @@
 import { listAccountPresets, type AccountPresetId } from "@nominalx/core";
 import { HelpTip } from "./HelpTip";
-import { MoonIcon, NominalXLogo, SlidersIcon, SunIcon, WireIcon } from "./Icons";
+import {
+  CompassIcon,
+  MoonIcon,
+  NominalXLogo,
+  SlidersIcon,
+  SunIcon,
+  WireIcon,
+} from "./Icons";
 
 interface TopMissionBarProps {
   activePresetId: AccountPresetId;
@@ -10,6 +17,7 @@ interface TopMissionBarProps {
   customCount: number;
   onOpenWireLog: () => void;
   wireLogCount: number;
+  onOpenTour: () => void;
   theme: "dark" | "light";
   onToggleTheme: () => void;
 }
@@ -22,16 +30,17 @@ export function TopMissionBar({
   customCount,
   onOpenWireLog,
   wireLogCount,
+  onOpenTour,
   theme,
   onToggleTheme,
 }: TopMissionBarProps) {
   const presets = listAccountPresets();
 
   return (
-    <header className="mission-bar">
+    <header className="mission-bar" data-tour="mission-bar">
       <div className="mission-bar-inner">
         <div className="brand-group">
-          <NominalXLogo size={32} />
+          <NominalXLogo size={30} />
           <div>
             <div className="help-inline">
               <div className="brand-title">NOMINALX</div>
@@ -60,7 +69,7 @@ export function TopMissionBar({
                     <span
                       className="mono"
                       style={{
-                        fontSize: "0.68rem",
+                        fontSize: "0.66rem",
                         color: isActive ? "var(--active-text)" : "var(--text-dim)",
                       }}
                     >
@@ -75,6 +84,19 @@ export function TopMissionBar({
         </div>
 
         <div className="mission-actions">
+          <div className="help-control-wrap" data-tour="tour-replay-wrap">
+            <button
+              type="button"
+              className="btn tour-replay-btn"
+              onClick={onOpenTour}
+              data-testid="replay-tour-btn"
+            >
+              <CompassIcon />
+              <span>Tour</span>
+            </button>
+            <HelpTip copyKey="header.tour" />
+          </div>
+
           <div className="help-control-wrap">
             <button
               type="button"
@@ -88,10 +110,10 @@ export function TopMissionBar({
                 <span
                   className="mono"
                   style={{
-                    padding: "1px 6px",
+                    padding: "1px 5px",
                     borderRadius: 6,
                     background: "rgba(4, 17, 29, 0.28)",
-                    fontSize: "0.7rem",
+                    fontSize: "0.68rem",
                     fontWeight: 800,
                   }}
                 >
@@ -122,15 +144,15 @@ export function TopMissionBar({
               data-testid="wire-log-btn"
             >
               <WireIcon />
-              <span>Live Wire Log</span>
+              <span>Wire Log</span>
               <span
                 className="mono"
                 style={{
-                  padding: "2px 6px",
+                  padding: "1px 5px",
                   borderRadius: 6,
                   background: "var(--bg-inset)",
                   color: "var(--active-text)",
-                  fontSize: "0.72rem",
+                  fontSize: "0.68rem",
                 }}
               >
                 {wireLogCount}
@@ -148,7 +170,7 @@ export function TopMissionBar({
               data-testid="theme-toggle-btn"
             >
               {theme === "dark" ? <SunIcon /> : <MoonIcon />}
-              <span>{theme === "dark" ? "Light Mode" : "Dark Mode"}</span>
+              <span>{theme === "dark" ? "Light" : "Dark"}</span>
             </button>
             <HelpTip copyKey="header.themeToggle" />
           </div>

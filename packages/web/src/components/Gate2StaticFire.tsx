@@ -242,7 +242,7 @@ export function Gate2StaticFire({
       </div>
 
       {/* 3 GIANT Visual Scoreboard Blocks */}
-      <div className="fire-scoreboard">
+      <div className="fire-scoreboard" data-tour="gate2-scoreboard">
         {/* Block 1: DATA CORRUPTION % Gauge */}
         <div className="panel score-block">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>

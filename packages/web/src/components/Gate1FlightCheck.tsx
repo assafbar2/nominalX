@@ -291,7 +291,7 @@ export function Gate1FlightCheck({
       </div>
 
       {/* 6 HUGE Graphic Station Tiles (3x2) */}
-      <div className="station-grid">
+      <div className="station-grid" data-tour="gate1-stations">
         {flightCheck.stations.map((station, idx) => {
           const metric = stationPrimaryReadout(station, preset);
           const color = statusColor(station.status);
@@ -410,6 +410,7 @@ export function Gate1FlightCheck({
         style={{ scrollMarginTop: 88 }}
         aria-label="Contract vs Live Telemetry Diff Inspector"
         data-testid="station-diff-inspector"
+        data-tour="gate1-diff-inspector"
       >
         {/* Left: Contract Promised vs Live Telemetry Diff */}
         <div style={{ display: "flex", flexDirection: "column", gap: 14 }}>

@@ -90,9 +90,9 @@ export function JourneyPipeline({
               onClick={() => onSelectView("reports")}
               data-testid="nav-reports-dossier"
             >
-              <span>Reports &amp; Handover Dossier</span>
+              <span>Live Launch Deliverables</span>
             </button>
-            <HelpTip copyKey="pipeline.reportsHub" />
+            <HelpTip copyKey="deliverables.header" />
           </div>
         </div>
       </div>

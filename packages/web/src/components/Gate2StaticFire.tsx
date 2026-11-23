@@ -1,7 +1,10 @@
 import type {
   AccountPreset,
   ChaosVectorId,
+  CustomerBlueprint,
   CustomChaosVectorConfig,
+  ManualGate2Status,
+  ManualGateState,
   StaticFireResult,
   TelemetryPoint,
 } from "@nominalx/core";
@@ -15,6 +18,12 @@ interface Gate2StaticFireProps {
   staticFire: StaticFireResult;
   stagedPatches: ChaosVectorId[];
   isFiring: boolean;
+  isManualCustomer?: boolean;
+  blueprint?: CustomerBlueprint | null;
+  manualState?: ManualGateState | null;
+  onManualSetVectorStatus?: (vectorId: string, status: ManualGate2Status) => void;
+  onManualSetVectorEvidence?: (vectorId: string, note: string) => void;
+  onOpenExportYaml?: () => void;
   onToggleStagePatch: (vectorId: ChaosVectorId) => void;
   onStageAllPatches: () => void;
   onIgniteFire: () => void;
@@ -152,6 +161,12 @@ export function Gate2StaticFire({
   staticFire,
   stagedPatches,
   isFiring,
+  isManualCustomer = false,
+  blueprint = null,
+  manualState = null,
+  onManualSetVectorStatus,
+  onManualSetVectorEvidence,
+  onOpenExportYaml,
   onToggleStagePatch,
   onStageAllPatches,
   onIgniteFire,
@@ -214,22 +229,24 @@ export function Gate2StaticFire({
             <HelpTip copyKey="gate2.attemptHistory" />
           </div>
 
-          <div className="help-control-wrap">
-            <button
-              type="button"
-              className="btn btn-primary btn-lg"
-              onClick={onIgniteFire}
-              disabled={isFiring}
-              data-testid="ignite-static-fire-btn"
-            >
-              {isFiring
-                ? "FIRING TEST STAND..."
-                : staticFire.attemptNumber > 1 || stagedPatches.length > 0
-                  ? "RE-FIRE TEST STAND"
-                  : "IGNITE STATIC FIRE"}
-            </button>
-            <HelpTip copyKey="gate2.igniteBtn" />
-          </div>
+          {!isManualCustomer && (
+            <div className="help-control-wrap">
+              <button
+                type="button"
+                className="btn btn-primary btn-lg"
+                onClick={onIgniteFire}
+                disabled={isFiring}
+                data-testid="ignite-static-fire-btn"
+              >
+                {isFiring
+                  ? "FIRING TEST STAND..."
+                  : staticFire.attemptNumber > 1 || stagedPatches.length > 0
+                    ? "RE-FIRE TEST STAND"
+                    : "IGNITE STATIC FIRE"}
+              </button>
+              <HelpTip copyKey="gate2.igniteBtn" />
+            </div>
+          )}
 
           {staticFire.passed && (
             <button
@@ -410,82 +427,103 @@ export function Gate2StaticFire({
         <TelemetryWaveformChart series={staticFire.telemetrySeries} passed={staticFire.passed} />
       </section>
 
-      {/* Live Handler Patch Panel */}
-      <section
-        className="panel panel-pad"
-        style={{ display: "flex", flexDirection: "column", gap: 14 }}
-        data-tour="gate2-patch-switchboard"
-      >
-        <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
-          <div>
-            <span className="help-inline">
-              <span className="eyebrow">LIVE HANDLER PATCH SWITCHBOARD · {preset.config.account.stack.webhook_runtime.toUpperCase()}</span>
-              <HelpTip copyKey="gate2.patchSwitchboard" />
-            </span>
-            <h3 style={{ margin: "2px 0 0", fontSize: "1.18rem", fontWeight: 800 }}>
-              Toggle Real Handler Fixes &amp; Re-Fire Test Stand
-            </h3>
+      {/* Live Handler Patch Panel (Sample Simulation) OR CLI Automation Hook (Manual Customers) */}
+      {isManualCustomer ? (
+        <div className="panel cli-hook-strip" data-testid="gate2-cli-hook">
+          <div style={{ display: "flex", flexDirection: "column", gap: 4 }}>
+            <div className="help-inline">
+              <span className="eyebrow" style={{ color: "var(--active-text)" }}>
+                AUTOMATE FAULT INJECTION WITH CLI
+              </span>
+              <HelpTip copyKey="manual.cliHook" />
+            </div>
+            <code className="mono" style={{ fontSize: "0.82rem", color: "var(--text-primary)", fontWeight: 700 }}>
+              nominalx fire --url {staticFire.targetUrl} --config {staticFire.accountId}.nominalx.yaml
+            </code>
           </div>
-          <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
-            <button
-              type="button"
-              className="btn"
-              onClick={onStageAllPatches}
-              data-testid="stage-all-patches-btn"
-            >
-              Stage All {vectorPatches.length} Fixes
+          {onOpenExportYaml && (
+            <button type="button" className="btn btn-primary" onClick={onOpenExportYaml}>
+              Export {staticFire.accountId}.nominalx.yaml
             </button>
-            <button
-              type="button"
-              className="btn btn-nominal"
-              onClick={onIgniteFire}
-              disabled={isFiring}
-              data-testid="refire-after-patch-btn"
-            >
-              {isFiring ? "FIRING..." : "RE-FIRE TEST STAND"}
-            </button>
-          </div>
+          )}
         </div>
-
-        <div className="patch-panel-grid">
-          {vectorPatches.map((patch) => {
-            const vectorId = patch.targetId as ChaosVectorId;
-            const isStaged = stagedSet.has(vectorId);
-            return (
+      ) : (
+        <section
+          className="panel panel-pad"
+          style={{ display: "flex", flexDirection: "column", gap: 14 }}
+          data-tour="gate2-patch-switchboard"
+        >
+          <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 12, flexWrap: "wrap" }}>
+            <div>
+              <span className="help-inline">
+                <span className="eyebrow">LIVE HANDLER PATCH SWITCHBOARD · {preset.config.account.stack.webhook_runtime.toUpperCase()}</span>
+                <HelpTip copyKey="gate2.patchSwitchboard" />
+              </span>
+              <h3 style={{ margin: "2px 0 0", fontSize: "1.18rem", fontWeight: 800 }}>
+                Toggle Real Handler Fixes &amp; Re-Fire Test Stand
+              </h3>
+            </div>
+            <div style={{ display: "flex", gap: 10, flexWrap: "wrap" }}>
               <button
-                key={patch.patchKey}
                 type="button"
-                className={`patch-toggle-card ${isStaged ? "staged" : ""}`}
-                onClick={() => onToggleStagePatch(vectorId)}
-                data-testid={`patch-toggle-${patch.patchKey}`}
+                className="btn"
+                onClick={onStageAllPatches}
+                data-testid="stage-all-patches-btn"
               >
-                <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 8 }}>
-                  <strong style={{ fontSize: "0.9rem" }}>{patch.label}</strong>
-                  <span className={`status-pill ${isStaged ? "status-nominal" : "status-pending"}`}>
-                    {isStaged ? "STAGED" : "OFF"}
-                  </span>
-                </div>
-                <div className="code-diff-box" style={{ width: "100%" }}>
-                  {patch.diffLines.map((line) => (
-                    <span
-                      key={line}
-                      className={
-                        line.startsWith("-")
-                          ? "diff-line-del"
-                          : line.startsWith("+")
-                            ? "diff-line-add"
-                            : ""
-                      }
-                    >
-                      {line}
-                    </span>
-                  ))}
-                </div>
+                Stage All {vectorPatches.length} Fixes
               </button>
-            );
-          })}
-        </div>
-      </section>
+              <button
+                type="button"
+                className="btn btn-nominal"
+                onClick={onIgniteFire}
+                disabled={isFiring}
+                data-testid="refire-after-patch-btn"
+              >
+                {isFiring ? "FIRING..." : "RE-FIRE TEST STAND"}
+              </button>
+            </div>
+          </div>
+
+          <div className="patch-panel-grid">
+            {vectorPatches.map((patch) => {
+              const vectorId = patch.targetId as ChaosVectorId;
+              const isStaged = stagedSet.has(vectorId);
+              return (
+                <button
+                  key={patch.patchKey}
+                  type="button"
+                  className={`patch-toggle-card ${isStaged ? "staged" : ""}`}
+                  onClick={() => onToggleStagePatch(vectorId)}
+                  data-testid={`patch-toggle-${patch.patchKey}`}
+                >
+                  <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 8 }}>
+                    <strong style={{ fontSize: "0.9rem" }}>{patch.label}</strong>
+                    <span className={`status-pill ${isStaged ? "status-nominal" : "status-pending"}`}>
+                      {isStaged ? "STAGED" : "OFF"}
+                    </span>
+                  </div>
+                  <div className="code-diff-box" style={{ width: "100%" }}>
+                    {patch.diffLines.map((line) => (
+                      <span
+                        key={line}
+                        className={
+                          line.startsWith("-")
+                            ? "diff-line-del"
+                            : line.startsWith("+")
+                              ? "diff-line-add"
+                              : ""
+                        }
+                      >
+                        {line}
+                      </span>
+                    ))}
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </section>
+      )}
 
       {/* 7 Chunky Vector Cards (1 of 7 -> 7 of 7) */}
       <div className="vector-grid">
@@ -574,6 +612,55 @@ export function Gate2StaticFire({
               <div className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
                 {v.packetsCorrupted}/{v.packetsSent} CORRUPTED · {v.packetsDropped} DROPPED
               </div>
+
+              {isManualCustomer && onManualSetVectorStatus && onManualSetVectorEvidence && (
+                <div style={{ display: "flex", flexDirection: "column", gap: 8, paddingTop: 8, borderTop: "1px solid var(--border-subtle)" }}>
+                  {blueprint?.gate2Items.find((item) => item.id === v.vectorId)?.whyAdded && (
+                    <div style={{ fontSize: "0.72rem", color: "var(--text-muted)", lineHeight: 1.35 }}>
+                      {blueprint.gate2Items.find((item) => item.id === v.vectorId)?.whyAdded}
+                    </div>
+                  )}
+                  <div style={{ display: "flex", gap: 5, alignItems: "center" }}>
+                    {(["PENDING", "PASS", "FAIL"] as const).map((st) => {
+                      const cur = manualState?.gate2[v.vectorId]?.status ?? "PENDING";
+                      const active = cur === st;
+                      const cls =
+                        st === "PASS"
+                          ? active
+                            ? "btn btn-nominal"
+                            : "btn"
+                          : st === "FAIL"
+                            ? active
+                              ? "btn btn-nogo"
+                              : "btn"
+                            : active
+                              ? "btn btn-primary"
+                              : "btn";
+                      return (
+                        <button
+                          key={st}
+                          type="button"
+                          className={cls}
+                          style={{ padding: "4px 8px", fontSize: "0.7rem", flex: 1 }}
+                          onClick={() => onManualSetVectorStatus(v.vectorId, st)}
+                          data-testid={`manual-g2-${v.vectorId}-${st.toLowerCase()}`}
+                        >
+                          {st}
+                        </button>
+                      );
+                    })}
+                    <HelpTip copyKey="manual.statusControl" />
+                  </div>
+                  <input
+                    className="field-input"
+                    style={{ padding: "6px 9px", fontSize: "0.76rem" }}
+                    placeholder="Evidence note (test run link, PR, timestamp)..."
+                    value={manualState?.gate2[v.vectorId]?.evidenceNote ?? ""}
+                    onChange={(e) => onManualSetVectorEvidence(v.vectorId, e.target.value)}
+                    data-testid={`manual-g2-evidence-${v.vectorId}`}
+                  />
+                </div>
+              )}
             </div>
           );
         })}

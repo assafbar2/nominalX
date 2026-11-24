@@ -56,7 +56,7 @@ export const HELP_COPY = {
   "header.newCustomer": {
     tag: "60s SETUP WIZARD",
     title: "Add a Real Customer Launch",
-    body: "Opens the free, deterministic 5-step Guided Setup Wizard for any B2B technical product (Multi-tenant SaaS, Dedicated VPC, or Self-Hosted). Saves your customer in browser localStorage under My Customers.",
+    body: "Opens the deterministic 5-step Guided Setup Wizard for any B2B technical product (Multi-tenant SaaS, Dedicated VPC, or Self-Hosted). Saves your customer in browser localStorage under My Customers.",
   },
   "header.exportImport": {
     tag: "PORTABLE FILES",
@@ -96,7 +96,7 @@ export const HELP_COPY = {
     body: "Security, residency, and data integrity Hard Stops can never be waived—they must pass to unlock launch. Operational gaps can ship temporarily with a time-boxed <=30d Risk Waiver, named owner, and rollback plan (max 2 active). Ownership shifts cleanly from Lead FDE (Gates 1–2) to Lead CSE and Support Engineers (Gate 3).",
   },
   "launchpad.action.setup": {
-    tag: "FREE · 60 SECONDS",
+    tag: "60 SECONDS",
     title: "Launch Guided Customer Setup Wizard",
     body: "Answer 4 short plain-language steps about deployment, compliance, data flows, and on-call SLAs. NominalX deterministically generates a tailored launch blueprint with a clear 'Why we added this' explanation on every item.",
   },

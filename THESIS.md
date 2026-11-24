@@ -55,4 +55,4 @@ Most customer-facing software lives at the two bookends of the lifecycle: pre-sa
 ## Dual Delivery (One Engine, Two Surfaces)
 
 1. **Real CLI (`nominalx`):** Runs real deterministic HTTP, TLS, residency, webhook HMAC, and adversarial chaos probes against any staging endpoint (`nominalx check nominalx.yaml`, `nominalx fire --url ...`, `nominalx dossier`). Zero LLM dependency.
-2. **Static Browser Mission Control:** Zero-backend avionics cockpit (hosted free on GitHub Pages) pre-loaded with 4 realistic enterprise accounts (*Meridian FinTech*, *Kestrel Health*, *Vanguard Retail*, *Helios Logistics*) so anyone can run Flight Check → Static Fire → Crew Drill → Signed Dossier in 90 seconds.
+2. **Static Browser Mission Control:** Zero-backend avionics cockpit (hosted on Vercel) pre-loaded with 4 realistic enterprise accounts (*Meridian FinTech*, *Kestrel Health*, *Vanguard Retail*, *Helios Logistics*) so anyone can run Flight Check → Static Fire → Crew Drill → Signed Dossier in 90 seconds.

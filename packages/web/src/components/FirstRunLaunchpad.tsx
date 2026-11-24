@@ -70,7 +70,7 @@ export function FirstRunLaunchpad({
                   ? "+ Add Another Customer"
                   : "Set Up Your First Customer"}
               </span>
-              <span className="launchpad-cta-sub mono">FREE · 60s WIZARD</span>
+              <span className="launchpad-cta-sub mono">60s WIZARD</span>
             </button>
             <HelpTip copyKey="launchpad.action.setup" size="md" />
           </div>

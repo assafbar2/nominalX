@@ -196,7 +196,7 @@ export function TopMissionBar({
                 {myCustomers.length === 0 ? (
                   <div className="workspace-empty-mini">
                     <div style={{ fontSize: "0.78rem", color: "var(--text-muted)" }}>
-                      No custom customers yet. Create one free in 60s or import{" "}
+                      No custom customers yet. Create one in 60s or import{" "}
                       <code className="mono">nominalx.yaml</code>.
                     </div>
                     <div style={{ display: "flex", gap: 6, marginTop: 8, flexWrap: "wrap" }}>

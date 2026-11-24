@@ -453,7 +453,7 @@ export function CustomerSetupWizard({
               <span className="eyebrow" style={{ color: "var(--active-text)" }}>
                 {editingCustomerId
                   ? "EDIT CUSTOMER BLUEPRINT · DETERMINISTIC ZERO-LLM ENGINE"
-                  : "GUIDED CUSTOMER SETUP WIZARD · FREE · 60 SECONDS · ZERO-LLM"}
+                  : "GUIDED CUSTOMER SETUP WIZARD · 60 SECONDS · ZERO-LLM"}
               </span>
               <HelpTip copyKey="wizard.header" />
             </div>
@@ -1239,7 +1239,7 @@ export function CustomerSetupWizard({
               </button>
             ) : (
               <span className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-                SAVES FREE IN BROWSER LOCALSTORAGE
+                SAVES IN BROWSER LOCALSTORAGE
               </span>
             )}
           </div>

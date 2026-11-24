@@ -28,9 +28,9 @@ Most customer software lives at the two bookends of the lifecycle: pre-sales CRM
 
 ---
 
-## Free Browser Workspace & First-Run Experience (`https://nominalx.vercel.app`)
+## Browser Workspace & First-Run Experience (`https://nominalx.vercel.app`)
 
-Open **[https://nominalx.vercel.app](https://nominalx.vercel.app)** to run NominalX with zero backend, zero sign-up, and zero LLM guesswork (Dark mode default with 1-click Light toggle, Option C big bold blocks, and thorough `?` contextual help tooltips across every screen and control):
+Open **[https://nominalx.vercel.app](https://nominalx.vercel.app)** to run NominalX with zero backend and zero LLM guesswork (Dark mode default with 1-click Light toggle, Option C big bold blocks, and thorough `?` contextual help tooltips across every screen and control):
 
 - **First-Run Launchpad & Smart Returning-Visitor Routing:** Brand-new visitors (zero customers saved in `My Customers`) land on a clean, 20-second **First-Run Launchpad** explaining all three gates, the plain governance rule (Hard Stops vs. time-boxed Risk Waivers vs. Lead FDE → Lead CSE ownership transfer), and three clear entry actions: **Set Up Your First Customer**, **Explore 4 Sample Customers**, or **Import `nominalx.yaml`**. Returning visitors who have created at least one customer open straight into their most recently active customer automatically, while **`Launchpad`** and **`+ New Customer`** remain always visible in the top mission bar.
 

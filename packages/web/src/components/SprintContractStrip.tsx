@@ -154,8 +154,9 @@ export function ScopeGovernanceDrawer({
               <HelpTip copyKey="governance.header" />
             </div>
             <h2 style={{ margin: "4px 0 0", fontSize: "1.3rem", fontWeight: 800 }}>
-              {stage.displayTitle}
-              {stage.gateLabel ? ` — ${stage.gateLabel}` : ""}
+              {stage.gateLabel
+                ? `${stage.gateLabel} — ${stage.stageName}`
+                : stage.displayTitle}
             </h2>
           </div>
           <button type="button" className="btn" onClick={onClose}>

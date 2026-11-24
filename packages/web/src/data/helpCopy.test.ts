@@ -66,10 +66,19 @@ describe("HELP_COPY catalog and dynamic helpers", () => {
     expect(HELP_COPY["gate3.header"].title).toContain("Live Incident Drill");
   });
 
-  it("covers all 6 lifecycle stages, 6 core stations, 7 core vectors, and 3 core alarms", () => {
+  it("covers Deal Close, Gates 1–3, Support & Renewal, 6 core stations, 7 core vectors, and 3 core alarms without legacy stage double-numbering", () => {
+    const expectedTitleFragments: Record<number, string> = {
+      1: "Deal Close",
+      2: "Gate 1",
+      3: "Gate 2",
+      4: "Gate 3",
+      5: "Support",
+      6: "Renewal & Expansion",
+    };
     for (const stage of LIFECYCLE_STAGES) {
       const entry = getStageHelp(stage.stageNumber);
-      expect(entry.title).toContain(`Stage ${stage.stageNumber}`);
+      expect(entry.title).toContain(expectedTitleFragments[stage.stageNumber]!);
+      expect(entry.title).not.toMatch(/\bStage\s+[1-6]\b/i);
       expect(entry.body.length).toBeGreaterThan(40);
     }
 

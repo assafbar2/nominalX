@@ -102,11 +102,63 @@ export function FirstRunLaunchpad({
         </div>
       </div>
 
+      {/* Visual In-Between Journey Strip: Deal Close -> [Gate 1 · Gate 2 · Gate 3] -> Support & Renewal */}
+      <div
+        className="panel launchpad-journey-strip"
+        aria-label="Customer Engineering Journey from Deal Close through NominalX Gates 1 to 3 to Support and Renewal"
+        data-testid="launchpad-journey-strip"
+      >
+        <div className="launchpad-bookend">
+          <span className="mono launchpad-bookend-tag">BEFORE NOMINALX</span>
+          <strong className="launchpad-bookend-title">Deal Close</strong>
+          <span className="launchpad-bookend-sub">CRM Handoff · Before Launch Readiness</span>
+        </div>
+
+        <span className="launchpad-journey-arrow" aria-hidden="true">→</span>
+
+        <div className="launchpad-gap-bracket">
+          <div className="launchpad-gap-bracket-label mono">
+            THE IN-BETWEEN GAP · NOMINALX LAUNCH READINESS
+          </div>
+          <div className="launchpad-gap-pills">
+            <span className="launchpad-gap-pill">
+              <strong className="mono">GATE 1</strong>
+              <span>Flight Check · Setup Check</span>
+            </span>
+            <span className="launchpad-gap-pill-arrow" aria-hidden="true">→</span>
+            <span className="launchpad-gap-pill">
+              <strong className="mono">GATE 2</strong>
+              <span>Static Fire · Fault Injection</span>
+            </span>
+            <span className="launchpad-gap-pill-arrow" aria-hidden="true">→</span>
+            <span className="launchpad-gap-pill">
+              <strong className="mono">GATE 3</strong>
+              <span>Crew Drill · Live Incident Drill</span>
+            </span>
+          </div>
+        </div>
+
+        <span className="launchpad-journey-arrow" aria-hidden="true">→</span>
+
+        <div className="launchpad-bookend-pair">
+          <div className="launchpad-bookend">
+            <span className="mono launchpad-bookend-tag">AFTER NOMINALX</span>
+            <strong className="launchpad-bookend-title">Support</strong>
+            <span className="launchpad-bookend-sub">Live Operations</span>
+          </div>
+          <div className="launchpad-bookend">
+            <span className="mono launchpad-bookend-tag">AFTER NOMINALX</span>
+            <strong className="launchpad-bookend-title">Renewal &amp; Expansion</strong>
+            <span className="launchpad-bookend-sub">Customer Growth</span>
+          </div>
+        </div>
+      </div>
+
       {/* 20-Second Explainer: 3 Bold Scannable Gate Cards */}
       <div className="launchpad-gates-grid">
         <article className="panel launchpad-gate-card gate-accent-1">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-            <span className="mono launchpad-gate-chip">STAGE 2 · GATE 1 (1 OF 3)</span>
+            <span className="mono launchpad-gate-chip">GATE 1</span>
             <HelpTip copyKey="launchpad.gate1" />
           </div>
           <h2 className="launchpad-gate-title">
@@ -119,14 +171,14 @@ export function FirstRunLaunchpad({
           <div className="launchpad-gate-footer">
             <span className="stack-chip">OWNER: LEAD FDE</span>
             <span className="mono" style={{ fontSize: "0.72rem", color: "var(--text-muted)" }}>
-              HARD STOPS + SETUP PROBES
+              SALES-TO-FDE HANDOFF
             </span>
           </div>
         </article>
 
         <article className="panel launchpad-gate-card gate-accent-2">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-            <span className="mono launchpad-gate-chip">STAGE 3 · GATE 2 (2 OF 3)</span>
+            <span className="mono launchpad-gate-chip">GATE 2</span>
             <HelpTip copyKey="launchpad.gate2" />
           </div>
           <h2 className="launchpad-gate-title">
@@ -146,7 +198,7 @@ export function FirstRunLaunchpad({
 
         <article className="panel launchpad-gate-card gate-accent-3">
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", gap: 8 }}>
-            <span className="mono launchpad-gate-chip">STAGE 4 · GATE 3 (3 OF 3)</span>
+            <span className="mono launchpad-gate-chip">GATE 3</span>
             <HelpTip copyKey="launchpad.gate3" />
           </div>
           <h2 className="launchpad-gate-title">

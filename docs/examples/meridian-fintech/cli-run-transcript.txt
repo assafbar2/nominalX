@@ -3,15 +3,15 @@
 
 $ nominalx check examples/meridian-fintech/nominalx.yaml --out flight-check.json
 ========================================================================================
-NOMINALX · Stage 2: Sales-to-FDE Handoff · Gate 1 (1 of 3): Flight Check
+NOMINALX · Sales-to-FDE Handoff · Gate 1: Flight Check · Setup Check
 Account: Meridian FinTech (meridian-fintech) | Owner: alex.rivera@vendor.io | As Of: 2026-11-21
 ========================================================================================
 
-  1 of 6  AUTH / SSO    [NOMINAL]         10ms  HARD STOP · NON-WAIVABLE
+  1 of 6  AUTH / SSO    [NOMINAL]         12ms  HARD STOP · NON-WAIVABLE
          Sold:     SAML2 · MFA required · cert TTL >= 30d
          Observed: SAML2 · MFA enforced · cert TTL 184d
 
-  2 of 6  RESIDENCY     [NO-GO]            3ms  HARD STOP · NON-WAIVABLE
+  2 of 6  RESIDENCY     [NO-GO]            2ms  HARD STOP · NON-WAIVABLE
          Sold:     Allowed [eu-central-1, eu-west-1] · strict egress=true
          Observed: Served us-east-1 · storage [eu-central-1, us-east-1] · egress [us-east-1]
          Evidence: HARD STOP: X-Served-Region "us-east-1" outside allowed [eu-central-1, eu-west-1]
@@ -29,7 +29,7 @@ Account: Meridian FinTech (meridian-fintech) | Owner: alex.rivera@vendor.io | As
          Sold:     >= 50,000 RPS · Retry-After=true
          Observed: 50,000 RPS · Retry-After=2s
 
-  5 of 6  ALERTING      [NOMINAL]          1ms  OPERATIONAL
+  5 of 6  ALERTING      [NOMINAL]          2ms  OPERATIONAL
          Sold:     #eng-meridian-p1 · ACK <= 2000ms
          Observed: #eng-meridian-p1 active · ACK 310ms
 
@@ -58,15 +58,15 @@ Patched meridian-fintech on 127.0.0.1:4040 -> applied [residency, webhooks]
 
 $ nominalx check examples/meridian-fintech/nominalx.yaml --out flight-check.json
 ========================================================================================
-NOMINALX · Stage 2: Sales-to-FDE Handoff · Gate 1 (1 of 3): Flight Check
+NOMINALX · Sales-to-FDE Handoff · Gate 1: Flight Check · Setup Check
 Account: Meridian FinTech (meridian-fintech) | Owner: alex.rivera@vendor.io | As Of: 2026-11-21
 ========================================================================================
 
-  1 of 6  AUTH / SSO    [NOMINAL]          9ms  HARD STOP · NON-WAIVABLE
+  1 of 6  AUTH / SSO    [NOMINAL]         14ms  HARD STOP · NON-WAIVABLE
          Sold:     SAML2 · MFA required · cert TTL >= 30d
          Observed: SAML2 · MFA enforced · cert TTL 184d
 
-  2 of 6  RESIDENCY     [NOMINAL]          1ms  HARD STOP · NON-WAIVABLE
+  2 of 6  RESIDENCY     [NOMINAL]          3ms  HARD STOP · NON-WAIVABLE
          Sold:     Allowed [eu-central-1, eu-west-1] · strict egress=true
          Observed: Served eu-central-1 · storage [eu-central-1, eu-west-1] · egress [eu-central-1]
 
@@ -95,7 +95,7 @@ VERDICT: [CONDITIONAL_GO]  |  NOMINAL: 5/6  |  WAIVED: 1/2  |  NO-GO: 0  |  HARD
 
 $ nominalx fire --url http://127.0.0.1:4040/webhooks/events --config examples/meridian-fintech/nominalx.yaml --out static-fire.json
 ========================================================================================
-NOMINALX · Stage 3: Integration & Cutover · Gate 2 (2 of 3): Static Fire
+NOMINALX · Integration & Cutover · Gate 2: Static Fire · Fault Injection
 Account: Meridian FinTech | Target: http://127.0.0.1:4040/webhooks/events | Fire Attempt #1
 ========================================================================================
 
@@ -105,7 +105,7 @@ Account: Meridian FinTech | Target: http://127.0.0.1:4040/webhooks/events | Fire
   2 of 7  Out-of-Order Events   [NO-GO]      corrupted= 10/10  (100.0%)  p95=2ms
          Observed: 5/5 canceled subscriptions resurrected to 'created' by late v1 event
          Fix:      Enforce monotonic sequence_version guard and terminal state transition checks
-  3 of 7  429 Rate-Limit Burst  [NOMINAL]    corrupted=  0/10  (  0.0%)  p95=2ms
+  3 of 7  429 Rate-Limit Burst  [NOMINAL]    corrupted=  0/10  (  0.0%)  p95=1ms
   4 of 7  30s Upstream Timeout  [NOMINAL]    corrupted=  0/6   (  0.0%)  p95=1ms
   5 of 7  Dual HMAC Rotation    [NO-GO]      corrupted=  4/10  ( 40.0%)  p95=1ms
          Observed: 4/10 dual-HMAC rotation probes failed (staged v2 rejected or forged accepted)
@@ -133,13 +133,13 @@ Patched meridian-fintech on 127.0.0.1:4040 -> applied [idempotency, ordering, du
 
 $ nominalx fire --url http://127.0.0.1:4040/webhooks/events --config examples/meridian-fintech/nominalx.yaml --out static-fire.json
 ========================================================================================
-NOMINALX · Stage 3: Integration & Cutover · Gate 2 (2 of 3): Static Fire
+NOMINALX · Integration & Cutover · Gate 2: Static Fire · Fault Injection
 Account: Meridian FinTech | Target: http://127.0.0.1:4040/webhooks/events | Fire Attempt #2
 ========================================================================================
 
   1 of 7  Duplicate Webhook     [NOMINAL]    corrupted=  0/10  (  0.0%)  p95=12ms
   2 of 7  Out-of-Order Events   [NOMINAL]    corrupted=  0/10  (  0.0%)  p95=1ms
-  3 of 7  429 Rate-Limit Burst  [NOMINAL]    corrupted=  0/10  (  0.0%)  p95=2ms
+  3 of 7  429 Rate-Limit Burst  [NOMINAL]    corrupted=  0/10  (  0.0%)  p95=1ms
   4 of 7  30s Upstream Timeout  [NOMINAL]    corrupted=  0/6   (  0.0%)  p95=1ms
   5 of 7  Dual HMAC Rotation    [NOMINAL]    corrupted=  0/10  (  0.0%)  p95=1ms
   6 of 7  Additive JSON Fields  [NOMINAL]    corrupted=  0/8   (  0.0%)  p95=1ms
@@ -155,29 +155,28 @@ $ nominalx dossier --config examples/meridian-fintech/nominalx.yaml --flight-che
 *NOMINALX GO-LIVE DOSSIER — Meridian FinTech*
 *Verdict:* `NOMINAL WITH WAIVERS` | *Target Go-Live:* `2026-12-01` | *Lead FDE:* `alex.rivera@vendor.io`
 
-*Stage 2 · Gate 1 (1 of 3): Flight Check* — `CONDITIONAL_GO` (5 NOMINAL, 1 WAIVED, 0 NO-GO)
+*Gate 1: Flight Check · Setup Check* — `CONDITIONAL_GO` (5 NOMINAL, 1 WAIVED, 0 NO-GO)
 > AUTH / SSO: `NOMINAL` · RESIDENCY: `NOMINAL` · WEBHOOKS: `NOMINAL` · QUOTA / RATE: `NOMINAL` · ALERTING: `NOMINAL` · ROLLBACK: `HOLD_WAIVED`
 
-*Stage 3 · Gate 2 (2 of 3): Static Fire* — Grade `A` · `0.0%` corruption (`7/7` vectors)
+*Gate 2: Static Fire · Fault Injection* — Grade `A` · `0.0%` corruption (`7/7` vectors)
 > Progression: #1 37.1% (F) -> #2 0.0% (A)
 
-*Stage 4 · Gate 3 (3 of 3): Crew Drill* — `3/3` alarms stabilized
+*Gate 3: Crew Drill · Live Incident Drill* — `3/3` alarms stabilized
 > Splits: 1 of 3 `24.6s` · 2 of 3 `19.2s` · 3 of 3 `15.8s`
 
-*Active Operational Waivers (1/2 cap; Hard Stops AUTH / SSO & RESIDENCY non-waivable):*
+*Active Operational Waivers (1/2 cap; Hard Stops AUTH / SSO, RESIDENCY non-waivable):*
 > • `ROLLBACK` | Owner: `maya.chen@meridian.example` | Expires: `2026-12-15` (24d left, `HEALTHY`) | Rollback: Run scripts/dns-failover.sh --cluster eu-central-v18 to revert traffic within 9 minutes.
 
 *Signers:* Lead FDE `alex.rivera@vendor.io` · Lead CSE `priya.nair@vendor.io` · Customer Eng Lead `maya.chen@meridian.example`
-*Stage 5 Support Handover:* Day-1 Runbook tailored for `aws` / `okta-saml` / `node-express` -> `sre-tier3@vendor.io`
-*SHA-256 Digest:* `sha256:c9c5f319b1eef661a43e638b04a5f0db4a7c408b5ac6a05c76bf3ce39ba6e8a4`
+*Live Support Handover:* Day-1 Runbook tailored for `aws` / `okta-saml` / `node-express` -> `sre-tier3@vendor.io`
+*SHA-256 Digest:* `sha256:9d46e08f6dd679565fd45f16d2d841edc4a187859b0435af905a2dec6a6961d2`
 # exit code: 0
 
 $ nominalx report --config examples/meridian-fintech/nominalx.yaml --type ops --format slack --flight-check flight-check.json --static-fire static-fire.json
 *Operational Sprint & Blocker Digest — Meridian FinTech*
-*Stage:* Stage 4: Day-30 Enablement & Handover · *Gate:* Handover Sprint: Signed NOMINAL Dossier & Day-1 Runbook · *Owner:* `Lead FDE + Lead CSE` · *Verdict:* `CONDITIONAL_GO`
+*Phase:* Gate 3: Crew Drill · Live Incident Drill · *Gate:* Handover Sprint: Signed NOMINAL Dossier & Day-1 Runbook · *Owner:* `Lead FDE + Lead CSE` · *Verdict:* `CONDITIONAL_GO`
 
 *Gate 1 Non-Nominal Stations (1):*
 > • 6 of 6 `ROLLBACK` [HOLD_WAIVED] (OPERATIONAL WAIVER) — Cut automated blue/green rollback RTO from 11m to <= 5m, or document a bounded Operational Waiver with verified manual failover.
-*Digest:* `sha256:400bd5670f61b11b1471de95f4b3faccacb8cee3ed3a6a65ce9e119a258bf191`
+*Digest:* `sha256:ff7b7d42bbc4b2780e68c4198e9d9b99727077029a40b5e284e5c7acf6df6b1e`
 # exit code: 0
-

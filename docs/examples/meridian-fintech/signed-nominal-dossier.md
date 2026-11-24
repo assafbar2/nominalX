@@ -1,18 +1,18 @@
 # NominalX Signed Flight Readiness Dossier — Meridian FinTech
 
-> **Verdict:** `NOMINAL WITH WAIVERS` | **Master Launch State:** `CONDITIONAL_GO` | **Verification Digest:** `sha256:8f640d3389acf9e58f9c14f9426aec14aee6eaaf95260e0e7c45294db6b193c1`
+> **Verdict:** `NOMINAL WITH WAIVERS` | **Master Launch State:** `CONDITIONAL_GO` | **Verification Digest:** `sha256:7608b6c86a41274b10b204d1d6cd547934c5595b15251a951f216283f90ccfea`
 
 ## Handover Sprint Sign-Off Block
 
 | Role | Named Engineer | Lifecycle Baton |
 |---|---|---|
-| Single Accountable Owner (Lead FDE) | `alex.rivera@vendor.io` | Stage 2 (Gate 1), Stage 3 (Gate 2), Handover Sprint |
-| Co-Signer (Lead CSE) | `priya.nair@vendor.io` | Stage 4 (Gate 3: Crew Drill) |
+| Single Accountable Owner (Lead FDE) | `alex.rivera@vendor.io` | Gate 1 (Flight Check), Gate 2 (Static Fire), Handover Sprint |
+| Co-Signer (Lead CSE) | `priya.nair@vendor.io` | Gate 3 (Crew Drill · Live Incident Drill) |
 | Co-Signer (Customer Engineering Lead) | `maya.chen@meridian.example` | Customer Production Sign-Off |
-| Receiving Owner (Support Engineer) | `sre-tier3@vendor.io` | Stage 5: Support (Day-1 Runbook) |
-| Signed At | `2026-11-21T06:19:47.470Z` | Target Go-Live: `2026-12-01` |
+| Receiving Owner (Support Engineer) | `sre-tier3@vendor.io` | Live Support (Day-1 Runbook) |
+| Signed At | `2026-11-24T13:23:32.752Z` | Target Go-Live: `2026-12-01` |
 
-## Stage 2: Sales-to-FDE Handoff — Gate 1 (1 of 3): Flight Check
+## Gate 1: Flight Check · Setup Check (Sales-to-FDE Handoff)
 
 | Sub-Stage | Station | Policy Class | Owner | Sold | Observed | Status |
 |---|---|---|---|---|---|---|
@@ -29,7 +29,7 @@
 |---|---|---|---|---|---|---|
 | `ROLLBACK` | `maya.chen@meridian.example` | `2026-12-15` | 24d | `HEALTHY` | Automated blue/green ArgoCD cutover ships Sprint 24; verified manual DNS failover active. | Run scripts/dns-failover.sh --cluster eu-central-v18 to revert traffic within 9 minutes. |
 
-## Stage 3: Integration & Cutover — Gate 2 (2 of 3): Static Fire
+## Gate 2: Static Fire · Fault Injection (Integration & Cutover)
 
 **Resilience Grade:** `A` | **Corruption:** `0.0%` | **Vectors Passed:** `7/7` | **Attempt:** `#2`
 
@@ -45,7 +45,7 @@
 | 6 of 7 | Additive / unknown JSON fields | 8 | 0 | 0.0% | **NOMINAL** |
 | 7 of 7 | 5-minute clock skew | 8 | 0 | 0.0% | **NOMINAL** |
 
-## Stage 4: Day-30 Enablement & Handover — Gate 3 (3 of 3): Crew Drill
+## Gate 3: Crew Drill · Live Incident Drill (Day-30 Enablement & Handover)
 
 **Stabilized:** `3/3` | **Overtime Flags:** `0` | **Total Split:** `59.6s`
 
@@ -55,7 +55,7 @@
 | 2 of 3 | SSO certificate expiring within 24 hours | `19.2s` | **STABILIZED** | 200 NOMINAL · staged cert SHA256:4D:88:C1:92:FA:11 promoted in dual-cert grace mode · live SSO handshake verified (TTL 365d) |
 | 3 of 3 | P1 alerts routing to a dead/archived channel | `15.8s` | **STABILIZED** | 200 OK · P1 alert route rebound to #eng-meridian-p1 · synthetic X-NominalX-Probe ping acknowledged |
 
-## Stack-Tailored Day-1 Customer Runbook (Into Stage 5: Support)
+## Stack-Tailored Day-1 Customer Runbook (Into Live Support)
 
 - **Stack:** Cloud `aws` · IdP `okta-saml` · Alerting `pagerduty+slack` · Runtime `node-express`
 - **Verified Baselines:** Auth `SAML2` · Regions `[eu-central-1, eu-west-1]` · Quota `50,000 RPS` · P1 `#eng-meridian-p1` · Max RTO `5m`
@@ -63,7 +63,7 @@
 ### 1. Support Day-1 Drift Detection & Contract Re-Verification
 *Owner:* Support Engineer + Customer On-Call SRE
 
-Re-verify all 6 Gate 1 stations (Hard Stops: AUTH / SSO on okta-saml, RESIDENCY in [eu-central-1, eu-west-1]) in one deterministic command.
+Re-verify all 6 Gate 1 stations (Hard Stops: AUTH / SSO, RESIDENCY) in one deterministic command.
 
 ```bash
 nominalx check ./nominalx.yaml
@@ -84,14 +84,14 @@ export NOMINALX_WEBHOOK_SECRET_NEXT="<new_staged_secret>"
 nominalx fire --url http://127.0.0.1:4040/webhooks/events --config ./nominalx.yaml
 ```
 
-- Verify Gate 2 Sub-Stage 5 of 7 (Dual HMAC secret rotation) passes with 0% drop across v1 + v2 keys.
+- Verify Gate 2 Vector 5 of 7 (Dual HMAC secret rotation) passes with 0% drop across v1 + v2 keys.
 - Verify forged signatures still return 401/403 and stale -15m replay probes are rejected.
 - Decommission prior v1 key only after 100% traffic signs with v2.
 
 ### 3. SSO Certificate Rotation (okta-saml)
 *Owner:* Customer Security Engineer + On-Call SRE
 
-Promote staged X.509 signing certificate in dual-cert grace mode whenever TTL approaches 30d (rehearsed in Gate 3 Sub-Stage 2 of 3).
+Promote staged X.509 signing certificate in dual-cert grace mode whenever TTL approaches 30d (rehearsed in Gate 3 Drill 2 of 3).
 
 ```bash
 curl -fsS http://127.0.0.1:4040/sso/metadata
@@ -143,9 +143,9 @@ nominalx check examples/meridian-fintech/nominalx.yaml
 ## Scope Governance Boundaries
 
 **In-Scope Verified:**
-- Stage 2 · Gate 1 (1 of 3): Flight Check — 6/6 stations diffed Sold vs. Observed
-- Stage 3 · Gate 2 (2 of 3): Static Fire — 7/7 real-world failure scenarios verified deterministically
-- Stage 4 · Gate 3 (3 of 3): Crew Drill — 3/3 live timed operational alarms verified
+- Gate 1: Flight Check · Setup Check — 6/6 stations diffed Sold vs. Observed
+- Gate 2: Static Fire · Fault Injection — 7/7 real-world failure scenarios verified deterministically
+- Gate 3: Crew Drill · Live Incident Drill — 3/3 live timed operational alarms verified
 - Handover Sprint — Tamper-evident (SHA-256 signed) launch dossier & stack-tailored Day-1 Runbook
 
 **Explicitly Out-of-Scope:**

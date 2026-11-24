@@ -72,7 +72,7 @@ const DELIVERABLE_META: readonly DeliverableMeta[] = [
     title: "Handover Dossier",
     shortLabel: "Handover Dossier",
     whoReadsIt: "Lead FDE, Lead CSE, Support Engineers & Customer Eng Lead",
-    whenToSend: "At Stage 4 -> 5 sign-off before FDE roll-off",
+    whenToSend: "At Gate 3 -> Live Support sign-off before FDE roll-off",
     helpKey: "deliverables.tab.dossier",
     filenameSlug: "handover-dossier",
   },
@@ -1043,7 +1043,7 @@ export function ReportsDossierHub({
           <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", flexWrap: "wrap", gap: 10 }}>
             <div>
               <span className="help-inline">
-                <span className="eyebrow">AUTO-GENERATED STAGE 5 SUPPORT &amp; SRE HANDOFF</span>
+                <span className="eyebrow">AUTO-GENERATED LIVE SUPPORT &amp; SRE HANDOFF</span>
                 <HelpTip copyKey="reports.dossier.runbook" />
               </span>
               <h3 style={{ margin: "3px 0 0", fontSize: "1.35rem", fontWeight: 800 }}>

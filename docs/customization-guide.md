@@ -4,7 +4,7 @@ Every technical product has its own non-negotiable security boundaries, protocol
 
 All customizations are 100% optional and backward-compatible with existing `schema_version: "1.0"` contracts.
 
-## 1. Gate 1 (1 of 3): Custom Flight Check Stations (`custom_stations`)
+## 1. Gate 1: Custom Flight Check · Setup Check Stations (`custom_stations`)
 
 Declare product-specific HTTP telemetry checks alongside the 6 built-in stations (`AUTH / SSO`, `RESIDENCY`, `WEBHOOKS`, `QUOTA / RATE`, `ALERTING`, `ROLLBACK`).
 
@@ -34,7 +34,7 @@ custom_stations:
 
 When `nominalx check` executes, it probes every custom station live over HTTP, verifies `expected_status`, `required_header`, and/or `required_json_field`, captures raw header/body failure evidence, and dynamically numbers all stations `1 of N` through `N of N`.
 
-## 2. Gate 2 (2 of 3): Chaos Overrides & Custom Vectors (`chaos_overrides`, `custom_vectors`)
+## 2. Gate 2: Static Fire · Fault Injection Overrides & Custom Vectors (`chaos_overrides`, `custom_vectors`)
 
 Disable built-in chaos vectors that do not apply to a product and add custom adversarial HTTP probes. Enabled built-ins plus custom vectors are numbered `1 of N` through `N of N` and rolled deterministically into overall corruption `%` and Resilience Grade (`A`–`F`).
 
@@ -64,7 +64,7 @@ custom_vectors:
       - "+ const key = assertValidIdempotencyKey(req.body.idempotency_key); // returns 400 on malformed"
 ```
 
-## 3. Gate 3 (3 of 3): Custom Day-30 Crew Drill Alarms (`disabled_alarms`, `custom_alarms`)
+## 3. Gate 3: Custom Crew Drill · Live Incident Drill Alarms (`disabled_alarms`, `custom_alarms`)
 
 Disable built-in alarms or declare product-specific timed P1 drills. Custom alarms are immediately playable in the browser cockpit's Crew Drill console and flow into the Signed `NOMINAL` Dossier and Day-1 Runbook.
 

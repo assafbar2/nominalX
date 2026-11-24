@@ -182,9 +182,9 @@ export function createCrewDrillState(input: {
 
   return {
     gateNumber: 3,
-    gateLabel: "Gate 3 (3 of 3): Crew Drill",
+    gateLabel: "Gate 3: Crew Drill · Live Incident Drill",
     stageNumber: 4,
-    stageLabel: "Stage 4: Day-30 Enablement & Handover",
+    stageLabel: "Day-30 Enablement & Handover",
     accountId: input.accountId,
     accountName: input.accountName,
     accountableOwner: input.accountableOwner,
@@ -475,9 +475,9 @@ export function summarizeCrewDrill(
 
   return {
     gateNumber: 3,
-    gateLabel: "Gate 3 (3 of 3): Crew Drill",
+    gateLabel: "Gate 3: Crew Drill · Live Incident Drill",
     stageNumber: 4,
-    stageLabel: "Stage 4: Day-30 Enablement & Handover",
+    stageLabel: "Day-30 Enablement & Handover",
     accountId: state.accountId,
     accountName: state.accountName,
     accountableOwner: state.accountableOwner,

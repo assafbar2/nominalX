@@ -2,20 +2,20 @@
 
 > *Sales says the account is green. Nothing is nominal until telemetry proves it.*
 
-## The Lifecycle Opportunity (Stages 2 → 4)
+## The Lifecycle Opportunity (The In-Between Gap: Gates 1 → 3)
 
 ```text
-[1. Deal Close] -> [2. Sales-to-FDE Handoff] -> [3. Integration & Cutover] -> [4. Day-30 Enablement] -> [5. Support] -> [6. Renewal]
-                            \____________________________  ____________________________/
-                                                         \/
-                                          The unverified gap (Stages 2 -> 4)
+[Deal Close] -> [Gate 1: Flight Check] -> [Gate 2: Static Fire] -> [Gate 3: Crew Drill] -> [Support] -> [Renewal & Expansion]
+                      \___________________________  ___________________________/
+                                                  \/
+                        The Unverified Gap — Between Deal Close & Live Operations
 ```
 
-Most customer-facing software lives at the two edges of the lifecycle: pre-sales CRM at Stage 1, or reactive support ticketing at Stage 5. Almost nothing executable or verifiable sits in **Stages 2 → 4**, where signed enterprise bookings actually turn into resilient production ARR:
+Most customer-facing software lives at the two bookends of the lifecycle: pre-sales CRM at **Deal Close**, or reactive ticketing in live **Support** and **Renewal & Expansion**. Almost nothing executable or verifiable sits in the missing in-between stages — **`Gate 1`**, **`Gate 2`**, and **`Gate 3`** — where signed enterprise bookings actually turn into resilient production ARR:
 
-- **Stage 2 — Sales-to-FDE handoff:** What was promised during discovery (EU residency, SAML SSO, 50k RPS, rollback plan) routinely collides with what actually exists inside the customer's environment on Day 1.
-- **Stage 3 — Integration & cutover:** Go-lives are still tracked in 90-row spreadsheets where "staging looked fine" hides missing HMAC verification, double-writes on duplicate webhooks, 429 retry storms, and silent region leaks.
-- **Stage 4 — Customer enablement & handover:** Enablement defaults to slide decks and multiple-choice quizzes that evaporate during the customer's first real 2 a.m. incident.
+- **Gate 1 — `Flight Check · Setup Check` (Sales-to-FDE Handoff):** What was promised during discovery (EU residency, SAML SSO, 50k RPS, rollback plan) routinely collides with what actually exists inside the customer's environment on Day 1.
+- **Gate 2 — `Static Fire · Fault Injection` (Integration & Cutover):** Go-lives are still tracked in 90-row spreadsheets where "staging looked fine" hides missing HMAC verification, double-writes on duplicate webhooks, 429 retry storms, and silent region leaks.
+- **Gate 3 — `Crew Drill · Live Incident Drill` (Day-30 Enablement & Handover):** Enablement defaults to slide decks and multiple-choice quizzes that evaporate during the customer's first real 2 a.m. incident.
 
 **NominalX** replaces the spreadsheet and the slide deck with an executable three-gate flight-readiness system.
 

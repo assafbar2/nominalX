@@ -128,9 +128,9 @@ async function resolveArtifactsForReporting(
     } else {
       gate3 = {
         gateNumber: 3,
-        gateLabel: "Gate 3 (3 of 3): Crew Drill",
+        gateLabel: "Gate 3: Crew Drill · Live Incident Drill",
         stageNumber: 4,
-        stageLabel: "Stage 4: Day-30 Enablement & Handover",
+        stageLabel: "Day-30 Enablement & Handover",
         accountId: config.account.id,
         accountName: config.account.name,
         accountableOwner: config.account.cse_owner,
@@ -167,7 +167,7 @@ export function createCliProgram(): Command {
   program
     .command("check")
     .description(
-      "Gate 1 (1 of 3): Flight Check — diff Sold contract vs. Observed staging telemetry across 6 stations",
+      "Gate 1: Flight Check · Setup Check — diff Sold contract vs. Observed staging telemetry across 6 stations",
     )
     .argument("<config>", "Path to nominalx.yaml contract config")
     .option("--json", "Emit machine-readable JSON to stdout", false)
@@ -203,7 +203,7 @@ export function createCliProgram(): Command {
   program
     .command("fire")
     .description(
-      "Gate 2 (2 of 3): Static Fire — run 7 realistic failure scenarios against staging and grade resilience (A-F)",
+      "Gate 2: Static Fire · Fault Injection — run 7 realistic failure scenarios against staging and grade resilience (A-F)",
     )
     .requiredOption("--url <url>", "Target staging webhook/API URL")
     .requiredOption("--config <config>", "Path to nominalx.yaml contract config")

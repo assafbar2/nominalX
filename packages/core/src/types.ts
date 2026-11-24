@@ -491,9 +491,9 @@ export interface StationResult {
 
 export interface FlightCheckResult {
   gateNumber: 1;
-  gateLabel: "Gate 1 (1 of 3): Flight Check";
+  gateLabel: "Gate 1: Flight Check · Setup Check";
   stageNumber: 2;
-  stageLabel: "Stage 2: Sales-to-FDE Handoff";
+  stageLabel: "Sales-to-FDE Handoff";
   accountId: string;
   accountName: string;
   evaluatedAt: string;
@@ -558,9 +558,9 @@ export interface FireAttemptSummary {
 
 export interface StaticFireResult {
   gateNumber: 2;
-  gateLabel: "Gate 2 (2 of 3): Static Fire";
+  gateLabel: "Gate 2: Static Fire · Fault Injection";
   stageNumber: 3;
-  stageLabel: "Stage 3: Integration & Cutover";
+  stageLabel: "Integration & Cutover";
   accountId: string;
   accountName: string;
   targetUrl: string;
@@ -654,9 +654,9 @@ export interface CrewAlarmState {
 
 export interface CrewDrillMachineState {
   gateNumber: 3;
-  gateLabel: "Gate 3 (3 of 3): Crew Drill";
+  gateLabel: "Gate 3: Crew Drill · Live Incident Drill";
   stageNumber: 4;
-  stageLabel: "Stage 4: Day-30 Enablement & Handover";
+  stageLabel: "Day-30 Enablement & Handover";
   accountId: string;
   accountName: string;
   accountableOwner: string;
@@ -682,9 +682,9 @@ export interface CrewAlarmSummary {
 
 export interface CrewDrillResult {
   gateNumber: 3;
-  gateLabel: "Gate 3 (3 of 3): Crew Drill";
+  gateLabel: "Gate 3: Crew Drill · Live Incident Drill";
   stageNumber: 4;
-  stageLabel: "Stage 4: Day-30 Enablement & Handover";
+  stageLabel: "Day-30 Enablement & Handover";
   accountId: string;
   accountName: string;
   accountableOwner: string;

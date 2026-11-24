@@ -92,10 +92,10 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
   {
     stageNumber: 1,
     stageName: "Deal Close",
-    displayTitle: "Stage 1: Deal Close",
+    displayTitle: "Deal Close",
     shortTitle: "Deal Close",
     inUnverifiedGap: false,
-    sprintLabel: "Pre-Gap Contract Seed",
+    sprintLabel: "CRM Handoff · Before Launch Readiness",
     goal: "Capture signed technical commitments in a validated nominalx.yaml contract seed before engineering handoff.",
     singleAccountableOwner: "Lead Solutions Engineer (SE / SA)",
     vendorEngineers: [
@@ -140,11 +140,11 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
   {
     stageNumber: 2,
     stageName: "Sales-to-FDE Handoff",
-    displayTitle: "Stage 2: Sales-to-FDE Handoff",
-    shortTitle: "Sales -> FDE",
+    displayTitle: "Gate 1: Flight Check · Setup Check",
+    shortTitle: "Gate 1 · Flight Check",
     inUnverifiedGap: true,
     gateNumber: 1,
-    gateLabel: "Gate 1 (1 of 3): Flight Check",
+    gateLabel: "Gate 1: Flight Check · Setup Check",
     sprintLabel: "Sprint 1",
     goal: "Diff What Sales Sold against What Exists in Customer Staging across 6 parallel telemetry stations.",
     singleAccountableOwner: "Lead Forward-Deployed Engineer (FDE)",
@@ -178,7 +178,7 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
       "nominalx check CLI / Mission Control Flight Check board",
     ],
     timeBox: "1 short engineering sprint (2-3 working sessions; all 6 stations in parallel)",
-    trigger: "Stage 1 nominalx.yaml handoff packet published and schema-validated.",
+    trigger: "Deal Close nominalx.yaml handoff packet published and schema-validated.",
     inScope: [
       "Live deterministic telemetry probes across 1 of 6 (AUTH / SSO) through 6 of 6 (ROLLBACK)",
       "Strict Sold vs. Observed contract diffing with raw HTTP/header evidence",
@@ -202,11 +202,11 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
   {
     stageNumber: 3,
     stageName: "Integration & Cutover",
-    displayTitle: "Stage 3: Integration & Cutover",
-    shortTitle: "Integration",
+    displayTitle: "Gate 2: Static Fire · Fault Injection",
+    shortTitle: "Gate 2 · Static Fire",
     inUnverifiedGap: true,
     gateNumber: 2,
-    gateLabel: "Gate 2 (2 of 3): Static Fire",
+    gateLabel: "Gate 2: Static Fire · Fault Injection",
     sprintLabel: "Sprint 2",
     goal: "Run 7 realistic failure scenarios against staging (duplicates, out-of-order events, bursts, timeouts, secret rotation, new JSON fields, and clock drift), fix where it breaks, and re-run until zero records are lost or corrupted (0.0%, Grade A).",
     singleAccountableOwner: "Lead Forward-Deployed Engineer (FDE)",
@@ -231,7 +231,7 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
       "nominalx fire automated 7-scenario failure runner",
     ],
     timeBox: "1 short engineering sprint (tight 15-30 min fire -> patch -> re-fire loops)",
-    trigger: "Gate 1 (1 of 3): Flight Check clears with zero NO-GO stations.",
+    trigger: "Gate 1: Flight Check · Setup Check clears with zero NO-GO stations.",
     inScope: [
       "Automated verification of 7 real-world failure scenarios (1 of 7 through 7 of 7)",
       "Live handler patching, config diffs, and multi-attempt before/after corruption telemetry",
@@ -254,11 +254,11 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
   {
     stageNumber: 4,
     stageName: "Day-30 Enablement & Handover",
-    displayTitle: "Stage 4: Day-30 Enablement & Handover",
-    shortTitle: "Enablement",
+    displayTitle: "Gate 3: Crew Drill · Live Incident Drill",
+    shortTitle: "Gate 3 · Crew Drill",
     inUnverifiedGap: true,
     gateNumber: 3,
-    gateLabel: "Gate 3 (3 of 3): Crew Drill + Handover Sprint",
+    gateLabel: "Gate 3: Crew Drill · Live Incident Drill + Handover Sprint",
     sprintLabel: "Sprint 3 & Handover Sprint",
     goal: "Prove customer on-call engineers can stabilize 3 live Day-30 alarms under a 90s clock, then generate a tamper-evident (SHA-256 signed) NOMINAL Dossier and stack-tailored Day-1 Runbook.",
     singleAccountableOwner: "Lead Customer Success Engineer (CSE)",
@@ -310,10 +310,10 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
   {
     stageNumber: 5,
     stageName: "Support",
-    displayTitle: "Stage 5: Support",
+    displayTitle: "Support",
     shortTitle: "Support",
     inUnverifiedGap: false,
-    sprintLabel: "Post-Gap Operations",
+    sprintLabel: "Live Operations",
     goal: "Operate production SLAs from verified Day-1 telemetry baselines and close every Gate 1 Operational Waiver before expiry.",
     singleAccountableOwner: "Assigned Lead Support Engineer",
     vendorEngineers: [
@@ -358,11 +358,11 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
   {
     stageNumber: 6,
     stageName: "Renewal & Expansion",
-    displayTitle: "Stage 6: Renewal & Expansion",
-    shortTitle: "Renewal",
+    displayTitle: "Renewal & Expansion",
+    shortTitle: "Renewal & Expansion",
     inUnverifiedGap: false,
-    sprintLabel: "Post-Gap Growth",
-    goal: "Anchor renewal on longitudinal resilience telemetry and seed every expansion workload directly back into Stage 1 -> Gate 1.",
+    sprintLabel: "Customer Growth",
+    goal: "Anchor renewal on longitudinal resilience telemetry and seed every expansion workload directly back into Deal Close -> Gate 1.",
     singleAccountableOwner: "Technical Account Manager (TAM)",
     vendorEngineers: [
       "Technical Account Manager (TAM)",
@@ -387,7 +387,7 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
     inScope: [
       "Diffing longitudinal signed JSON dossiers across quarters to prove sustained resilience",
       "Reviewing zero-waiver closure discipline and incident MTTR improvements",
-      "Seeding new region/RPS expansion contracts into a fresh Stage 1 nominalx.yaml",
+      "Seeding new region/RPS expansion contracts into a fresh Deal Close nominalx.yaml",
     ],
     outOfScope: [
       "Qualitative health scores unsupported by production telemetry",
@@ -396,10 +396,10 @@ export const LIFECYCLE_STAGES: readonly StageMetadata[] = [
     definitionOfDone: [
       "Executive Readiness Report shared with Customer Engineering Leadership",
       "Zero unresolved waivers remain prior to renewal lock",
-      "Any expansion workload is seeded as a schema-valid Stage 1 nominalx.yaml",
+      "Any expansion workload is seeded as a schema-valid Deal Close nominalx.yaml",
     ],
     hardStops: [
-      "Expansion into new residency regions requires a fresh Stage 2 Gate 1 RESIDENCY pass",
+      "Expansion into new residency regions requires a fresh Gate 1 RESIDENCY pass",
     ],
   },
 ];
@@ -423,7 +423,7 @@ export const GATE1_SUB_STAGES: readonly Gate1SubStageMetadata[] = [
       "TLS / X.509 certificate probe",
     ],
     timeBox: "<= 1 working session",
-    trigger: "Gate 1 (1 of 3): Flight Check sprint kickoff",
+    trigger: "Gate 1: Flight Check · Setup Check sprint kickoff",
     inScope: [
       "Protocol match (saml2 or oidc) against sold_contract.auth",
       "MFA enforcement verification and unsigned assertion rejection",
@@ -459,7 +459,7 @@ export const GATE1_SUB_STAGES: readonly Gate1SubStageMetadata[] = [
       "Staging health/region and egress probe endpoints",
     ],
     timeBox: "<= 1 working session",
-    trigger: "Gate 1 (1 of 3): Flight Check sprint kickoff",
+    trigger: "Gate 1: Flight Check · Setup Check sprint kickoff",
     inScope: [
       "X-Served-Region response header inspection",
       "Storage region, egress hop, and DNS target allowlist verification",
@@ -496,7 +496,7 @@ export const GATE1_SUB_STAGES: readonly Gate1SubStageMetadata[] = [
       "Signed, unsigned, and tampered probe payloads",
     ],
     timeBox: "<= 1 working session",
-    trigger: "Gate 1 (1 of 3): Flight Check sprint kickoff",
+    trigger: "Gate 1: Flight Check · Setup Check sprint kickoff",
     inScope: [
       "Unsigned and tampered signature rejection (401/403)",
       "Valid current HMAC signature acceptance (2xx)",
@@ -529,7 +529,7 @@ export const GATE1_SUB_STAGES: readonly Gate1SubStageMetadata[] = [
       "Quota status endpoint and controlled burst probe",
     ],
     timeBox: "<= 1 working session",
-    trigger: "Gate 1 (1 of 3): Flight Check sprint kickoff",
+    trigger: "Gate 1: Flight Check · Setup Check sprint kickoff",
     inScope: [
       "Provisioned RPS >= sold_contract.quota.guaranteed_rps",
       "429 Too Many Requests returns valid Retry-After backoff header",
@@ -562,7 +562,7 @@ export const GATE1_SUB_STAGES: readonly Gate1SubStageMetadata[] = [
       "Synthetic probe header (X-NominalX-Probe: true)",
     ],
     timeBox: "<= 30 min",
-    trigger: "Gate 1 (1 of 3): Flight Check sprint kickoff",
+    trigger: "Gate 1: Flight Check · Setup Check sprint kickoff",
     inScope: [
       "Live dry-run alert delivery to active channel (2xx)",
       "ACK latency within sold_contract.alerting.max_ack_ms",
@@ -598,7 +598,7 @@ export const GATE1_SUB_STAGES: readonly Gate1SubStageMetadata[] = [
       "Staging rollback dry-run endpoint & versioned artifact",
     ],
     timeBox: "<= 1 working session",
-    trigger: "Gate 1 (1 of 3): Flight Check sprint kickoff",
+    trigger: "Gate 1: Flight Check · Setup Check sprint kickoff",
     inScope: [
       "Dry-run rollback execution and artifact version verification",
       "Observed RTO <= sold_contract.rollback.max_rto_minutes",
@@ -628,7 +628,7 @@ export const GATE2_SUB_STAGES: readonly Gate2SubStageMetadata[] = [
     integrations: [INTEGRATIONS_CATALOG.hmacWebhookGateway],
     resources: ["Staging webhook endpoint", "nominalx fire replay burst"],
     timeBox: "1 patch/re-fire loop (<= 30 min)",
-    trigger: "Gate 2 (2 of 3): Static Fire run triggered",
+    trigger: "Gate 2: Static Fire · Fault Injection run triggered",
     inScope: ["Concurrent & sequential identical event_id replay verification"],
     outOfScope: ["Cross-tenant semantic deduplication beyond event_id"],
     definitionOfDone: [
@@ -651,7 +651,7 @@ export const GATE2_SUB_STAGES: readonly Gate2SubStageMetadata[] = [
     integrations: [INTEGRATIONS_CATALOG.hmacWebhookGateway],
     resources: ["Ordered state-transition probe (v2 canceled then v1 created)"],
     timeBox: "1 patch/re-fire loop (<= 30 min)",
-    trigger: "Gate 2 (2 of 3): Static Fire run triggered",
+    trigger: "Gate 2: Static Fire · Fault Injection run triggered",
     inScope: ["Monotonic version / terminal-state guard verification"],
     outOfScope: ["Global distributed total ordering across unrelated entities"],
     definitionOfDone: [
@@ -677,7 +677,7 @@ export const GATE2_SUB_STAGES: readonly Gate2SubStageMetadata[] = [
     integrations: [INTEGRATIONS_CATALOG.rateLimitGateway],
     resources: ["429 + Retry-After burst probe", "Packet telemetry plot"],
     timeBox: "1 patch/re-fire loop (<= 30 min)",
-    trigger: "Gate 2 (2 of 3): Static Fire run triggered",
+    trigger: "Gate 2: Static Fire · Fault Injection run triggered",
     inScope: ["Retry-After header emission and bounded backoff/jitter verification"],
     outOfScope: ["DDoS edge mitigation tuning"],
     definitionOfDone: [
@@ -703,7 +703,7 @@ export const GATE2_SUB_STAGES: readonly Gate2SubStageMetadata[] = [
     integrations: [INTEGRATIONS_CATALOG.hmacWebhookGateway],
     resources: ["30s stalled upstream probe", "Worker pool & DLQ telemetry"],
     timeBox: "1 patch/re-fire loop (<= 30 min)",
-    trigger: "Gate 2 (2 of 3): Static Fire run triggered",
+    trigger: "Gate 2: Static Fire · Fault Injection run triggered",
     inScope: ["Bounded request deadline abort, worker release, and DLQ handoff"],
     outOfScope: ["Full database failover testing"],
     definitionOfDone: [
@@ -729,7 +729,7 @@ export const GATE2_SUB_STAGES: readonly Gate2SubStageMetadata[] = [
     integrations: [INTEGRATIONS_CATALOG.hmacWebhookGateway],
     resources: ["Active v1 + staged v2 HMAC secrets", "Split-signature stream"],
     timeBox: "1 patch/re-fire loop (<= 30 min)",
-    trigger: "Gate 2 (2 of 3): Static Fire run triggered",
+    trigger: "Gate 2: Static Fire · Fault Injection run triggered",
     inScope: ["Simultaneous v1/v2 acceptance and constant-time forged signature rejection"],
     outOfScope: ["Secret vault provisioning automation (AWS Secrets Manager / Vault)"],
     definitionOfDone: [
@@ -752,7 +752,7 @@ export const GATE2_SUB_STAGES: readonly Gate2SubStageMetadata[] = [
     integrations: [INTEGRATIONS_CATALOG.hmacWebhookGateway],
     resources: ["Additive-field test payloads"],
     timeBox: "1 patch/re-fire loop (<= 30 min)",
-    trigger: "Gate 2 (2 of 3): Static Fire run triggered",
+    trigger: "Gate 2: Static Fire · Fault Injection run triggered",
     inScope: ["Unknown top-level and nested property tolerance on webhook deserialization"],
     outOfScope: ["Breaking type changes on existing documented fields"],
     definitionOfDone: [
@@ -778,7 +778,7 @@ export const GATE2_SUB_STAGES: readonly Gate2SubStageMetadata[] = [
     integrations: [INTEGRATIONS_CATALOG.hmacWebhookGateway],
     resources: ["Signed probes at now +- 5m + stale replay control at now - 15m"],
     timeBox: "1 patch/re-fire loop (<= 30 min)",
-    trigger: "Gate 2 (2 of 3): Static Fire run triggered",
+    trigger: "Gate 2: Static Fire · Fault Injection run triggered",
     inScope: ["Bounded +-300s replay window validation against signed X-NominalX-Timestamp"],
     outOfScope: ["Host NTP daemon configuration"],
     definitionOfDone: [
@@ -875,7 +875,7 @@ export const GATE3_SUB_STAGES: readonly Gate3SubStageMetadata[] = [
 
 export const HANDOVER_SPRINT_METADATA: HandoverSprintMetadata = {
   sprintName: "Handover Sprint: Signed NOMINAL Dossier & Tailored Day-1 Runbook",
-  stageLabel: "Stage 4 -> Stage 5 Handover",
+  stageLabel: "Gate 3 -> Live Support Handover",
   goal: "Generate a tamper-evident (SHA-256 signed) launch readiness dossier recording every passed check, active waiver, failure-test grade, and drill time, paired with a Day-1 Runbook tailored to the customer's exact stack, endpoints, and alert channels.",
   singleAccountableOwner: "Lead Forward-Deployed Engineer (FDE)",
   coSigners: [

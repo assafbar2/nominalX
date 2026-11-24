@@ -46,7 +46,7 @@ export const HELP_COPY = {
   "header.tour": {
     tag: "GUIDED WALKTHROUGH",
     title: "Replay Interactive Cockpit Tour",
-    body: "Restarts the guided walkthrough from Step 1, spotlighting Live Customer Readiness, Stages 1–6, Gate 1 (Setup Check), Gate 2 (Fault Injection), Gate 3 (Live Incident Drill), the Reporting Hub, and the live nominalx.yaml Customizer.",
+    body: "Restarts the guided walkthrough from Step 1, spotlighting Live Customer Readiness across Deal Close, Gate 1 (Setup Check), Gate 2 (Fault Injection), Gate 3 (Live Incident Drill), Support & Renewal, the Reporting Hub, and the live nominalx.yaml Customizer.",
   },
   "header.launchpad": {
     tag: "START HERE",
@@ -77,18 +77,18 @@ export const HELP_COPY = {
   },
   "launchpad.gate1": {
     tag: "GATE 1 · SETUP CHECK",
-    title: "Flight Check · Setup Check (Stage 2)",
-    body: "Owned by the Lead FDE. Proves customer staging actually matches what Sales sold across security, residency, integrations, quotas, alerting, and rollback before integration testing starts.",
+    title: "Gate 1: Flight Check · Setup Check",
+    body: "Owned by the Lead FDE (Sales-to-FDE Handoff). Proves customer staging actually matches what Sales sold across security, residency, integrations, quotas, alerting, and rollback before integration testing starts.",
   },
   "launchpad.gate2": {
     tag: "GATE 2 · FAULT INJECTION",
-    title: "Static Fire · Fault Injection (Stage 3)",
-    body: "Owned by the Lead FDE. Safely injects duplicates, bursts, timeouts, schema additions, and credential rotations on staging to prove zero data corruption (0.0% / Grade A) before production cutover.",
+    title: "Gate 2: Static Fire · Fault Injection",
+    body: "Owned by the Lead FDE (Integration & Cutover). Safely injects duplicates, bursts, timeouts, schema additions, and credential rotations on staging to prove zero data corruption (0.0% / Grade A) before production cutover.",
   },
   "launchpad.gate3": {
     tag: "GATE 3 · LIVE INCIDENT DRILL",
-    title: "Crew Drill · Live Incident Drill (Stage 4)",
-    body: "Owned by the Lead CSE and Support Engineers. Rehearses a real 2 AM outage under a live clock so Support and Customer SREs prove they can stabilize production before FDE roll-off.",
+    title: "Gate 3: Crew Drill · Live Incident Drill",
+    body: "Owned by the Lead CSE and Support Engineers (Day-30 Enablement & Handover). Rehearses a real 2 AM outage under a live clock so Support and Customer SREs prove they can stabilize production before FDE roll-off.",
   },
   "launchpad.governanceRule": {
     tag: "CORE GOVERNANCE",
@@ -219,7 +219,7 @@ export const HELP_COPY = {
     body: "Operational standup brief for Lead FDE, Lead CSE, Solutions Engineers, and Customer Engineers listing remaining blockers, integration health, evidence notes, and next CLI commands.",
   },
   "deliverables.tab.dossier": {
-    tag: "STAGE 4 -> 5 SEAL",
+    tag: "GATE 3 -> SUPPORT SEAL",
     title: "Handover Dossier",
     body: "Tamper-evident SHA-256 signed launch readiness certificate recording every verified check, waiver, fault-injection grade, drill split, and multi-party engineering sign-off.",
   },
@@ -229,16 +229,16 @@ export const HELP_COPY = {
     body: "Stack-tailored Day-1 operational runbook for Support Engineers and Customer On-Call SREs with exact verification baselines, copy-paste CLI drift commands, and waiver closure playbooks.",
   },
 
-  // ── Customer Journey Pipeline (Stages 1–6) ─────────────────────────────────
+  // ── Customer Journey Pipeline (Deal Close -> Gate 1-3 -> Support & Renewal)
   "pipeline.header": {
     tag: "LIFECYCLE",
-    title: "Customer Lifecycle Pipeline (Stages 1 to 6)",
-    body: "Maps the full enterprise journey from signed deal to renewal so every team sees where technical readiness lives. Click Stages 2–4 to work the active engineering gates, or click Stages 1, 5, or 6 to inspect their scope and ownership contract.",
+    title: "Customer Engineering Journey (Deal Close → Gates 1–3 → Support & Renewal)",
+    body: "Maps the full enterprise journey from signed Deal Close to live Support and Renewal so every team sees where technical readiness lives. Click Gate 1, Gate 2, or Gate 3 to work the active readiness stages, or click the Deal Close, Support, or Renewal bookends to inspect their ownership charters.",
   },
   "pipeline.unverifiedGap": {
     tag: "CORE FOCUS",
-    title: "Why Stages 2 to 4 Are 'The Unverified Gap'",
-    body: "Most enterprise launches break between Sales closing a deal (Stage 1) and Support inheriting production (Stage 5) because nobody verifies staging under real failure conditions. NominalX closes this gap with three deterministic engineering gates before handoff.",
+    title: "Why Gates 1 to 3 Are 'The Unverified Gap'",
+    body: "Most enterprise launches break in the missing in-between stages bridging Deal Close and live Support because nobody verifies staging under real failure conditions. NominalX closes this gap with Gate 1, Gate 2, and Gate 3 before handover.",
   },
   "pipeline.batonOwner": {
     tag: "ACCOUNTABILITY",
@@ -256,34 +256,34 @@ export const HELP_COPY = {
     body: "Opens the Reporting & Handover Hub to inspect and export the tamper-evident NOMINAL Dossier, Day-1 Customer Runbook, Executive Readiness Brief, Operational Sprint Digest, and Waiver Aging Register.",
   },
   "pipeline.stage.1": {
-    tag: "STAGE 1 · PRE-GAP",
-    title: "Stage 1: Deal Close (Contract Seed)",
-    body: "Owned by the Lead Solutions Engineer (SE / SA). Captures every technical commitment Sales made—SSO, data residency, webhook signing, RPS quotas, alerting, and rollback RTO—into a validated nominalx.yaml contract seed before engineering starts.",
+    tag: "BEFORE NOMINALX · BOOKEND",
+    title: "Deal Close (CRM Handoff · Before Launch Readiness)",
+    body: "Owned by the Lead Solutions Engineer (SE / SA). Captures every technical commitment Sales made—SSO, data residency, webhook signing, RPS quotas, alerting, and rollback RTO—into a validated nominalx.yaml contract seed before Gate 1 starts.",
   },
   "pipeline.stage.2": {
-    tag: "STAGE 2 · GATE 1 · SETUP CHECK",
-    title: "Stage 2: Sales-to-FDE Handoff (Flight Check · Setup Check)",
+    tag: "GATE 1 · SETUP CHECK",
+    title: "Gate 1: Flight Check · Setup Check (Sales-to-FDE Handoff)",
     body: "Proving staging matches what Sales sold. Owned by the Lead FDE and enforced here as Gate 1, running parallel live telemetry probes against customer staging and locking launch on security/compliance Hard Stops.",
   },
   "pipeline.stage.3": {
-    tag: "STAGE 3 · GATE 2 · FAULT INJECTION",
-    title: "Stage 3: Integration & Cutover (Static Fire · Fault Injection)",
+    tag: "GATE 2 · FAULT INJECTION",
+    title: "Gate 2: Static Fire · Fault Injection (Integration & Cutover)",
     body: "Controlled fault injection to prove zero corruption. Owned by the Lead FDE and enforced here as Gate 2, firing duplicates, out-of-order events, 429 bursts, timeouts, secret rotations, schema additions, and clock skew until data loss hits 0.0% (Grade A).",
   },
   "pipeline.stage.4": {
-    tag: "STAGE 4 · GATE 3 · LIVE INCIDENT DRILL",
-    title: "Stage 4: Day-30 Enablement & Handover (Crew Drill · Live Incident Drill)",
+    tag: "GATE 3 · LIVE INCIDENT DRILL",
+    title: "Gate 3: Crew Drill · Live Incident Drill (Day-30 Enablement & Handover)",
     body: "Timed P1 alert rehearsal for Support and Customer SREs. Owned by the Lead CSE and enforced here as Gate 3, proving engineers can stabilize live P1 alarms under a 90-second clock before sealing the SHA-256 NOMINAL Dossier.",
   },
   "pipeline.stage.5": {
-    tag: "STAGE 5 · POST-GAP",
-    title: "Stage 5: Production Support",
+    tag: "AFTER NOMINALX · LIVE OPS",
+    title: "Support (Live Operations)",
     body: "Owned by the Assigned Lead Support Engineer. Support operates production SLAs using the verified Day-1 Runbook, runs drift checks with nominalx check, and closes every active Gate 1 Operational Waiver before its 30-day expiry.",
   },
   "pipeline.stage.6": {
-    tag: "STAGE 6 · POST-GAP",
-    title: "Stage 6: Renewal & Expansion",
-    body: "Owned by the Technical Account Manager (TAM). Uses longitudinal signed dossiers to prove sustained reliability at renewal and feeds any new region or RPS expansion straight back into Stage 1 nominalx.yaml.",
+    tag: "AFTER NOMINALX · GROWTH",
+    title: "Renewal & Expansion (Customer Growth)",
+    body: "Owned by the Technical Account Manager (TAM). Uses longitudinal signed dossiers to prove sustained reliability at renewal and feeds any new region or RPS expansion straight back into Deal Close nominalx.yaml -> Gate 1.",
   },
 
   // ── Hero Readiness Band ────────────────────────────────────────────────────
@@ -733,7 +733,7 @@ export const HELP_COPY = {
     body: "Copy Slack formats the active report as clean Slack mrkdwn for launch channels; Download .md saves human-readable docs for Notion/GitHub; Download .json saves machine-auditable evidence; Inspect Raw shows the exact output inline.",
   },
   "reports.tab.dossier": {
-    tag: "STAGE 4 → 5",
+    tag: "GATE 3 → SUPPORT",
     title: "Signed NOMINAL Dossier & Day-1 Runbook",
     body: "The formal launch certificate sealing every Gate 1–3 result with a SHA-256 verification digest, paired with an auto-generated Day-1 Runbook tailored to this customer's exact endpoints, quotas, and alert channels.",
   },
@@ -765,10 +765,10 @@ export const HELP_COPY = {
   "reports.dossier.signoff": {
     tag: "HANDOVER LOCK",
     title: "Multi-Party Handover Sign-Off Block",
-    body: "Requires named Lead FDE, Lead CSE (Gate 3 Owner), and Customer Engineering Lead signers before sealing the Dossier. Sealing locks the handover baseline for Stage 5 Support and bumps Readiness to 100%.",
+    body: "Requires named Lead FDE, Lead CSE (Gate 3 Owner), and Customer Engineering Lead signers before sealing the Dossier. Sealing locks the handover baseline for live Support and bumps Readiness to 100%.",
   },
   "reports.dossier.runbook": {
-    tag: "STAGE 5 HANDOFF",
+    tag: "LIVE SUPPORT HANDOFF",
     title: "Stack-Tailored Day-1 Customer Runbook",
     body: "Auto-generated directly from verified telemetry baselines (auth protocol, regions, RPS ceiling, P1 channel, RTO). Gives Support Engineers and Customer SREs copy-paste CLI commands on Day 1.",
   },

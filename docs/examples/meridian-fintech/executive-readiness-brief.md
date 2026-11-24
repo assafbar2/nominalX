@@ -6,37 +6,37 @@
 
 CONDITIONAL GO — Proceed with Signed NOMINAL WITH WAIVERS Dossier; track 1 active Operational Waiver(s) to closure before 2026-12-15.
 
-## Customer Lifecycle Progression (Stages 1 -> 6)
+## Customer Lifecycle Progression (Deal Close -> Gate 1–3 -> Support & Renewal)
 
-| Stage | Lifecycle Phase | Unverified Gap | Accountable Owner | Status |
+| Phase | Lifecycle Role | In-Between Gap (NominalX) | Accountable Owner | Status |
 |---|---|---|---|---|
-| Stage 1 | Deal Close | No | `Lead SE / SA` | **NOMINAL** |
-| Stage 2 | Sales-to-FDE Handoff | Yes (Stages 2-4) | `Lead FDE` | **CONDITIONAL_GO** |
-| Stage 3 | Integration & Cutover | Yes (Stages 2-4) | `Lead FDE` | **NOMINAL** |
-| Stage 4 | Day-30 Enablement & Handover | Yes (Stages 2-4) | `Lead CSE` | **NOMINAL** |
-| Stage 5 | Support | No | `Lead Support Engineer` | **CONDITIONAL_GO** |
-| Stage 6 | Renewal & Expansion | No | `TAM` | **READY** |
+| Deal Close | CRM Handoff · Before Launch Readiness | Bookend | `Lead SE / SA` | **NOMINAL** |
+| Gate 1 | Sales-to-FDE Handoff | Yes (NominalX Gate) | `Lead FDE` | **CONDITIONAL_GO** |
+| Gate 2 | Integration & Cutover | Yes (NominalX Gate) | `Lead FDE` | **NOMINAL** |
+| Gate 3 | Day-30 Enablement & Handover | Yes (NominalX Gate) | `Lead CSE` | **NOMINAL** |
+| Support | Live Operations | Bookend | `Lead Support Engineer` | **CONDITIONAL_GO** |
+| Renewal & Expansion | Customer Growth | Bookend | `TAM` | **READY** |
 
 ## Gate Telemetry Summary
 
 | Gate | Metric | Result |
 |---|---|---|
-| Gate 1 (1 of 3): Flight Check | Station Verdict | `CONDITIONAL_GO` (5 NOMINAL, 1 WAIVED, 0 NO-GO) |
-| Hard Stops (Non-Waivable) | AUTH / SSO & RESIDENCY | AUTH `NOMINAL` · RESIDENCY `NOMINAL` (Violations: 0) |
-| Gate 2 (2 of 3): Static Fire | Resilience Grade & Corruption | Grade `A` · 0.0% (7/7) · Fire #1: 37.1% (Grade F) -> Fire #2: 0.0% (Grade A) |
-| Gate 3 (3 of 3): Crew Drill | Day-30 Alarm Stabilization | 3/3 stabilized (0 overtime, total 59.6s) |
+| Gate 1: Flight Check · Setup Check | Station Verdict | `CONDITIONAL_GO` (5/6 NOMINAL, 1 WAIVED, 0 NO-GO) |
+| Hard Stops (Non-Waivable) | AUTH / SSO & RESIDENCY | AUTH / SSO `NOMINAL` · RESIDENCY `NOMINAL` (Violations: 0) |
+| Gate 2: Static Fire · Fault Injection | Resilience Grade & Corruption | Grade `A` · 0.0% (7/7) · Fire #1: 37.1% (Grade F) -> Fire #2: 0.0% (Grade A) |
+| Gate 3: Crew Drill · Live Incident Drill | Day-30 Alarm Stabilization | 3/3 stabilized (0 overtime, total 59.6s) |
 | Operational Waiver Exposure | Active Cap & Nearest Expiry | `1 / 2` · Nearest expiry: `2026-12-15` (24d left) |
 
 ## Scope Governance
 
 **In-Scope:**
-- Stage 2 · Gate 1 (1 of 3): Flight Check — 6-station Sold vs. Observed telemetry
-- Stage 3 · Gate 2 (2 of 3): Static Fire — 7-vector deterministic chaos grading
-- Stage 4 · Gate 3 (3 of 3): Crew Drill — 3 live 90s operational alarm drills + Handover Dossier
+- Gate 1: Flight Check · Setup Check (Sales-to-FDE Handoff) — 6-station Sold vs. Observed telemetry
+- Gate 2: Static Fire · Fault Injection (Integration & Cutover) — 7-vector deterministic chaos grading
+- Gate 3: Crew Drill · Live Incident Drill (Day-30 Enablement & Handover) — 3 live operational alarm drills + Handover Dossier
 
 **Explicitly Out-of-Scope:**
 - Waiving non-negotiable Hard Stops (AUTH / SSO, RESIDENCY)
 - LLM-generated readiness opinions or unverified launch spreadsheets
 - Distributed 50k RPS load testing from a laptop
 
-*Verification Digest:* `sha256:a03c9a1b26fc71e4934542a57bcd46a6fdca2c4086c77ad413d423125727c9d2`
+*Verification Digest:* `sha256:acfdfe10497e6bb2cd4f3d10c00b7dbe971a95b5d5a60bc980e9d212c3e97962`

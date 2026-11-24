@@ -217,13 +217,13 @@ function buildExecutiveReport(
   if (gate1.verdict === "NO_GO") {
     recommendedAction = `HOLD LAUNCH — Resolve ${gate1.counts.noGo} Gate 1 NO-GO station(s) owned by ${gate1.accountableOwner} (Hard Stops ${hardStopNamesText} cannot be waived).`;
   } else if (!gate2 || !gate2.passed) {
-    recommendedAction = `COMPLETE SPRINT 2 — Execute Gate 2 (2 of 3): Static Fire patch/re-fire loops until corruption drops to 0.0% (Grade A).`;
+    recommendedAction = `COMPLETE SPRINT 2 — Execute Gate 2: Static Fire · Fault Injection patch/re-fire loops until corruption drops to 0.0% (Grade A).`;
   } else if (!gate3 || !gate3.allStabilized) {
-    recommendedAction = `COMPLETE SPRINT 3 — Run Gate 3 (3 of 3): Crew Drill live Day-30 alarm stabilization with Customer On-Call SREs under Lead CSE ${config.account.cse_owner}.`;
+    recommendedAction = `COMPLETE SPRINT 3 — Run Gate 3: Crew Drill · Live Incident Drill Day-30 alarm stabilization with Customer On-Call SREs under Lead CSE ${config.account.cse_owner}.`;
   } else if (activeWaivers.length > 0) {
     recommendedAction = `CONDITIONAL GO — Proceed with Signed NOMINAL WITH WAIVERS Dossier; track ${activeWaivers.length} active Operational Waiver(s) to closure before ${nearest?.expiresAt ?? config.account.target_go_live}.`;
   } else {
-    recommendedAction = `GO FOR LAUNCH — All 3 Gates verified NOMINAL with 0 active waivers; transition Day-1 Runbook to Stage 5 Support Engineers.`;
+    recommendedAction = `GO FOR LAUNCH — All 3 Gates verified NOMINAL with 0 active waivers; transition Day-1 Runbook to live Support Engineers.`;
   }
 
   const totalVectors = gate2?.totals.totalVectors ?? 7;
@@ -278,9 +278,9 @@ function buildExecutiveReport(
     },
     scopeGovernance: {
       inScopeHighlights: [
-        `Stage 2 · Gate 1 (1 of 3): Flight Check — ${gate1.counts.total}-station Sold vs. Observed telemetry`,
-        `Stage 3 · Gate 2 (2 of 3): Static Fire — ${totalVectors}-vector deterministic chaos grading`,
-        `Stage 4 · Gate 3 (3 of 3): Crew Drill — ${totalAlarms} live operational alarm drills + Handover Dossier`,
+        `Gate 1: Flight Check · Setup Check (Sales-to-FDE Handoff) — ${gate1.counts.total}-station Sold vs. Observed telemetry`,
+        `Gate 2: Static Fire · Fault Injection (Integration & Cutover) — ${totalVectors}-vector deterministic chaos grading`,
+        `Gate 3: Crew Drill · Live Incident Drill (Day-30 Enablement & Handover) — ${totalAlarms} live operational alarm drills + Handover Dossier`,
       ],
       outOfScopeBoundaries: [
         `Waiving non-negotiable Hard Stops (${hardStopNamesText})`,
@@ -318,11 +318,11 @@ function buildOperationalDigest(
 
   const activeGateLabel =
     journey.activeGate === 1
-      ? "Gate 1 (1 of 3): Flight Check"
+      ? "Gate 1: Flight Check · Setup Check"
       : journey.activeGate === 2
-        ? "Gate 2 (2 of 3): Static Fire"
+        ? "Gate 2: Static Fire · Fault Injection"
         : journey.activeGate === 3
-          ? "Gate 3 (3 of 3): Crew Drill"
+          ? "Gate 3: Crew Drill · Live Incident Drill"
           : "Handover Sprint: Signed NOMINAL Dossier & Day-1 Runbook";
 
   const stationBlockers = gate1.stations
@@ -524,16 +524,36 @@ function renderExecMarkdown(r: ExecutiveReadinessReport): string {
     "",
     r.recommendedAction,
     "",
-    "## Customer Lifecycle Progression (Stages 1 -> 6)",
+    "## Customer Lifecycle Progression (Deal Close -> Gate 1–3 -> Support & Renewal)",
     "",
-    "| Stage | Lifecycle Phase | Unverified Gap | Accountable Owner | Status |",
+    "| Phase | Lifecycle Role | In-Between Gap (NominalX) | Accountable Owner | Status |",
     "|---|---|---|---|---|",
   ];
 
   for (const stageNum of [1, 2, 3, 4, 5, 6] as const) {
     const s = r.journey.stageStatus[stageNum];
+    const phaseLabel =
+      stageNum === 1
+        ? "Deal Close"
+        : stageNum === 2
+          ? "Gate 1"
+          : stageNum === 3
+            ? "Gate 2"
+            : stageNum === 4
+              ? "Gate 3"
+              : stageNum === 5
+                ? "Support"
+                : "Renewal & Expansion";
+    const lifecycleRole =
+      stageNum === 1
+        ? "CRM Handoff · Before Launch Readiness"
+        : stageNum === 5
+          ? "Live Operations"
+          : stageNum === 6
+            ? "Customer Growth"
+            : s.stageName;
     lines.push(
-      `| Stage ${s.stageNumber} | ${s.stageName} | ${s.inUnverifiedGap ? "Yes (Stages 2-4)" : "No"} | \`${s.accountableOwner}\` | **${s.status}** |`,
+      `| ${phaseLabel} | ${lifecycleRole} | ${s.inUnverifiedGap ? "Yes (NominalX Gate)" : "Bookend"} | \`${s.accountableOwner}\` | **${s.status}** |`,
     );
   }
 
@@ -543,7 +563,7 @@ function renderExecMarkdown(r: ExecutiveReadinessReport): string {
   lines.push("| Gate | Metric | Result |");
   lines.push("|---|---|---|");
   lines.push(
-    `| Gate 1 (1 of 3): Flight Check | Station Verdict | \`${r.gate1Summary.verdict}\` (${r.gate1Summary.nominal}/${r.gate1Summary.totalStations} NOMINAL, ${r.gate1Summary.waived} WAIVED, ${r.gate1Summary.noGo} NO-GO) |`,
+    `| Gate 1: Flight Check · Setup Check | Station Verdict | \`${r.gate1Summary.verdict}\` (${r.gate1Summary.nominal}/${r.gate1Summary.totalStations} NOMINAL, ${r.gate1Summary.waived} WAIVED, ${r.gate1Summary.noGo} NO-GO) |`,
   );
   const hsInline = r.hardStopCompliance.allHardStops
     .map((h) => `${h.stationLabel} \`${h.status}\``)
@@ -552,10 +572,10 @@ function renderExecMarkdown(r: ExecutiveReadinessReport): string {
     `| Hard Stops (Non-Waivable) | ${r.hardStopCompliance.allHardStops.map((h) => h.stationLabel).join(" & ")} | ${hsInline} (Violations: ${r.hardStopCompliance.hardStopViolations}) |`,
   );
   lines.push(
-    `| Gate 2 (2 of 3): Static Fire | Resilience Grade & Corruption | Grade \`${r.gate2Summary.grade}\` · ${r.gate2Summary.corruptionPct === null ? "PENDING" : `${r.gate2Summary.corruptionPct.toFixed(1)}%`} (${r.gate2Summary.passedVectors}/${r.gate2Summary.totalVectors}) · ${r.gate2Summary.attemptTrail} |`,
+    `| Gate 2: Static Fire · Fault Injection | Resilience Grade & Corruption | Grade \`${r.gate2Summary.grade}\` · ${r.gate2Summary.corruptionPct === null ? "PENDING" : `${r.gate2Summary.corruptionPct.toFixed(1)}%`} (${r.gate2Summary.passedVectors}/${r.gate2Summary.totalVectors}) · ${r.gate2Summary.attemptTrail} |`,
   );
   lines.push(
-    `| Gate 3 (3 of 3): Crew Drill | Day-30 Alarm Stabilization | ${r.gate3Summary.executed ? `${r.gate3Summary.stabilizedCount}/${r.gate3Summary.totalAlarms} stabilized (${r.gate3Summary.overtimeCount} overtime, total ${r.gate3Summary.totalSplitSeconds}s)` : "PENDING"} |`,
+    `| Gate 3: Crew Drill · Live Incident Drill | Day-30 Alarm Stabilization | ${r.gate3Summary.executed ? `${r.gate3Summary.stabilizedCount}/${r.gate3Summary.totalAlarms} stabilized (${r.gate3Summary.overtimeCount} overtime, total ${r.gate3Summary.totalSplitSeconds}s)` : "PENDING"} |`,
   );
   lines.push(
     `| Operational Waiver Exposure | Active Cap & Nearest Expiry | \`${r.waiverExposure.activeCount} / ${r.waiverExposure.maxAllowed}\` · Nearest expiry: \`${r.waiverExposure.nearestExpiry ?? "None"}\`${r.waiverExposure.nearestDaysRemaining !== null ? ` (${r.waiverExposure.nearestDaysRemaining}d left)` : ""} |`,
@@ -596,9 +616,9 @@ function renderExecSlack(r: ExecutiveReadinessReport): string {
     `*Verdict:* \`${r.masterVerdict}\` | *Target Go-Live:* \`${r.targetGoLive}\` | *Baton Owner:* \`${r.singleAccountableOwner}\``,
     "",
     `*Decision:* ${r.recommendedAction}`,
-    `• *Gate 1 (1 of 3) Flight Check:* \`${r.gate1Summary.verdict}\` (${r.gate1Summary.nominal}/${r.gate1Summary.totalStations} NOMINAL, ${r.gate1Summary.waived} WAIVED, ${r.gate1Summary.noGo} NO-GO) · Hard Stops: ${hsSummary}`,
-    `• *Gate 2 (2 of 3) Static Fire:* Grade \`${r.gate2Summary.grade}\` · ${r.gate2Summary.passedVectors}/${r.gate2Summary.totalVectors} · ${r.gate2Summary.attemptTrail}`,
-    `• *Gate 3 (3 of 3) Crew Drill:* ${r.gate3Summary.executed ? `${r.gate3Summary.stabilizedCount}/${r.gate3Summary.totalAlarms} stabilized (${r.gate3Summary.overtimeCount} overtime)` : "PENDING"}`,
+    `• *Gate 1: Flight Check · Setup Check:* \`${r.gate1Summary.verdict}\` (${r.gate1Summary.nominal}/${r.gate1Summary.totalStations} NOMINAL, ${r.gate1Summary.waived} WAIVED, ${r.gate1Summary.noGo} NO-GO) · Hard Stops: ${hsSummary}`,
+    `• *Gate 2: Static Fire · Fault Injection:* Grade \`${r.gate2Summary.grade}\` · ${r.gate2Summary.passedVectors}/${r.gate2Summary.totalVectors} · ${r.gate2Summary.attemptTrail}`,
+    `• *Gate 3: Crew Drill · Live Incident Drill:* ${r.gate3Summary.executed ? `${r.gate3Summary.stabilizedCount}/${r.gate3Summary.totalAlarms} stabilized (${r.gate3Summary.overtimeCount} overtime)` : "PENDING"}`,
     `• *Waiver Exposure:* \`${r.waiverExposure.activeCount}/${r.waiverExposure.maxAllowed}\` active · Nearest expiry: \`${r.waiverExposure.nearestExpiry ?? "None"}\``,
     `*Digest:* \`${r.verificationDigest}\``,
   ];
@@ -609,9 +629,9 @@ function renderOpsMarkdown(r: OperationalSprintDigest): string {
   const lines: string[] = [
     `# ${r.title}`,
     "",
-    `> **Active Stage:** ${r.activeStageLabel} | **Active Gate:** ${r.activeGateLabel} | **Owner:** \`${r.accountableOwner}\` | **Verdict:** \`${r.masterVerdict}\``,
+    `> **Active Phase:** ${r.activeStageLabel} | **Active Gate:** ${r.activeGateLabel} | **Owner:** \`${r.accountableOwner}\` | **Verdict:** \`${r.masterVerdict}\``,
     "",
-    "## Gate 1 (1 of 3): Flight Check — Non-Nominal Stations & Blockers",
+    "## Gate 1: Flight Check · Setup Check — Non-Nominal Stations & Blockers",
     "",
   ];
 
@@ -628,7 +648,7 @@ function renderOpsMarkdown(r: OperationalSprintDigest): string {
   }
 
   lines.push("");
-  lines.push("## Gate 2 (2 of 3): Static Fire — Failing Chaos Vectors");
+  lines.push("## Gate 2: Static Fire · Fault Injection — Failing Chaos Vectors");
   lines.push("");
   if (r.chaosFailures.length === 0) {
     lines.push("Zero failing chaos vectors (either `0.0% · Grade A` or Gate 2 pending).");
@@ -667,7 +687,7 @@ function renderOpsMarkdown(r: OperationalSprintDigest): string {
 function renderOpsSlack(r: OperationalSprintDigest): string {
   const lines: string[] = [
     `*${r.title}*`,
-    `*Stage:* ${r.activeStageLabel} · *Gate:* ${r.activeGateLabel} · *Owner:* \`${r.accountableOwner}\` · *Verdict:* \`${r.masterVerdict}\``,
+    `*Phase:* ${r.activeStageLabel} · *Gate:* ${r.activeGateLabel} · *Owner:* \`${r.accountableOwner}\` · *Verdict:* \`${r.masterVerdict}\``,
     "",
   ];
   if (r.stationBlockers.length === 0) {
@@ -733,7 +753,7 @@ function renderWaiversMarkdown(r: WaiverAgingRegisterReport): string {
   }
 
   lines.push("");
-  lines.push("## Stage 5 Support Drift-Detection Command");
+  lines.push("## Live Support Drift-Detection Command");
   lines.push("");
   lines.push("```bash");
   lines.push(r.supportDriftCommand);

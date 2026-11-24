@@ -576,9 +576,9 @@ export function evaluateFlightCheck(
 
   return {
     gateNumber: 1,
-    gateLabel: "Gate 1 (1 of 3): Flight Check",
+    gateLabel: "Gate 1: Flight Check · Setup Check",
     stageNumber: 2,
-    stageLabel: "Stage 2: Sales-to-FDE Handoff",
+    stageLabel: "Sales-to-FDE Handoff",
     accountId: config.account.id,
     accountName: config.account.name,
     evaluatedAt,

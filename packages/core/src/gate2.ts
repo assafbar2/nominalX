@@ -256,9 +256,9 @@ export function scoreStaticFire(input: ScoreStaticFireInput): StaticFireResult {
 
   return {
     gateNumber: 2,
-    gateLabel: "Gate 2 (2 of 3): Static Fire",
+    gateLabel: "Gate 2: Static Fire · Fault Injection",
     stageNumber: 3,
-    stageLabel: "Stage 3: Integration & Cutover",
+    stageLabel: "Integration & Cutover",
     accountId: input.accountId,
     accountName: input.accountName,
     targetUrl: input.targetUrl,

@@ -509,11 +509,84 @@ textarea {
   align-items: stretch;
 }
 
+.journey-bookend-layout {
+  display: grid;
+  grid-template-columns: minmax(150px, 0.92fr) minmax(0, 3.6fr) minmax(280px, 1.78fr);
+  gap: 12px;
+  align-items: stretch;
+}
+
+.journey-bookend-col {
+  display: flex;
+  flex-direction: column;
+  gap: 6px;
+}
+
+.journey-col-eyebrow {
+  font-size: 0.64rem;
+  font-weight: 800;
+  letter-spacing: 0.1em;
+  color: var(--text-dim);
+  padding: 2px 6px;
+}
+
+.journey-bookend-right-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 10px;
+  flex: 1;
+}
+
+.journey-gap-enclosure {
+  display: flex;
+  flex-direction: column;
+  gap: 9px;
+  padding: 10px 12px 12px;
+  border-radius: 16px;
+  border: 1.5px dashed var(--border-gap);
+  background: linear-gradient(180deg, var(--active-bg) 0%, var(--bg-gap-band) 100%);
+  box-shadow: inset 0 0 0 1px rgba(56, 189, 248, 0.10);
+}
+
+.journey-gap-enclosure-head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+  flex-wrap: wrap;
+  padding: 0 2px;
+}
+
+.journey-gap-enclosure-title {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--active-text);
+}
+
+.journey-gap-enclosure-sub {
+  font-size: 0.63rem;
+  font-weight: 800;
+  letter-spacing: 0.06em;
+  padding: 2px 8px;
+  border-radius: 999px;
+  background: var(--bg-surface);
+  color: var(--text-secondary);
+  border: 1px solid var(--active-border);
+}
+
+.journey-gates-row {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: 10px;
+  flex: 1;
+}
+
 .gap-bracket-row {
   display: grid;
-  grid-template-columns: 1fr 4.55fr 2fr;
-  gap: 10px;
-  margin-top: 8px;
+  grid-template-columns: minmax(150px, 0.92fr) minmax(0, 3.6fr) minmax(280px, 1.78fr);
+  gap: 12px;
+  margin-top: 9px;
   align-items: center;
 }
 
@@ -547,6 +620,7 @@ textarea {
   text-align: left;
   cursor: pointer;
   transition: all 0.16s ease;
+  flex: 1;
 }
 
 .stage-node:hover {
@@ -554,9 +628,15 @@ textarea {
   transform: translateY(-2px);
 }
 
+.stage-node.stage-bookend {
+  background: var(--bg-inset);
+  border-style: solid;
+  border-color: var(--border-subtle);
+}
+
 .stage-node.in-gap {
-  background: linear-gradient(180deg, var(--bg-surface-2) 0%, var(--bg-gap-band) 100%);
-  border-color: var(--border-strong);
+  background: var(--bg-surface);
+  border-color: var(--active-border);
 }
 
 .stage-node.is-selected {
@@ -585,7 +665,7 @@ textarea {
 
 .stage-node-top {
   display: flex;
-  align-items: baseline;
+  align-items: center;
   justify-content: space-between;
   gap: 6px;
 }
@@ -598,14 +678,35 @@ textarea {
   letter-spacing: -0.04em;
 }
 
+.stage-gate-num {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.08rem;
+  font-weight: 800;
+  line-height: 1;
+  letter-spacing: 0.04em;
+  color: var(--active-text);
+}
+
+.stage-bookend-tag {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.62rem;
+  font-weight: 800;
+  letter-spacing: 0.07em;
+  padding: 2px 6px;
+  border-radius: 6px;
+  background: var(--bg-surface-2);
+  color: var(--text-muted);
+  border: 1px solid var(--border-subtle);
+}
+
 .stage-gate-tag {
   font-family: "JetBrains Mono", monospace;
-  font-size: 0.66rem;
+  font-size: 0.64rem;
   font-weight: 800;
   padding: 2px 7px;
   border-radius: 6px;
   background: var(--bg-inset);
-  color: var(--active-text);
+  color: var(--text-secondary);
   border: 1px solid var(--border-subtle);
 }
 
@@ -1532,6 +1633,12 @@ textarea {
   .journey-grid {
     grid-template-columns: repeat(3, 1fr);
   }
+  .journey-bookend-layout {
+    grid-template-columns: 1fr;
+  }
+  .journey-gates-row {
+    grid-template-columns: repeat(3, 1fr);
+  }
   .gap-bracket-row {
     display: none;
   }
@@ -1573,7 +1680,9 @@ textarea {
 @media (max-width: 720px) {
   .station-grid,
   .vector-grid,
-  .journey-grid {
+  .journey-grid,
+  .journey-gates-row,
+  .journey-bookend-right-pair {
     grid-template-columns: 1fr;
   }
 }
@@ -2387,6 +2496,117 @@ textarea {
   border: 1px solid var(--border-subtle);
 }
 
+.launchpad-journey-strip {
+  padding: 16px 20px;
+  display: grid;
+  grid-template-columns: minmax(150px, 0.9fr) auto minmax(0, 3.1fr) auto minmax(260px, 1.45fr);
+  align-items: center;
+  gap: 12px;
+  background: var(--bg-surface);
+  border: 1px solid var(--border-strong);
+}
+
+.launchpad-bookend {
+  display: flex;
+  flex-direction: column;
+  gap: 3px;
+  padding: 11px 13px;
+  border-radius: 12px;
+  background: var(--bg-inset);
+  border: 1px solid var(--border-subtle);
+}
+
+.launchpad-bookend-pair {
+  display: grid;
+  grid-template-columns: 1fr 1fr;
+  gap: 8px;
+}
+
+.launchpad-bookend-tag {
+  font-size: 0.6rem;
+  font-weight: 800;
+  letter-spacing: 0.08em;
+  color: var(--text-dim);
+}
+
+.launchpad-bookend-title {
+  font-size: 0.92rem;
+  font-weight: 800;
+  color: var(--text-primary);
+  line-height: 1.15;
+}
+
+.launchpad-bookend-sub {
+  font-size: 0.7rem;
+  color: var(--text-muted);
+  line-height: 1.25;
+}
+
+.launchpad-journey-arrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 1.15rem;
+  font-weight: 800;
+  color: var(--active-text);
+  text-align: center;
+}
+
+.launchpad-gap-bracket {
+  display: flex;
+  flex-direction: column;
+  gap: 8px;
+  padding: 11px 14px 12px;
+  border-radius: 14px;
+  border: 1.5px dashed var(--border-gap);
+  background: linear-gradient(180deg, var(--active-bg) 0%, var(--bg-gap-band) 100%);
+}
+
+.launchpad-gap-bracket-label {
+  font-size: 0.68rem;
+  font-weight: 800;
+  letter-spacing: 0.09em;
+  color: var(--active-text);
+  text-align: center;
+}
+
+.launchpad-gap-pills {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 8px;
+}
+
+.launchpad-gap-pill {
+  flex: 1;
+  display: flex;
+  flex-direction: column;
+  gap: 2px;
+  padding: 8px 10px;
+  border-radius: 10px;
+  background: var(--bg-surface);
+  border: 1.5px solid var(--active-border);
+}
+
+.launchpad-gap-pill strong {
+  font-size: 0.76rem;
+  color: var(--active-text);
+  letter-spacing: 0.05em;
+}
+
+.launchpad-gap-pill span {
+  font-size: 0.72rem;
+  font-weight: 700;
+  color: var(--text-primary);
+  line-height: 1.2;
+}
+
+.launchpad-gap-pill-arrow {
+  font-family: "JetBrains Mono", monospace;
+  font-size: 0.9rem;
+  font-weight: 800;
+  color: var(--text-dim);
+  flex-shrink: 0;
+}
+
 .launchpad-gates-grid {
   display: grid;
   grid-template-columns: repeat(3, 1fr);
@@ -2685,11 +2905,22 @@ textarea {
 }
 
 @media (max-width: 1100px) {
+  .launchpad-journey-strip,
   .launchpad-gates-grid,
   .launchpad-customer-grid,
   .wizard-option-grid-3,
   .deliverable-meta-grid {
     grid-template-columns: 1fr;
+  }
+  .launchpad-journey-arrow {
+    display: none;
+  }
+  .launchpad-gap-pills {
+    flex-direction: column;
+    align-items: stretch;
+  }
+  .launchpad-gap-pill-arrow {
+    display: none;
   }
   .wizard-option-grid-2 {
     grid-template-columns: 1fr;

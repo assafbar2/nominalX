@@ -1,6 +1,7 @@
 import {
   LIFECYCLE_STAGES,
   type JourneyState,
+  type StageMetadata,
   type StageNumber,
 } from "@nominalx/core";
 import { getStageHelp } from "../data/helpCopy";
@@ -44,20 +45,84 @@ export function JourneyPipeline({
     }
   };
 
+  const dealCloseStage = LIFECYCLE_STAGES[0]!;
+  const gateStages = LIFECYCLE_STAGES.slice(1, 4);
+  const supportStage = LIFECYCLE_STAGES[4]!;
+  const renewalStage = LIFECYCLE_STAGES[5]!;
+
+  const renderBookendNode = (
+    stage: StageMetadata,
+    tagLabel: string,
+    subtitle: string,
+  ) => {
+    const st = journey.stageStatus[stage.stageNumber];
+    return (
+      <button
+        key={stage.stageNumber}
+        type="button"
+        className={`stage-node stage-bookend status-border-${st.status}`}
+        onClick={() => handleStageClick(stage.stageNumber)}
+        data-testid={`journey-stage-${stage.stageNumber}`}
+      >
+        <div>
+          <div className="stage-node-top">
+            <span className="stage-bookend-tag">{tagLabel}</span>
+            <HelpTip
+              asSpan
+              entry={getStageHelp(stage.stageNumber)}
+              testId={`help-tip-pipeline.stage.${stage.stageNumber}`}
+            />
+          </div>
+          <div className="stage-name" style={{ marginTop: 8 }}>
+            {stage.stageName}
+          </div>
+          <div
+            style={{
+              fontSize: "0.7rem",
+              color: "var(--text-muted)",
+              marginTop: 4,
+              lineHeight: 1.3,
+            }}
+          >
+            {subtitle}
+          </div>
+        </div>
+
+        <div>
+          <div className="stage-owner-line">{st.accountableOwner}</div>
+          <div
+            className="led-strip"
+            aria-label={`${stage.stageName} status indicators`}
+          >
+            {st.pips.map((pip, idx) => (
+              <span
+                key={`${stage.stageNumber}-${idx}`}
+                className={`led-pip ${pip.status}`}
+                title={`${pip.label}: ${pip.status}`}
+              />
+            ))}
+          </div>
+        </div>
+      </button>
+    );
+  };
+
   return (
     <section
       className="panel journey-panel"
-      aria-label="Customer Lifecycle Stages 1 to 6"
+      aria-label="Customer Engineering Journey from Deal Close through NominalX Gates 1 to 3 to Support and Renewal"
       data-tour="journey-pipeline"
     >
       <div className="journey-header">
         <div className="journey-title-wrap">
           <span className="help-inline">
-            <span className="eyebrow">CUSTOMER LIFECYCLE PIPELINE · STAGES 1 → 6</span>
+            <span className="eyebrow">
+              CUSTOMER ENGINEERING JOURNEY · DEAL CLOSE → GATES 1–3 → SUPPORT &amp; RENEWAL
+            </span>
             <HelpTip copyKey="pipeline.header" />
           </span>
           <span className="help-inline">
-            <span className="gap-chip">THE UNVERIFIED GAP: STAGES 2 → 4</span>
+            <span className="gap-chip">THE IN-BETWEEN GAP · NOMINALX (GATES 1–3)</span>
             <HelpTip copyKey="pipeline.unverifiedGap" />
           </span>
         </div>
@@ -97,188 +162,169 @@ export function JourneyPipeline({
         </div>
       </div>
 
-      {/* Vector Pipeline Conduit SVG */}
-      <svg
-        viewBox="0 0 1200 26"
-        preserveAspectRatio="none"
-        style={{ width: "100%", height: 22, display: "block", marginBottom: 8 }}
-        aria-hidden="true"
-      >
-        {/* Full track line */}
-        <line
-          x1="40"
-          y1="13"
-          x2="1160"
-          y2="13"
-          stroke="var(--border-strong)"
-          strokeWidth="2.5"
-          strokeDasharray="6 4"
-        />
-        {/* Highlighted Unverified Gap conduit (Stages 2 -> 4) */}
-        <rect
-          x="165"
-          y="3"
-          width="705"
-          height="20"
-          rx="10"
-          fill="var(--active-bg)"
-          stroke="var(--active)"
-          strokeWidth="1.5"
-        />
-        <line
-          x1="180"
-          y1="13"
-          x2="855"
-          y2="13"
-          stroke="var(--active)"
-          strokeWidth="3"
-        />
-        {/* Stage node ticks */}
-        {[85, 290, 520, 755, 960, 1115].map((cx, i) => {
-          const stNum = (i + 1) as StageNumber;
-          const st = journey.stageStatus[stNum].status;
-          const fill =
-            st === "NOMINAL" || st === "READY"
-              ? "var(--nominal)"
-              : st === "NO_GO"
-                ? "var(--nogo)"
-                : st === "CONDITIONAL_GO"
-                  ? "var(--waived)"
-                  : st === "ACTIVE"
-                    ? "var(--active)"
-                    : "var(--pending)";
-          return (
-            <g key={stNum}>
-              <circle cx={cx} cy="13" r="6.5" fill={fill} stroke="var(--bg-surface)" strokeWidth="2" />
-            </g>
-          );
-        })}
-      </svg>
+      {/* Unnumbered Bookends (Deal Close / Support + Renewal) flanking the Highlighted Center Gap (Gate 1 · Gate 2 · Gate 3) */}
+      <div className="journey-bookend-layout" data-tour="journey-stages-grid">
+        {/* Left Unnumbered Bookend: Deal Close */}
+        <div className="journey-bookend-col">
+          <div className="journey-col-eyebrow mono">BEFORE NOMINALX</div>
+          {renderBookendNode(
+            dealCloseStage,
+            "CRM HANDOFF",
+            "Before Launch Readiness · nominalx.yaml contract seed",
+          )}
+        </div>
 
-      {/* 6 Bold Interactive Stage Nodes */}
-      <div className="journey-grid" data-tour="journey-stages-grid">
-        {LIFECYCLE_STAGES.map((stage) => {
-          const st = journey.stageStatus[stage.stageNumber];
-          const isSelected =
-            (stage.stageNumber === 2 && activeView === "gate1") ||
-            (stage.stageNumber === 3 && activeView === "gate2") ||
-            (stage.stageNumber === 4 && activeView === "gate3");
+        {/* Center Highlighted Enclosure: The Unverified Gap (Gate 1, Gate 2, Gate 3) */}
+        <div className="journey-gap-enclosure" data-testid="journey-gap-enclosure">
+          <div className="journey-gap-enclosure-head">
+            <span className="mono journey-gap-enclosure-title">
+              THE UNVERIFIED GAP · NOMINALX LAUNCH READINESS — BRIDGING DEAL CLOSE TO LIVE OPERATIONS
+            </span>
+            <span className="mono journey-gap-enclosure-sub">
+              ONLY NUMBERED STAGES: GATE 1 → GATE 2 → GATE 3
+            </span>
+          </div>
 
-          const gateChip =
-            stage.gateNumber === 1
-              ? "GATE 1 (1/3)"
-              : stage.gateNumber === 2
-                ? "GATE 2 (2/3)"
-                : stage.gateNumber === 3
-                  ? "GATE 3 (3/3)"
-                  : stage.stageNumber === 1
-                    ? "SEED"
-                    : "POST-GAP";
+          <div className="journey-gates-row">
+            {gateStages.map((stage) => {
+              const st = journey.stageStatus[stage.stageNumber];
+              const isSelected =
+                (stage.gateNumber === 1 && activeView === "gate1") ||
+                (stage.gateNumber === 2 && activeView === "gate2") ||
+                (stage.gateNumber === 3 && activeView === "gate3");
 
-          const gatePlainTitle =
-            stage.gateNumber === 1
-              ? `Flight Check · Setup Check (1–${st.pips.length}/${st.pips.length})`
-              : stage.gateNumber === 2
-                ? `Static Fire · Fault Injection (1–${st.pips.length}/${st.pips.length})`
-                : stage.gateNumber === 3
-                  ? `Crew Drill · Live Incident Drill (1–${Math.max(1, st.pips.length - 1)}/${Math.max(1, st.pips.length - 1)})`
-                  : null;
+              const gateTitle =
+                stage.gateNumber === 1
+                  ? "Flight Check · Setup Check"
+                  : stage.gateNumber === 2
+                    ? "Static Fire · Fault Injection"
+                    : "Crew Drill · Live Incident Drill";
 
-          const gatePlainDesc =
-            stage.gateNumber === 1
-              ? "Proving staging matches what Sales sold."
-              : stage.gateNumber === 2
-                ? "Controlled fault injection to prove zero corruption."
-                : stage.gateNumber === 3
-                  ? "Timed P1 alert rehearsal for Support and Customer SREs."
-                  : null;
+              const gateSubRange =
+                stage.gateNumber === 1
+                  ? `${stage.stageName} (1–${st.pips.length}/${st.pips.length})`
+                  : stage.gateNumber === 2
+                    ? `${stage.stageName} (1–${st.pips.length}/${st.pips.length})`
+                    : `${stage.stageName} (1–${Math.max(1, st.pips.length - 1)}/${Math.max(1, st.pips.length - 1)})`;
 
-          return (
-            <button
-              key={stage.stageNumber}
-              type="button"
-              className={`stage-node ${stage.inUnverifiedGap ? "in-gap" : ""} ${isSelected ? "is-selected" : ""} status-border-${st.status}`}
-              onClick={() => handleStageClick(stage.stageNumber)}
-              data-testid={`journey-stage-${stage.stageNumber}`}
-            >
-              <div>
-                <div className="stage-node-top">
-                  <span className="stage-num">0{stage.stageNumber}</span>
-                  <div className="help-inline" style={{ gap: 5 }}>
-                    <span className="stage-gate-tag">{gateChip}</span>
-                    <HelpTip
-                      asSpan
-                      entry={getStageHelp(stage.stageNumber)}
-                      testId={`help-tip-pipeline.stage.${stage.stageNumber}`}
-                    />
+              const gatePlainDesc =
+                stage.gateNumber === 1
+                  ? "Proving staging matches what Sales sold."
+                  : stage.gateNumber === 2
+                    ? "Controlled fault injection to prove zero corruption."
+                    : "Timed P1 alert rehearsal for Support and Customer SREs.";
+
+              const sprintTag =
+                stage.gateNumber === 1
+                  ? "SPRINT 1"
+                  : stage.gateNumber === 2
+                    ? "SPRINT 2"
+                    : "SPRINT 3";
+
+              return (
+                <button
+                  key={stage.stageNumber}
+                  type="button"
+                  className={`stage-node in-gap ${isSelected ? "is-selected" : ""} status-border-${st.status}`}
+                  onClick={() => handleStageClick(stage.stageNumber)}
+                  data-testid={`journey-stage-${stage.stageNumber}`}
+                >
+                  <div>
+                    <div className="stage-node-top">
+                      <span className="stage-gate-num">GATE {stage.gateNumber}</span>
+                      <div className="help-inline" style={{ gap: 5 }}>
+                        <span className="stage-gate-tag">{sprintTag}</span>
+                        <HelpTip
+                          asSpan
+                          entry={getStageHelp(stage.stageNumber)}
+                          testId={`help-tip-pipeline.stage.${stage.stageNumber}`}
+                        />
+                      </div>
+                    </div>
+                    <div className="stage-name" style={{ marginTop: 6 }}>
+                      {gateTitle}
+                    </div>
+                    <div
+                      className="mono"
+                      style={{
+                        fontSize: "0.68rem",
+                        color: "var(--active-text)",
+                        fontWeight: 700,
+                        marginTop: 3,
+                        lineHeight: 1.25,
+                      }}
+                    >
+                      {gateSubRange}
+                    </div>
+                    <div
+                      style={{
+                        fontSize: "0.69rem",
+                        color: "var(--text-muted)",
+                        marginTop: 3,
+                        lineHeight: 1.3,
+                      }}
+                    >
+                      {gatePlainDesc}
+                    </div>
                   </div>
-                </div>
-                <div className="stage-name" style={{ marginTop: 6 }}>
-                  Stage {stage.stageNumber}: {stage.stageName}
-                </div>
-                {gatePlainTitle && (
-                  <div
-                    className="mono"
-                    style={{
-                      fontSize: "0.68rem",
-                      color: "var(--active-text)",
-                      fontWeight: 700,
-                      marginTop: 3,
-                      lineHeight: 1.25,
-                    }}
-                  >
-                    {gatePlainTitle}
-                  </div>
-                )}
-                {gatePlainDesc && (
-                  <div
-                    style={{
-                      fontSize: "0.68rem",
-                      color: "var(--text-muted)",
-                      marginTop: 2,
-                      lineHeight: 1.28,
-                    }}
-                  >
-                    {gatePlainDesc}
-                  </div>
-                )}
-              </div>
 
-              <div>
-                <div className="stage-owner-line">{st.accountableOwner}</div>
-                <div className="led-strip" aria-label={`Stage ${stage.stageNumber} status indicators`}>
-                  {st.pips.map((pip, idx) => (
-                    <span
-                      key={`${stage.stageNumber}-${idx}`}
-                      className={`led-pip ${pip.status}`}
-                      title={`${pip.label}: ${pip.status}`}
-                    />
-                  ))}
-                </div>
-              </div>
-            </button>
-          );
-        })}
+                  <div>
+                    <div className="stage-owner-line">{st.accountableOwner}</div>
+                    <div
+                      className="led-strip"
+                      aria-label={`Gate ${stage.gateNumber} status indicators`}
+                    >
+                      {st.pips.map((pip, idx) => (
+                        <span
+                          key={`${stage.stageNumber}-${idx}`}
+                          className={`led-pip ${pip.status}`}
+                          title={`${pip.label}: ${pip.status}`}
+                        />
+                      ))}
+                    </div>
+                  </div>
+                </button>
+              );
+            })}
+          </div>
+        </div>
+
+        {/* Right Unnumbered Bookends: Support & Renewal */}
+        <div className="journey-bookend-col journey-bookend-right-col">
+          <div className="journey-col-eyebrow mono">AFTER NOMINALX</div>
+          <div className="journey-bookend-right-pair">
+            {renderBookendNode(
+              supportStage,
+              "LIVE OPERATIONS",
+              "Day-1 Runbook & Waiver Closure",
+            )}
+            {renderBookendNode(
+              renewalStage,
+              "CUSTOMER GROWTH",
+              "Longitudinal Telemetry · Expansion → Gate 1",
+            )}
+          </div>
+        </div>
       </div>
 
-      {/* Explicit Bracket Framing The Unverified Gap */}
+      {/* Explicit Bracket Framing The In-Between Gap */}
       <div className="gap-bracket-row" data-tour="journey-gap-bracket">
         <div
           className="mono"
           style={{ fontSize: "0.7rem", color: "var(--text-dim)", textAlign: "center" }}
         >
-          PRE-GAP · CLICK STAGE 1
+          BEFORE · CLICK DEAL CLOSE
         </div>
         <div className="gap-bracket-bar">
           <span>◄━━</span>
-          <span>THE UNVERIFIED GAP (STAGES 2 → 4) · 3 DETERMINISTIC SPRINTS + SIGNED HANDOVER</span>
+          <span>THE IN-BETWEEN GAP · GATE 1 → GATE 2 → GATE 3 + SIGNED HANDOVER</span>
           <span>━━►</span>
         </div>
         <div
           className="mono"
           style={{ fontSize: "0.7rem", color: "var(--text-dim)", textAlign: "center" }}
         >
-          POST-GAP · CLICK STAGE 5 OR 6
+          AFTER · CLICK SUPPORT OR RENEWAL
         </div>
       </div>
     </section>

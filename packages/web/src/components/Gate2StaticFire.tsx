@@ -203,7 +203,7 @@ export function Gate2StaticFire({
         <div>
           <div className="help-inline">
             <div className="eyebrow">
-              STAGE 3: INTEGRATION &amp; CUTOVER · GATE 2 (2 OF 3): STATIC FIRE (FAULT INJECTION) · SPRINT 2
+              GATE 2 · STATIC FIRE (FAULT INJECTION) · INTEGRATION &amp; CUTOVER · SPRINT 2
             </div>
             <HelpTip copyKey="gate2.header" />
           </div>

@@ -2,7 +2,7 @@
 
 > ***"Sales says the account is green. Nothing is nominal until telemetry proves it."***
 
-![NominalX Customer Engineering Lifecycle (Stages 1 to 6 & The Unverified Gap)](./docs/customer-journey.svg)
+![NominalX Customer Engineering Journey (Deal Close → Gate 1, Gate 2, Gate 3 → Support & Renewal)](./docs/customer-journey.svg)
 
 **Live Mission Control Cockpit (Vercel, auto-deployed from `main`):** [https://nominalx.vercel.app](https://nominalx.vercel.app)
 
@@ -18,13 +18,13 @@ NominalX is the result of sitting down with busy minds who run strategic enterpr
 - **Customer-Facing Engineers:** **Sales Engineers**, **Solutions Engineers (SEs) / Solutions Architects (SAs)**, **Forward-Deployed Engineers (FDEs) / Implementation Engineers**, **Customer Success Engineers (CSEs)**, **Technical Account Managers (TAMs)**, and **Support Engineers**.
 - **Customer Engineers:** **Customer Backend Engineers**, **Customer Platform / Infrastructure Engineers**, **Customer Security Engineers**, and **Customer On-Call SREs**.
 
-### Why Stages 2 → 4 (*The Unverified Gap*)
+### Why The In-Between Gap (*Between Deal Close and Live Support & Renewal*)
 
-Most customer software lives at the two edges of the lifecycle: pre-sales CRM at **Stage 1: Deal Close**, or reactive ticketing at **Stage 5: Support**. Almost nothing to be proud of, no proven methodology, and no executable tooling sits in **Stages 2 to 4** — where signed technical commitments actually turn into resilient production systems:
+Most customer software lives at the two bookends of the lifecycle: pre-sales CRM at **Deal Close**, or reactive ticketing in live **Support** and **Renewal & Expansion**. Almost nothing to be proud of, no proven methodology, and no executable tooling sits in the missing in-between stages — where signed technical commitments actually turn into resilient production systems. NominalX makes **`Gate 1`**, **`Gate 2`**, and **`Gate 3`** the only numbered readiness stages bridging Deal Close and live operations:
 
-1. **Stage 2: Sales-to-FDE Handoff · Gate 1 (`1 of 3`): `Flight Check · Setup Check`** — Proves staging matches what Sales sold across parallel telemetry stations (`1 of 6`–`6 of 6`, plus any custom stations) with **Non-Waivable Hard Stops** on `AUTH / SSO`, `RESIDENCY`, and any compliance check marked `hard_stop: true`.
-2. **Stage 3: Integration & Cutover · Gate 2 (`2 of 3`): `Static Fire · Fault Injection`** — Breaks things safely before live traffic hits by running **7 realistic failure scenarios** (`1 of 7`–`7 of 7`, plus custom vectors) against staging — duplicate webhooks, out-of-order events, rate-limit bursts, 30-second timeouts, secret rotation, unexpected JSON fields, and clock drift — fixing where it breaks until zero records are lost or corrupted (**`0.0%` corruption, Grade `A`**).
-3. **Stage 4: Day-30 Enablement & Handover · Gate 3 (`3 of 3`): `Crew Drill · Live Incident Drill` + Handover Sprint** — Rehearses a real 2 AM outage before go-live via **3 live 90-second Day-30 alarms** (`1 of 3`–`3 of 3`) where Support Engineers and Customer SREs apply real configuration fixes (zero multiple-choice quizzes), then auto-generates a **tamper-evident (SHA-256 signed) Handover Dossier** and **Customer On-Call Runbook** for **Stage 5: Support**.
+1. **`Gate 1`: `Flight Check · Setup Check` *(Sales-to-FDE Handoff)*** — Proves staging matches what Sales sold across parallel telemetry stations (`1 of 6`–`6 of 6`, plus any custom stations) with **Non-Waivable Hard Stops** on `AUTH / SSO`, `RESIDENCY`, and any compliance check marked `hard_stop: true`.
+2. **`Gate 2`: `Static Fire · Fault Injection` *(Integration & Cutover)*** — Breaks things safely before live traffic hits by running **7 realistic failure scenarios** (`1 of 7`–`7 of 7`, plus custom vectors) against staging — duplicate webhooks, out-of-order events, rate-limit bursts, 30-second timeouts, secret rotation, unexpected JSON fields, and clock drift — fixing where it breaks until zero records are lost or corrupted (**`0.0%` corruption, Grade `A`**).
+3. **`Gate 3`: `Crew Drill · Live Incident Drill` *(Day-30 Enablement & Handover)*** — Rehearses a real 2 AM outage before go-live via **3 live 90-second Day-30 alarms** (`1 of 3`–`3 of 3`) where Support Engineers and Customer SREs apply real configuration fixes (zero multiple-choice quizzes), then auto-generates a **tamper-evident (SHA-256 signed) Handover Dossier** and **Customer On-Call Runbook** for live **Support**.
 
 ---
 
@@ -50,24 +50,24 @@ Open **[https://nominalx.vercel.app](https://nominalx.vercel.app)** to run Nomin
 
 ---
 
-## Master Lifecycle & Sprint Governance Table (Stages 1 → 6)
+## Master Lifecycle & Sprint Governance Table (Deal Close → Gates 1–3 → Support & Renewal)
 
-Every stage is executed as a **time-boxed engineering sprint** with **one Single Accountable Owner**, paired vendor + customer engineers, connected integrations, strict scope boundaries, and telemetry-backed Definition of Done.
+`Deal Close`, `Support`, and `Renewal & Expansion` sit as unnumbered bookends around the three numbered NominalX readiness stages (`Gate 1`, `Gate 2`, `Gate 3`). Every phase is executed as a **time-boxed engineering sprint** with **one Single Accountable Owner**, paired vendor + customer engineers, connected integrations, strict scope boundaries, and telemetry-backed Definition of Done.
 
-| Stage | Goal | Single Accountable Owner | Vendor & Customer Engineers | Connected Integrations | Strict Scope Guardrails (In / Out / Hard Stops) | Reporting & Definition of Done |
+| Phase | Goal | Single Accountable Owner | Vendor & Customer Engineers | Connected Integrations | Strict Scope Guardrails (In / Out / Hard Stops) | Reporting & Definition of Done |
 |---|---|---|---|---|---|---|
-| **Stage 1: Deal Close** *(Pre-Gap Contract Seed)* | Codify signed technical promises into a schema-valid `nominalx.yaml`. | **Lead Solutions Engineer (SE / SA)** | **Vendor:** Sales Eng, SE/SA, Lead FDE (read-in)<br>**Customer:** Eng Lead, Security Eng | CRM Handoff (`nominalx.yaml`), Jira/Linear | **In:** SSO, residency, HMAC, RPS, P1, RTO targets.<br>**Out:** Commercial pricing, unverified verbal promises.<br>**Hard Stop:** Schema-valid `nominalx.yaml` v1.0 required before Gate 1. | Committed `nominalx.yaml` passing `NominalXConfigSchema` with named engineering owners. |
-| **Stage 2: Sales-to-FDE Handoff**<br>**Gate 1 (`1 of 3`): `Flight Check · Setup Check`** *(Sprint 1)* | Prove staging matches what Sales sold across parallel stations (`1 of 6`–`6 of 6` + custom stations). | **Lead Forward-Deployed Engineer (FDE)** | **Vendor:** Lead FDE, SE/SA, Sales Eng, Lead CSE, Support Eng, TAM<br>**Customer:** Platform/Infra, Security, Backend, On-Call SRE | Okta/Entra SSO, AWS/GCP Residency, HMAC Gateway, API Quota Edge, PagerDuty/Slack P1, Terraform/ArgoCD Rollback, Jira/Linear | **In:** Live HTTP/header/HMAC probes, strict Sold vs. Observed diffs.<br>**Out:** Waiving Hard Stops, 50k RPS laptop load tests, spreadsheet sign-offs.<br>**Hard Stops:** **`AUTH / SSO` (`1 of 6`), `RESIDENCY` (`2 of 6`), and any `hard_stop: true` custom check are Non-Waivable.** Operational stations allow max **2 active waivers ≤ 30d**. | `flight-check.json`, Live Launch Deliverables; **0 `NO-GO`** stations; all Hard Stops `NOMINAL`. |
-| **Stage 3: Integration & Cutover**<br>**Gate 2 (`2 of 3`): `Static Fire · Fault Injection`** *(Sprint 2)* | Break things safely across **7 realistic failure scenarios** (`1 of 7`–`7 of 7` + custom vectors), fix where it breaks, and re-run until zero records are lost or corrupted (`0.0%`). | **Lead Forward-Deployed Engineer (FDE)** | **Vendor:** Lead FDE, TAM<br>**Customer:** Backend, Platform/Infra, Security Engineers | HMAC Webhook Gateway, Rate-Limit Gateway, Release Automation | **In:** Automated failure scenarios, live config diffs, before/after test history.<br>**Out:** Untested prod deploys, LLM-guessed grades, multi-hour soak tests.<br>**Hard Stop:** Any corruption `> 0.0%` locks Gate 2 in `NO-GO` (exit `1`). | `static-fire.json` with **`0.0%` corruption (`Grade A · NOMINAL`)**, all active scenarios passed, before/after delta log. |
-| **Stage 4: Day-30 Enablement & Handover**<br>**Gate 3 (`3 of 3`): `Crew Drill · Live Incident Drill` + Handover Sprint** *(Sprint 3)* | Rehearse a real 2 AM outage across **3 live 90s Day-30 alarms** (`1 of 3`–`3 of 3`), then generate a tamper-evident (SHA-256 signed) Handover Dossier & Customer On-Call Runbook. | **Lead Customer Success Engineer (CSE)** *(Crew Drill)*<br>**Lead FDE** *(Handover Sign-Off)* | **Vendor:** Lead CSE, Lead FDE, Support Eng, TAM<br>**Customer:** On-Call SRE, Backend, Security, Customer Eng Lead | Rate-Limit Edge, Okta/Entra SSO, PagerDuty/Slack P1, Jira/Linear | **In:** Live 90s alarm config fixes, SHA-256 signed Handover Dossier, tailored Customer On-Call Runbook.<br>**Out:** Slide-deck trainings, multiple-choice quizzes, unsigned FDE roll-offs.<br>**Hard Stop:** Zero unstabilized Crew Drill alarms allowed prior to FDE roll-off. | `crew-drill.json` (all alarms stabilized with split times) + tamper-evident Handover Dossier (`.md`, `.json`, Slack) + Customer On-Call Runbook. |
-| **Stage 5: Support** *(Post-Gap Operations)* | Operate SLAs from verified Day-1 baselines and close every Operational Waiver before expiry. | **Assigned Lead Support Engineer** | **Vendor:** Support Engineers, TAM, CSE<br>**Customer:** On-Call SREs, Backend/Platform Engineers | PagerDuty/Slack P1, Jira/Linear, Rollback Automation | **In:** Customer On-Call Runbook triage, 1-command `nominalx check` drift checks, waiver closure.<br>**Out:** Re-discovering Sales promises during P1s, silent waiver extensions.<br>**Hard Stop:** Any expired waiver (`today > expires_at`) immediately flags `NO-GO`. | Active Waiver Aging Register closed to `0` active waivers via live `NOMINAL` re-probe. |
-| **Stage 6: Renewal & Expansion** *(Post-Gap Growth)* | Anchor renewal on longitudinal telemetry and seed expansion workloads into Stage 1 → Gate 1. | **Technical Account Manager (TAM)** | **Vendor:** TAM, Lead CSE, Sales Engineer<br>**Customer:** Customer Engineering, Platform & Security Leads | CRM Handoff (`nominalx.yaml`), Jira/Linear | **In:** Quarterly JSON dossier diffs, zero-waiver discipline, new region/RPS seeding.<br>**Out:** Qualitative health scores without telemetry, bypassing Gate 1 Hard Stops.<br>**Hard Stop:** New geographic regions require a fresh Gate 1 `RESIDENCY` pass. | Executive Brief (`exec`) + fresh `nominalx.yaml` for expansion scope. |
+| **Deal Close** *(Bookend · Before Launch Readiness)* | Codify signed technical promises into a schema-valid `nominalx.yaml`. | **Lead Solutions Engineer (SE / SA)** | **Vendor:** Sales Eng, SE/SA, Lead FDE (read-in)<br>**Customer:** Eng Lead, Security Eng | CRM Handoff (`nominalx.yaml`), Jira/Linear | **In:** SSO, residency, HMAC, RPS, P1, RTO targets.<br>**Out:** Commercial pricing, unverified verbal promises.<br>**Hard Stop:** Schema-valid `nominalx.yaml` v1.0 required before Gate 1. | Committed `nominalx.yaml` passing `NominalXConfigSchema` with named engineering owners. |
+| **`Gate 1`: `Flight Check · Setup Check`**<br>*Sales-to-FDE Handoff (Sprint 1)* | Prove staging matches what Sales sold across parallel stations (`1 of 6`–`6 of 6` + custom stations). | **Lead Forward-Deployed Engineer (FDE)** | **Vendor:** Lead FDE, SE/SA, Sales Eng, Lead CSE, Support Eng, TAM<br>**Customer:** Platform/Infra, Security, Backend, On-Call SRE | Okta/Entra SSO, AWS/GCP Residency, HMAC Gateway, API Quota Edge, PagerDuty/Slack P1, Terraform/ArgoCD Rollback, Jira/Linear | **In:** Live HTTP/header/HMAC probes, strict Sold vs. Observed diffs.<br>**Out:** Waiving Hard Stops, 50k RPS laptop load tests, spreadsheet sign-offs.<br>**Hard Stops:** **`AUTH / SSO` (`1 of 6`), `RESIDENCY` (`2 of 6`), and any `hard_stop: true` custom check are Non-Waivable.** Operational stations allow max **2 active waivers ≤ 30d**. | `flight-check.json`, Live Launch Deliverables; **0 `NO-GO`** stations; all Hard Stops `NOMINAL`. |
+| **`Gate 2`: `Static Fire · Fault Injection`**<br>*Integration & Cutover (Sprint 2)* | Break things safely across **7 realistic failure scenarios** (`1 of 7`–`7 of 7` + custom vectors), fix where it breaks, and re-run until zero records are lost or corrupted (`0.0%`). | **Lead Forward-Deployed Engineer (FDE)** | **Vendor:** Lead FDE, TAM<br>**Customer:** Backend, Platform/Infra, Security Engineers | HMAC Webhook Gateway, Rate-Limit Gateway, Release Automation | **In:** Automated failure scenarios, live config diffs, before/after test history.<br>**Out:** Untested prod deploys, LLM-guessed grades, multi-hour soak tests.<br>**Hard Stop:** Any corruption `> 0.0%` locks Gate 2 in `NO-GO` (exit `1`). | `static-fire.json` with **`0.0%` corruption (`Grade A · NOMINAL`)**, all active scenarios passed, before/after delta log. |
+| **`Gate 3`: `Crew Drill · Live Incident Drill`**<br>*Day-30 Enablement & Handover (Sprint 3)* | Rehearse a real 2 AM outage across **3 live 90s Day-30 alarms** (`1 of 3`–`3 of 3`), then generate a tamper-evident (SHA-256 signed) Handover Dossier & Customer On-Call Runbook. | **Lead Customer Success Engineer (CSE)** *(Crew Drill)*<br>**Lead FDE** *(Handover Sign-Off)* | **Vendor:** Lead CSE, Lead FDE, Support Eng, TAM<br>**Customer:** On-Call SRE, Backend, Security, Customer Eng Lead | Rate-Limit Edge, Okta/Entra SSO, PagerDuty/Slack P1, Jira/Linear | **In:** Live 90s alarm config fixes, SHA-256 signed Handover Dossier, tailored Customer On-Call Runbook.<br>**Out:** Slide-deck trainings, multiple-choice quizzes, unsigned FDE roll-offs.<br>**Hard Stop:** Zero unstabilized Crew Drill alarms allowed prior to FDE roll-off. | `crew-drill.json` (all alarms stabilized with split times) + tamper-evident Handover Dossier (`.md`, `.json`, Slack) + Customer On-Call Runbook. |
+| **Support** *(Bookend · Live Operations)* | Operate SLAs from verified Day-1 baselines and close every Operational Waiver before expiry. | **Assigned Lead Support Engineer** | **Vendor:** Support Engineers, TAM, CSE<br>**Customer:** On-Call SREs, Backend/Platform Engineers | PagerDuty/Slack P1, Jira/Linear, Rollback Automation | **In:** Customer On-Call Runbook triage, 1-command `nominalx check` drift checks, waiver closure.<br>**Out:** Re-discovering Sales promises during P1s, silent waiver extensions.<br>**Hard Stop:** Any expired waiver (`today > expires_at`) immediately flags `NO-GO`. | Active Waiver Aging Register closed to `0` active waivers via live `NOMINAL` re-probe. |
+| **Renewal & Expansion** *(Bookend · Customer Growth)* | Anchor renewal on longitudinal telemetry and seed expansion workloads back into Deal Close → Gate 1. | **Technical Account Manager (TAM)** | **Vendor:** TAM, Lead CSE, Sales Engineer<br>**Customer:** Customer Engineering, Platform & Security Leads | CRM Handoff (`nominalx.yaml`), Jira/Linear | **In:** Quarterly JSON dossier diffs, zero-waiver discipline, new region/RPS seeding.<br>**Out:** Qualitative health scores without telemetry, bypassing Gate 1 Hard Stops.<br>**Hard Stop:** New geographic regions require a fresh Gate 1 `RESIDENCY` pass. | Executive Brief (`exec`) + fresh `nominalx.yaml` for expansion scope. |
 
 ---
 
 ## Sub-Stage Breakdown Across The Three Gates
 
-### Stage 2 · Gate 1 (`1 of 3`): `Flight Check · Setup Check` (`1 of 6` → `6 of 6`)
+### Gate 1: `Flight Check · Setup Check` — Sales-to-FDE Handoff (`1 of 6` → `6 of 6`)
 
 | Sub-Stage | Station | Policy Class | Accountable Owner | Definition of Done |
 |---|---|---|---|---|
@@ -78,7 +78,7 @@ Every stage is executed as a **time-boxed engineering sprint** with **one Single
 | **5 of 6** | `ALERTING` | Operational Waiver Eligible | Lead CSE | Synthetic P1 probe (`X-NominalX-Probe: true`) acknowledged (`2xx`) within SLA on active channel. |
 | **6 of 6** | `ROLLBACK` | Operational Waiver Eligible | Lead FDE | Versioned artifact rollback dry-run passes within contracted max RTO with zero data loss. |
 
-### Stage 3 · Gate 2 (`2 of 3`): `Static Fire · Fault Injection` (`1 of 7` → `7 of 7`)
+### Gate 2: `Static Fire · Fault Injection` — Integration & Cutover (`1 of 7` → `7 of 7`)
 
 | Sub-Stage | Failure Scenario | Failure Mode Caught | Definition of Done (`0.0%` Corruption) |
 |---|---|---|---|
@@ -90,7 +90,7 @@ Every stage is executed as a **time-boxed engineering sprint** with **one Single
 | **6 of 7** | Additive / unknown JSON fields | Strict-schema `400`/`422`/`500` crashes | Tolerant reader ignores unknown top-level & nested keys. |
 | **7 of 7** | 5-minute clock skew | False drops on clock drift or replay exposure | Accepts valid `±5m` probes; rejects stale `-15m` replay (`401`). |
 
-### Stage 4 · Gate 3 (`3 of 3`): `Crew Drill · Live Incident Drill` (`1 of 3` → `3 of 3`)
+### Gate 3: `Crew Drill · Live Incident Drill` — Day-30 Enablement & Handover (`1 of 3` → `3 of 3`)
 
 | Sub-Stage | Live Day-30 Alarm (`90s` Clock) | Accountable Owner | Real Config Remediation Verified (Zero Quizzes) |
 |---|---|---|---|
@@ -110,7 +110,7 @@ Each tab in the web cockpit displays a bold header card naming **Who reads it**,
 |---|---|---|---|
 | **Executive Brief** | VP Engineering, Customer Executives & Account Leadership | Weekly before go-live and at final Go / No-Go review | `nominalx report --type exec` |
 | **Weekly Sprint Digest** | Lead FDE, Lead CSE, Solutions Engineers & Customer Engineers | Every sprint standup and Friday engineering sync | `nominalx report --type ops` |
-| **Handover Dossier** | Lead FDE, Lead CSE, Support Engineers & Customer Eng Lead | At Stage 4 → 5 sign-off before FDE roll-off (SHA-256 signed + Waiver Register) | `nominalx dossier` + `nominalx report --type waivers` |
+| **Handover Dossier** | Lead FDE, Lead CSE, Support Engineers & Customer Eng Lead | At Gate 3 → live Support sign-off before FDE roll-off (SHA-256 signed + Waiver Register) | `nominalx dossier` + `nominalx report --type waivers` |
 | **Customer On-Call Runbook** | Support Engineers & Customer On-Call SREs | Day 1 of production cutover and on-call shift onboarding | Included in `nominalx dossier` |
 
 ![NominalX Live Launch Deliverables Hub — Executive Brief, Weekly Sprint Digest, Handover Dossier, and Customer On-Call Runbook with Who Reads It, When to Send It, Live Status, and Copy/Download controls](./docs/assets/web-live-launch-deliverables.png)
@@ -121,11 +121,11 @@ Each tab in the web cockpit displays a bold header card naming **Who reads it**,
 
 Everything below was produced by running the real `nominalx` CLI locally against `nominalx demo-target --port 4040 --preset meridian` with zero mocks and zero LLM calls. Full raw outputs are committed in [`docs/examples/meridian-fintech/`](./docs/examples/meridian-fintech/).
 
-### 1. Gate 1 (`1 of 3`): `Flight Check · Setup Check` — Failing Hard Stop Diff → Live Patch → `CONDITIONAL_GO`
+### 1. Gate 1: `Flight Check · Setup Check` — Failing Hard Stop Diff → Live Patch → `CONDITIONAL_GO`
 
 ![NominalX CLI Gate 1 Flight Check — failing RESIDENCY Hard Stop and WEBHOOKS patched live to CONDITIONAL_GO](./docs/assets/cli-gate1-flight-check.png)
 
-### 2. Gate 2 (`2 of 3`): `Static Fire · Fault Injection` — `37.1%` Grade `F` → Live Handler Patch → `0.0%` Grade `A` `NOMINAL`
+### 2. Gate 2: `Static Fire · Fault Injection` — `37.1%` Grade `F` → Live Handler Patch → `0.0%` Grade `A` `NOMINAL`
 
 ![NominalX CLI Gate 2 Static Fire — 37.1% Grade F patched live to 0.0% Grade A NOMINAL](./docs/assets/cli-gate2-static-fire.png)
 
@@ -155,10 +155,10 @@ CONDITIONAL GO — Proceed with Signed NOMINAL WITH WAIVERS Dossier; track 1 act
 
 | Gate | Metric | Result |
 |---|---|---|
-| Gate 1 (1 of 3): Flight Check | Station Verdict | `CONDITIONAL_GO` (5 NOMINAL, 1 WAIVED, 0 NO-GO) |
-| Hard Stops (Non-Waivable) | AUTH / SSO & RESIDENCY | AUTH `NOMINAL` · RESIDENCY `NOMINAL` (Violations: 0) |
-| Gate 2 (2 of 3): Static Fire | Resilience Grade & Corruption | Grade `A` · 0.0% (7/7) · Fire #1: 37.1% (Grade F) -> Fire #2: 0.0% (Grade A) |
-| Gate 3 (3 of 3): Crew Drill | Day-30 Alarm Stabilization | 3/3 stabilized (0 overtime, total 59.6s) |
+| Gate 1: Flight Check · Setup Check | Station Verdict | `CONDITIONAL_GO` (5/6 NOMINAL, 1 WAIVED, 0 NO-GO) |
+| Hard Stops (Non-Waivable) | AUTH / SSO & RESIDENCY | AUTH / SSO `NOMINAL` · RESIDENCY `NOMINAL` (Violations: 0) |
+| Gate 2: Static Fire · Fault Injection | Resilience Grade & Corruption | Grade `A` · 0.0% (7/7) · Fire #1: 37.1% (Grade F) -> Fire #2: 0.0% (Grade A) |
+| Gate 3: Crew Drill · Live Incident Drill | Day-30 Alarm Stabilization | 3/3 stabilized (0 overtime, total 59.6s) |
 | Operational Waiver Exposure | Active Cap & Nearest Expiry | `1 / 2` · Nearest expiry: `2026-12-15` (24d left) |
 ```
 
@@ -169,11 +169,11 @@ CONDITIONAL GO — Proceed with Signed NOMINAL WITH WAIVERS Dossier; track 1 act
 
 ```text
 *Operational Sprint & Blocker Digest — Meridian FinTech*
-*Stage:* Stage 4: Day-30 Enablement & Handover · *Gate:* Handover Sprint: Signed NOMINAL Dossier & Day-1 Runbook · *Owner:* `Lead FDE + Lead CSE` · *Verdict:* `CONDITIONAL_GO`
+*Phase:* Gate 3: Crew Drill · Live Incident Drill · *Gate:* Handover Sprint: Signed NOMINAL Dossier & Day-1 Runbook · *Owner:* `Lead FDE + Lead CSE` · *Verdict:* `CONDITIONAL_GO`
 
 *Gate 1 Non-Nominal Stations (1):*
 > • 6 of 6 `ROLLBACK` [HOLD_WAIVED] (OPERATIONAL WAIVER) — Cut automated blue/green rollback RTO from 11m to <= 5m, or document a bounded Operational Waiver with verified manual failover.
-*Digest:* `sha256:400bd5670f61b11b1471de95f4b3faccacb8cee3ed3a6a65ce9e119a258bf191`
+*Digest:* `sha256:a9a8bab759d80329c2efebd6257f2dedbec695ee4a6bf069b1daccad7a78ccfe`
 ```
 
 </details>
@@ -199,9 +199,9 @@ CONDITIONAL GO — Proceed with Signed NOMINAL WITH WAIVERS Dossier; track 1 act
 ```markdown
 # NominalX Signed Flight Readiness Dossier — Meridian FinTech
 
-> **Verdict:** `NOMINAL WITH WAIVERS` | **Master Launch State:** `CONDITIONAL_GO` | **Verification Digest:** `sha256:8f640d3389acf9e58f9c14f9426aec14aee6eaaf95260e0e7c45294db6b193c1`
+> **Verdict:** `NOMINAL WITH WAIVERS` | **Master Launch State:** `CONDITIONAL_GO` | **Verification Digest:** `sha256:7608b6c86a41274b10b204d1d6cd547934c5595b15251a951f216283f90ccfea`
 
-## Stack-Tailored Day-1 Customer Runbook (Into Stage 5: Support)
+## Stack-Tailored Day-1 Customer Runbook (Into Live Support)
 
 - **Stack:** Cloud `aws` · IdP `okta-saml` · Alerting `pagerduty+slack` · Runtime `node-express`
 - **Verified Baselines:** Auth `SAML2` · Regions `[eu-central-1, eu-west-1]` · Quota `50,000 RPS` · P1 `#eng-meridian-p1` · Max RTO `5m`
@@ -229,14 +229,14 @@ pnpm install && pnpm build
 # Terminal 1: Start a real local staging target reproducing all 6 Gate 1 stations & 7 Gate 2 scenarios
 pnpm nominalx demo-target --port 4040 --preset meridian
 
-# Terminal 2: Stage 2 / Gate 1 (1 of 3) — Flight Check · Setup Check (fails on RESIDENCY Hard Stop & WEBHOOKS)
+# Terminal 2: Gate 1 — Flight Check · Setup Check (fails on RESIDENCY Hard Stop & WEBHOOKS)
 pnpm nominalx check examples/meridian-fintech/nominalx.yaml --out flight-check.json
 
 # Patch staging residency & dual-HMAC webhook verification live, then re-verify
 pnpm nominalx demo-patch --port 4040 --fix residency,webhooks
 pnpm nominalx check examples/meridian-fintech/nominalx.yaml --out flight-check.json
 
-# Stage 3 / Gate 2 (2 of 3) — Static Fire · Fault Injection (37.1% Grade F -> live patch -> 0.0% Grade A)
+# Gate 2 — Static Fire · Fault Injection (37.1% Grade F -> live patch -> 0.0% Grade A)
 pnpm nominalx fire --url http://127.0.0.1:4040/webhooks/events --config examples/meridian-fintech/nominalx.yaml --out static-fire.json
 pnpm nominalx demo-patch --port 4040 --fix idempotency,ordering,dual-hmac
 pnpm nominalx fire --url http://127.0.0.1:4040/webhooks/events --config examples/meridian-fintech/nominalx.yaml --out static-fire.json
@@ -322,7 +322,7 @@ custom_vectors:
 ```text
 nominalX/
 ├── docs/
-│   ├── customer-journey.svg              # Stages 1 -> 6 & The Unverified Gap vector graphic
+│   ├── customer-journey.svg              # Deal Close -> Gates 1–3 (The In-Between Gap) -> Support & Renewal graphic
 │   ├── customization-guide.md            # Declarative YAML extensibility guide (stations, vectors, alarms)
 │   ├── assets/
 │   │   ├── web-launchpad.png             # First-Run Launchpad (Option C Dark mode)

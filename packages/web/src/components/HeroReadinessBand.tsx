@@ -272,7 +272,7 @@ export function HeroReadinessBand({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
               <span className="help-inline">
-                <span className="eyebrow">STAGE 2 · GATE 1 (1/3)</span>
+                <span className="eyebrow">GATE 1 · SPRINT 1</span>
                 <HelpTip asSpan copyKey="hero.gate1Card" />
               </span>
               <span className={`status-pill ${g1Pill}`}>
@@ -308,7 +308,7 @@ export function HeroReadinessBand({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
               <span className="help-inline">
-                <span className="eyebrow">STAGE 3 · GATE 2 (2/3)</span>
+                <span className="eyebrow">GATE 2 · SPRINT 2</span>
                 <HelpTip asSpan copyKey="hero.gate2Card" />
               </span>
               <span className={`status-pill ${g2Pill}`}>
@@ -346,7 +346,7 @@ export function HeroReadinessBand({
           >
             <div style={{ display: "flex", justifyContent: "space-between", alignItems: "center", width: "100%", gap: 6 }}>
               <span className="help-inline">
-                <span className="eyebrow">STAGE 4 · GATE 3 (3/3)</span>
+                <span className="eyebrow">GATE 3 · SPRINT 3</span>
                 <HelpTip asSpan copyKey="hero.gate3Card" />
               </span>
               <span className={`status-pill ${g3Pill}`}>

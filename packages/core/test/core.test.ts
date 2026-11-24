@@ -132,17 +132,17 @@ account:
   });
 });
 
-describe("@nominalx/core — Stage 1-6 & sub-stage metadata catalog", () => {
-  it("explicitly names every stage (1-6) and sub-stage with owner, engineers, integrations, scope, and DoD", () => {
+describe("@nominalx/core — Unified Gate 1-3, unnumbered bookends & sub-stage metadata catalog", () => {
+  it("keeps Deal Close, Support, and Renewal & Expansion unnumbered and Gate 1-3 as the only numbered readiness stages", () => {
     expect(LIFECYCLE_STAGES).toHaveLength(6);
-    expect(LIFECYCLE_STAGES[0]!.displayTitle).toBe("Stage 1: Deal Close");
-    expect(LIFECYCLE_STAGES[1]!.displayTitle).toBe("Stage 2: Sales-to-FDE Handoff");
-    expect(LIFECYCLE_STAGES[1]!.gateLabel).toBe("Gate 1 (1 of 3): Flight Check");
-    expect(LIFECYCLE_STAGES[2]!.displayTitle).toBe("Stage 3: Integration & Cutover");
-    expect(LIFECYCLE_STAGES[2]!.gateLabel).toBe("Gate 2 (2 of 3): Static Fire");
-    expect(LIFECYCLE_STAGES[3]!.displayTitle).toBe("Stage 4: Day-30 Enablement & Handover");
-    expect(LIFECYCLE_STAGES[4]!.displayTitle).toBe("Stage 5: Support");
-    expect(LIFECYCLE_STAGES[5]!.displayTitle).toBe("Stage 6: Renewal & Expansion");
+    expect(LIFECYCLE_STAGES[0]!.displayTitle).toBe("Deal Close");
+    expect(LIFECYCLE_STAGES[1]!.displayTitle).toBe("Gate 1: Flight Check · Setup Check");
+    expect(LIFECYCLE_STAGES[1]!.gateLabel).toBe("Gate 1: Flight Check · Setup Check");
+    expect(LIFECYCLE_STAGES[2]!.displayTitle).toBe("Gate 2: Static Fire · Fault Injection");
+    expect(LIFECYCLE_STAGES[2]!.gateLabel).toBe("Gate 2: Static Fire · Fault Injection");
+    expect(LIFECYCLE_STAGES[3]!.displayTitle).toBe("Gate 3: Crew Drill · Live Incident Drill");
+    expect(LIFECYCLE_STAGES[4]!.displayTitle).toBe("Support");
+    expect(LIFECYCLE_STAGES[5]!.displayTitle).toBe("Renewal & Expansion");
 
     for (const stage of LIFECYCLE_STAGES) {
       expect(stage.singleAccountableOwner.length).toBeGreaterThan(3);
@@ -269,7 +269,7 @@ describe("@nominalx/core — Gate 1 (Flight Check), Hard Stops & Waiver Governan
     );
     expect(durationErr?.violationCode).toBe("WAIVER_EXCEEDS_30_DAYS");
 
-    // Expired waiver detection (Stage 5 Support drift detector)
+    // Expired waiver detection (live Support drift detector)
     const expiredAudit = evaluateWaivers(
       [
         {
@@ -472,9 +472,9 @@ describe("@nominalx/core — Signed Dossier, Day-1 Runbook & Reporting Engine", 
     const json = renderDossier(d1, "json");
     const slack = renderDossier(d1, "slack");
 
-    expect(md).toContain("Gate 1 (1 of 3): Flight Check");
-    expect(md).toContain("Gate 2 (2 of 3): Static Fire");
-    expect(md).toContain("Gate 3 (3 of 3): Crew Drill");
+    expect(md).toContain("Gate 1: Flight Check · Setup Check");
+    expect(md).toContain("Gate 2: Static Fire · Fault Injection");
+    expect(md).toContain("Gate 3: Crew Drill · Live Incident Drill");
     expect(md).toContain(d1.verificationDigest);
     expect(JSON.parse(json).verificationDigest).toBe(d1.verificationDigest);
     expect(slack).toContain("*NOMINALX GO-LIVE DOSSIER");

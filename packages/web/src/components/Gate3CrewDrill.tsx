@@ -293,7 +293,7 @@ export function Gate3CrewDrill({
         <div>
           <div className="help-inline">
             <div className="eyebrow">
-              STAGE 4: DAY-30 ENABLEMENT &amp; HANDOVER · GATE 3 (3 OF 3): CREW DRILL (LIVE INCIDENT DRILL) · SPRINT 3
+              GATE 3 · CREW DRILL (LIVE INCIDENT DRILL) · DAY-30 ENABLEMENT &amp; HANDOVER · SPRINT 3
             </div>
             <HelpTip copyKey="gate3.header" />
           </div>

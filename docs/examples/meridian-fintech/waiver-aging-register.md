@@ -13,10 +13,10 @@
 |---|---|---|---|---|---|---|---|
 | `ROLLBACK` | `maya.chen@meridian.example` | `MER-4182` | `2026-12-15` | 24d | `HEALTHY` | Automated blue/green ArgoCD cutover ships Sprint 24; verified manual DNS failover active. | Run scripts/dns-failover.sh --cluster eu-central-v18 to revert traffic within 9 minutes. |
 
-## Stage 5 Support Drift-Detection Command
+## Live Support Drift-Detection Command
 
 ```bash
 nominalx check examples/meridian-fintech/nominalx.yaml
 ```
 
-*Verification Digest:* `sha256:06193b1febcda1efc2bc83126807fad68656c340fb9b4f1702293737aba4c4e3`
+*Verification Digest:* `sha256:2f56db49f8874997c147d076c4d162e05b05435789f8180cf9e1f6a87603b9da`

@@ -443,7 +443,7 @@ export function Gate1FlightCheck({
         <div>
           <div className="help-inline">
             <div className="eyebrow">
-              STAGE 2: SALES-TO-FDE HANDOFF · GATE 1 (1 OF 3): FLIGHT CHECK (SETUP CHECK) · SPRINT 1
+              GATE 1 · FLIGHT CHECK (SETUP CHECK) · SALES-TO-FDE HANDOFF · SPRINT 1
             </div>
             <HelpTip copyKey="gate1.header" />
           </div>

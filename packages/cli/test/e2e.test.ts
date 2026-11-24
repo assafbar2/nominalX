@@ -83,7 +83,7 @@ describe("nominalx CLI end-to-end against real demo-target HTTP server", () => {
       flightCheckPath,
     ]);
     expect(check1.exitCode).toBe(1);
-    expect(check1.stdout).toContain("Gate 1 (1 of 3): Flight Check");
+    expect(check1.stdout).toContain("Gate 1: Flight Check · Setup Check");
     expect(check1.stdout).toContain("HARD STOP");
     const fc1 = JSON.parse(await readFile(flightCheckPath, "utf8"));
     expect(fc1.verdict).toBe("NO_GO");
@@ -129,7 +129,7 @@ describe("nominalx CLI end-to-end against real demo-target HTTP server", () => {
       staticFirePath,
     ]);
     expect(fire1.exitCode).toBe(1);
-    expect(fire1.stdout).toContain("Gate 2 (2 of 3): Static Fire");
+    expect(fire1.stdout).toContain("Gate 2: Static Fire · Fault Injection");
     const sf1 = JSON.parse(await readFile(staticFirePath, "utf8"));
     expect(sf1.passed).toBe(false);
     expect(sf1.corruptionPct).toBeGreaterThan(0);

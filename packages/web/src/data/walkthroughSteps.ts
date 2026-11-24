@@ -59,7 +59,7 @@ export const WALKTHROUGH_WELCOME_META = {
     "Sales says the account is green. Nothing is nominal until telemetry proves it.",
   goalTitle: "The Goal",
   goalBody:
-    'Close "The Unverified Gap" between Sales signing an enterprise deal (Stage 1) and Support inheriting production (Stage 5) — before broken staging turns into a Day-1 outage.',
+    'Close "The Unverified Gap" bridging Deal Close and live Support — proving customer staging is ready across Gate 1, Gate 2, and Gate 3 before broken integrations turn into a Day-1 outage.',
   positioningTitle: "Jira, Linear & Monday — With Engineering Opinions",
   positioningBody:
     "NominalX pairs sprint discipline and single-owner accountability with Live Customer Readiness: real telemetry from the customer's actual staging environment, not manual green checkboxes, slides, or spreadsheets.",
@@ -73,7 +73,7 @@ export const WALKTHROUGH_CHAPTER_PREVIEWS: readonly WalkthroughChapterPreview[] 
       tag: "STEPS 2–8",
       title: "Mission, Pipeline & Readiness",
       summary:
-        "Account presets, Stages 1–6 baton owners, Hard Stop Locks, and stack context.",
+        "Account presets, Gate 1–3 baton owners, Deal Close & Support bookends, Hard Stop Locks, and stack context.",
     },
     {
       id: "preview-sprint-gate1",
@@ -152,13 +152,13 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
     id: "pipeline-stages-owners",
     chapterId: "pipeline",
     chapter: "Lifecycle Pipeline",
-    title: "Numbered Stages (1 to 6) & Single Baton Owners",
+    title: "Gate 1, Gate 2 & Gate 3 Between Deal Close and Support",
     summary:
-      "Every enterprise launch moves from Deal Close (Stage 1) to Renewal (Stage 6) with one clear owner per stage — Lead SE/SA, Lead FDE, Lead CSE, Lead Support Engineer, and TAM.",
+      "Deal Close (left) and Support + Renewal & Expansion (right) sit as unnumbered bookends around the only three numbered readiness stages — Gate 1, Gate 2, and Gate 3 — each with one clear owner (Lead FDE, Lead CSE, Support Engineer, TAM).",
     takeaway: {
       label: "Zero Ownership Ambiguity",
       detail:
-        "Every stage names its plain-language gate role (Setup Check, Fault Injection, Live Incident Drill) and single owner.",
+        "Every gate names its plain-language job (Setup Check, Fault Injection, Live Incident Drill) and single owner.",
     },
     targetSelector: '[data-tour="journey-stages-grid"]',
     view: "gate1",
@@ -171,7 +171,7 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
     chapter: "Lifecycle Pipeline",
     title: "Locked to Live Telemetry — Never Manual Checkboxes",
     summary:
-      "The Baton Owner badge, MASTER verdict pill, and stage LED strips update automatically from deterministic staging probes — there are no manual status dropdowns to game.",
+      "The Baton Owner badge, MASTER verdict pill, and gate LED strips update automatically from deterministic staging probes — there are no manual status dropdowns to game.",
     takeaway: {
       label: "Truth From Staging",
       detail:
@@ -186,9 +186,9 @@ export const WALKTHROUGH_STEPS: readonly WalkthroughStep[] = [
     id: "pipeline-unverified-gap",
     chapterId: "pipeline",
     chapter: "Lifecycle Pipeline",
-    title: '"The Unverified Gap" & Interactive Stage Navigation',
+    title: '"The Unverified Gap" & Interactive Gate Navigation',
     summary:
-      "Stages 2 to 4 are The Unverified Gap between Sales closing and Support inheriting production. Click Stages 2–4 to work Gates 1–3, Stages 1/5/6 for governance charters, or Reports & Handover Dossier above.",
+      "Gate 1, Gate 2, and Gate 3 bridge the missing in-between gap between Deal Close and live Support. Click Gates 1–3 to run checks, Deal Close / Support / Renewal for governance charters, or Live Launch Deliverables above.",
     takeaway: {
       label: "3 Gates Closing the Gap",
       detail:

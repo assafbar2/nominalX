@@ -75,7 +75,7 @@ export function generateDay1Runbook(
         `nominalx fire --url ${env.base_url}${env.endpoints.webhook_ingress} --config ./nominalx.yaml`,
       ],
       verificationSteps: [
-        "Verify Gate 2 Sub-Stage 5 of 7 (Dual HMAC secret rotation) passes with 0% drop across v1 + v2 keys.",
+        "Verify Gate 2 Vector 5 of 7 (Dual HMAC secret rotation) passes with 0% drop across v1 + v2 keys.",
         "Verify forged signatures still return 401/403 and stale -15m replay probes are rejected.",
         "Decommission prior v1 key only after 100% traffic signs with v2.",
       ],
@@ -84,7 +84,7 @@ export function generateDay1Runbook(
       id: "sso-cert-rotation",
       title: `3. SSO Certificate Rotation (${account.stack.idp})`,
       ownerRole: "Customer Security Engineer + On-Call SRE",
-      summary: `Promote staged X.509 signing certificate in dual-cert grace mode whenever TTL approaches ${sold.auth.min_cert_ttl_days}d (rehearsed in Gate 3 Sub-Stage 2 of 3).`,
+      summary: `Promote staged X.509 signing certificate in dual-cert grace mode whenever TTL approaches ${sold.auth.min_cert_ttl_days}d (rehearsed in Gate 3 Drill 2 of 3).`,
       commands: [
         `curl -fsS ${env.base_url}${env.endpoints.auth_metadata}`,
         `nominalx check ./nominalx.yaml --json`,
@@ -252,9 +252,9 @@ export function buildDossier(input: BuildDossierInput): SignedNominalDossier {
 
   const scopeSummary = {
     inScopeVerified: [
-      `Stage 2 · Gate 1 (1 of 3): Flight Check — ${gate1.counts.total}/${gate1.counts.total} stations diffed Sold vs. Observed`,
-      `Stage 3 · Gate 2 (2 of 3): Static Fire — ${gate2.totals.totalVectors}/${gate2.totals.totalVectors} real-world failure scenarios verified deterministically`,
-      `Stage 4 · Gate 3 (3 of 3): Crew Drill — ${gate3.totalAlarms}/${gate3.totalAlarms} live timed operational alarms verified`,
+      `Gate 1: Flight Check · Setup Check — ${gate1.counts.total}/${gate1.counts.total} stations diffed Sold vs. Observed`,
+      `Gate 2: Static Fire · Fault Injection — ${gate2.totals.totalVectors}/${gate2.totals.totalVectors} real-world failure scenarios verified deterministically`,
+      `Gate 3: Crew Drill · Live Incident Drill — ${gate3.totalAlarms}/${gate3.totalAlarms} live timed operational alarms verified`,
       "Handover Sprint — Tamper-evident (SHA-256 signed) launch dossier & stack-tailored Day-1 Runbook",
     ],
     outOfScopeBoundaries: [
@@ -364,14 +364,14 @@ function renderDossierMarkdown(d: SignedNominalDossier): string {
   lines.push("");
   lines.push("| Role | Named Engineer | Lifecycle Baton |");
   lines.push("|---|---|---|");
-  lines.push(`| Single Accountable Owner (Lead FDE) | \`${d.signers.leadFde}\` | Stage 2 (Gate 1), Stage 3 (Gate 2), Handover Sprint |`);
-  lines.push(`| Co-Signer (Lead CSE) | \`${d.signers.leadCse}\` | Stage 4 (Gate 3: Crew Drill) |`);
+  lines.push(`| Single Accountable Owner (Lead FDE) | \`${d.signers.leadFde}\` | Gate 1 (Flight Check), Gate 2 (Static Fire), Handover Sprint |`);
+  lines.push(`| Co-Signer (Lead CSE) | \`${d.signers.leadCse}\` | Gate 3 (Crew Drill · Live Incident Drill) |`);
   lines.push(`| Co-Signer (Customer Engineering Lead) | \`${d.signers.customerEngLead}\` | Customer Production Sign-Off |`);
-  lines.push(`| Receiving Owner (Support Engineer) | \`${d.signers.supportAckOwner ?? "support-oncall@vendor.io"}\` | Stage 5: Support (Day-1 Runbook) |`);
+  lines.push(`| Receiving Owner (Support Engineer) | \`${d.signers.supportAckOwner ?? "support-oncall@vendor.io"}\` | Live Support (Day-1 Runbook) |`);
   lines.push(`| Signed At | \`${d.signers.signedAt}\` | Target Go-Live: \`${d.account.target_go_live}\` |`);
   lines.push("");
 
-  lines.push("## Stage 2: Sales-to-FDE Handoff — Gate 1 (1 of 3): Flight Check");
+  lines.push("## Gate 1: Flight Check · Setup Check (Sales-to-FDE Handoff)");
   lines.push("");
   lines.push("| Sub-Stage | Station | Policy Class | Owner | Sold | Observed | Status |");
   lines.push("|---|---|---|---|---|---|---|");
@@ -401,7 +401,7 @@ function renderDossierMarkdown(d: SignedNominalDossier): string {
   }
   lines.push("");
 
-  lines.push("## Stage 3: Integration & Cutover — Gate 2 (2 of 3): Static Fire");
+  lines.push("## Gate 2: Static Fire · Fault Injection (Integration & Cutover)");
   lines.push("");
   lines.push(
     `**Resilience Grade:** \`${d.gate2.grade}\` | **Corruption:** \`${d.gate2.corruptionPct.toFixed(1)}%\` | **Vectors Passed:** \`${d.gate2.totals.passedVectors}/${d.gate2.totals.totalVectors}\` | **Attempt:** \`#${d.gate2.attemptNumber}\``,
@@ -426,7 +426,7 @@ function renderDossierMarkdown(d: SignedNominalDossier): string {
   }
   lines.push("");
 
-  lines.push("## Stage 4: Day-30 Enablement & Handover — Gate 3 (3 of 3): Crew Drill");
+  lines.push("## Gate 3: Crew Drill · Live Incident Drill (Day-30 Enablement & Handover)");
   lines.push("");
   lines.push(
     `**Stabilized:** \`${d.gate3.stabilizedCount}/${d.gate3.totalAlarms}\` | **Overtime Flags:** \`${d.gate3.overtimeCount}\` | **Total Split:** \`${formatSplit(d.gate3.totalSplitMs)}\``,
@@ -447,7 +447,7 @@ function renderDossierMarkdown(d: SignedNominalDossier): string {
   }
   lines.push("");
 
-  lines.push("## Stack-Tailored Day-1 Customer Runbook (Into Stage 5: Support)");
+  lines.push("## Stack-Tailored Day-1 Customer Runbook (Into Live Support)");
   lines.push("");
   lines.push(
     `- **Stack:** Cloud \`${d.runbook.stackSummary.cloud}\` · IdP \`${d.runbook.stackSummary.idp}\` · Alerting \`${d.runbook.stackSummary.alerting}\` · Runtime \`${d.runbook.stackSummary.webhook_runtime}\``,
@@ -513,13 +513,13 @@ function renderDossierSlack(d: SignedNominalDossier): string {
     `*NOMINALX GO-LIVE DOSSIER — ${d.account.name}*`,
     `*Verdict:* \`${verdictLabel}\` | *Target Go-Live:* \`${d.account.target_go_live}\` | *Lead FDE:* \`${d.signers.leadFde}\``,
     "",
-    `*Stage 2 · Gate 1 (1 of 3): Flight Check* — \`${d.gate1.verdict}\` (${d.gate1.counts.nominal} NOMINAL, ${d.gate1.counts.heldWaived} WAIVED, ${d.gate1.counts.noGo} NO-GO)`,
+    `*Gate 1: Flight Check · Setup Check* — \`${d.gate1.verdict}\` (${d.gate1.counts.nominal} NOMINAL, ${d.gate1.counts.heldWaived} WAIVED, ${d.gate1.counts.noGo} NO-GO)`,
     `> ${g1Summary}`,
     "",
-    `*Stage 3 · Gate 2 (2 of 3): Static Fire* — Grade \`${d.gate2.grade}\` · \`${d.gate2.corruptionPct.toFixed(1)}%\` corruption (\`${d.gate2.totals.passedVectors}/${d.gate2.totals.totalVectors}\` vectors)`,
+    `*Gate 2: Static Fire · Fault Injection* — Grade \`${d.gate2.grade}\` · \`${d.gate2.corruptionPct.toFixed(1)}%\` corruption (\`${d.gate2.totals.passedVectors}/${d.gate2.totals.totalVectors}\` vectors)`,
     `> Progression: ${fireDelta}`,
     "",
-    `*Stage 4 · Gate 3 (3 of 3): Crew Drill* — \`${d.gate3.stabilizedCount}/${d.gate3.totalAlarms}\` alarms stabilized`,
+    `*Gate 3: Crew Drill · Live Incident Drill* — \`${d.gate3.stabilizedCount}/${d.gate3.totalAlarms}\` alarms stabilized`,
     `> Splits: ${drillSplits}`,
     "",
     `*Active Operational Waivers (${activeWaivers.length}/2 cap; Hard Stops ${d.scopeSummary.hardStopsEnforced.join(", ")} non-waivable):*`,
@@ -540,7 +540,7 @@ function renderDossierSlack(d: SignedNominalDossier): string {
     `*Signers:* Lead FDE \`${d.signers.leadFde}\` · Lead CSE \`${d.signers.leadCse}\` · Customer Eng Lead \`${d.signers.customerEngLead}\``,
   );
   lines.push(
-    `*Stage 5 Support Handover:* Day-1 Runbook tailored for \`${d.runbook.stackSummary.cloud}\` / \`${d.runbook.stackSummary.idp}\` / \`${d.runbook.stackSummary.webhook_runtime}\` -> \`${d.signers.supportAckOwner ?? "support-oncall@vendor.io"}\``,
+    `*Live Support Handover:* Day-1 Runbook tailored for \`${d.runbook.stackSummary.cloud}\` / \`${d.runbook.stackSummary.idp}\` / \`${d.runbook.stackSummary.webhook_runtime}\` -> \`${d.signers.supportAckOwner ?? "support-oncall@vendor.io"}\``,
   );
   lines.push(`*SHA-256 Digest:* \`${d.verificationDigest}\``);
   return `${lines.join("\n")}\n`;
